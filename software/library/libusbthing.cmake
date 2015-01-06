@@ -10,4 +10,4 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 add_library(usbthing-driver ${USBTHING_SOURCES})
 
 #Add to convenience variable
-set(LIBS ${LIBS} usbthing-driver)
+set(LIBS ${LIBS} usbthing-driver usb-1.0)
