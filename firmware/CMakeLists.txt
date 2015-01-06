@@ -40,6 +40,7 @@ set(CMAKE_BUILD_TYPE DEBUG)
 
 # Add base libs (emlib, CMSIS, device files)
 include(${PROJECT_SOURCE_DIR}/${PROJECT_PREFIX}/toolchain/efm32-base.cmake)
+include(${PROJECT_SOURCE_DIR}/efm32-base/drivers/usb/usb.cmake)
 
 ##### Files #####
 
