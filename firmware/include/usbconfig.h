@@ -81,7 +81,7 @@ extern "C" {
  * character. This function must be implemented by the 
  * application. */
 int RETARGET_WriteChar(char c);
-#define USER_PUTCHAR  RETARGET_WriteChar      
+#define USER_PUTCHAR  puts      
 
 
 

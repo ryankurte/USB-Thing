@@ -43,6 +43,8 @@
 #include "callbacks.h"
 #include "descriptors.h"
 
+uint32_t INT_LockCnt;
+
 /* Messages to send when the user presses buttons on the kit */
 EFM32_ALIGN(4)
 uint8_t button0message[] = "PB0 pressed!";
