@@ -45,6 +45,8 @@
 
 uint32_t INT_LockCnt;
 
+extern void __libc_init_array();
+
 /* Messages to send when the user presses buttons on the kit */
 EFM32_ALIGN(4)
 uint8_t button0message[] = "PB0 pressed!";
@@ -137,3 +139,38 @@ void GPIO_EVEN_IRQHandler(void)
   USBD_Write(EP_IN, button1message, sizeof(button1message), dataSentCallback);
 }
 
+int RETARGET_WriteChar(char c) {
+  
+}
+
+void _exit(void) {
+    while(1);
+}
+
+void _sbrk(void) {
+
+}
+
+void _write(void) {
+
+}
+
+void _close(void) {
+
+}
+
+void _fstat(void) {
+
+}
+
+void _isatty(void) {
+
+}
+
+void _lseek(void) {
+
+}
+
+void _read(void) {
+
+}

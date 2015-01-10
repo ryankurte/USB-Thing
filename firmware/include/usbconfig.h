@@ -50,8 +50,6 @@ extern "C" {
  * must not be used by the application. */
 #define USB_TIMER USB_TIMER0   
   
-  
-  
 /********************************************************** 
  * Define the endpoint addresses. Bits [3:0] define
  * endpoint number. Bit 7 defines direction (1 = IN). 
@@ -63,8 +61,6 @@ extern "C" {
 /* Endpoint for USB data OUT (host to device).    */
 #define EP_OUT            0x01  
   
-
-  
 /********************************************************** 
  * Debug Configuration. Enable the stack to output
  * debug messages to a console. This example is
@@ -75,15 +71,13 @@ extern "C" {
 #define DEBUG_USB_API
 
 /* Enable printf calls in stack */
-#define USB_USE_PRINTF   
+//#define USB_USE_PRINTF   
 
 /* Function declaration for the low-level printing of a 
  * character. This function must be implemented by the 
  * application. */
 int RETARGET_WriteChar(char c);
-#define USER_PUTCHAR  puts      
-
-
+#define USER_PUTCHAR  RETARGET_WriteChar      
 
 /********************************************************** 
  * Power saving configuration. Select low frequency 
@@ -96,10 +90,7 @@ int RETARGET_WriteChar(char c);
 /* Select the power saving mode. Enter power save on Suspend and
  * when losing power on VBUS. Let the application handle when to
  * enter EM2 */
-#define USB_PWRSAVE_MODE (USB_PWRSAVE_MODE_ONSUSPEND | USB_PWRSAVE_MODE_ONVBUSOFF)
-
-
-
+//#define USB_PWRSAVE_MODE (USB_PWRSAVE_MODE_ONSUSPEND | USB_PWRSAVE_MODE_ONVBUSOFF)
   
 
 #ifdef __cplusplus
