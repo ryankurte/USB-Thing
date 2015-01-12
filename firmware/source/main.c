@@ -42,6 +42,7 @@
 #include "em_emu.h"
 #include "callbacks.h"
 #include "descriptors.h"
+#include "platform.h"
 
 uint32_t INT_LockCnt;
 
@@ -58,73 +59,73 @@ uint8_t button1message[] = "PB1 pressed!";
  **********************************************************/
 void gpioInit(void)
 {
-  /* Enable clock to GPIO */
-  CMU_ClockEnable(cmuClock_GPIO, true);
-   
-  /* Enable interrupt on push button 0 */
-  GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0);
-  GPIO_IntConfig(gpioPortB, 9, false, true, true);
-  NVIC_ClearPendingIRQ(GPIO_ODD_IRQn);
-  NVIC_EnableIRQ(GPIO_ODD_IRQn);
-  
-  /* Enable interrupt on push button 1 */
-  GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 0);
-  GPIO_IntConfig(gpioPortB, 10, false, true, true);
-  NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
-  NVIC_EnableIRQ(GPIO_EVEN_IRQn);
-}   
+    /* Enable clock to GPIO */
+    CMU_ClockEnable(cmuClock_GPIO, true);
+
+    /* Enable LED pins */
+    GPIO_PinModeSet(LED0_PORT, LED0_PIN, gpioModePushPull, 0);
+    GPIO_PinModeSet(LED1_PORT, LED1_PIN, gpioModePushPull, 0);
+
+    /* Enable interrupt on push button 0 */
+    GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0);
+    GPIO_IntConfig(gpioPortB, 9, false, true, true);
+    NVIC_ClearPendingIRQ(GPIO_ODD_IRQn);
+    NVIC_EnableIRQ(GPIO_ODD_IRQn);
+
+    /* Enable interrupt on push button 1 */
+    GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 0);
+    GPIO_IntConfig(gpioPortB, 10, false, true, true);
+    NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
+    NVIC_EnableIRQ(GPIO_EVEN_IRQn);
+}
 
 
 int main(void)
 {
-  /* Chip errata */
-  CHIP_Init();
-  
-  /* Enable HFXO */
-  CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
-  
-  printf("\nStarting USB Device...\n");
-  
-  /* Set up GPIO interrupts */
-  gpioInit();
-  
-  /* Start USB stack. Callback routines in callbacks.c will be called
-   * when connected to a host.  */
-  USBD_Init(&initstruct);;
+    /* Chip errata */
+    CHIP_Init();
 
-  /*
-   * When using a debugger it is pratical to uncomment the following three
-   * lines to force host to re-enumerate the device.
-   */
-  /* USBD_Disconnect(); */
-  /* USBTIMER_DelayMs( 1000 ); */
-  /* USBD_Connect(); */
-    
-  while(1)
-  {
-    if ( USBD_SafeToEnterEM2() )
-    {
-      /* Enter EM2 when in suspend or disconnected */
-      EMU_EnterEM2(true);
-    } 
-    else
-    {
-      /* When USB is active we can sleep in EM1. */
-      EMU_EnterEM1();
+    /* Enable HFXO */
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+
+    printf("\nStarting USB Device...\n");
+
+    /* Set up GPIO interrupts */
+    gpioInit();
+
+    /* Start USB stack. Callback routines in callbacks.c will be called
+     * when connected to a host.  */
+    USBD_Init(&initstruct);;
+
+    /*
+     * When using a debugger it is pratical to uncomment the following three
+     * lines to force host to re-enumerate the device.
+     */
+    USBD_Disconnect();
+    USBTIMER_DelayMs( 1000 );
+    USBD_Connect();
+
+    while (1) {
+        if ( USBD_SafeToEnterEM2() ) {
+            /* Enter EM2 when in suspend or disconnected */
+            EMU_EnterEM2(true);
+        } else {
+            /* When USB is active we can sleep in EM1. */
+            EMU_EnterEM1();
+        }
     }
-  } 
 }
 
 /**********************************************************
- * Interrupt handler for push button 0 
+ * Interrupt handler for push button 0
  **********************************************************/
 void GPIO_ODD_IRQHandler(void)
 {
-  /* Clear the interrupt flag */
-  GPIO->IFC = 1 << 9;
-  
-  /* Send message */
-  USBD_Write(EP_IN, button0message, sizeof(button0message), dataSentCallback);
+    /* Clear the interrupt flag */
+    GPIO->IFC = 1 << 9;
+
+    /* Send message */
+    USBD_Write(EP_IN, button0message, sizeof(button0message), dataSentCallback);
 }
 
 /**********************************************************
@@ -132,45 +133,14 @@ void GPIO_ODD_IRQHandler(void)
  **********************************************************/
 void GPIO_EVEN_IRQHandler(void)
 {
-  /* Clear the interrupt flag */
-  GPIO->IFC = 1 << 10;
-  
-  /* Send message */
-  USBD_Write(EP_IN, button1message, sizeof(button1message), dataSentCallback);
+    /* Clear the interrupt flag */
+    GPIO->IFC = 1 << 10;
+
+    /* Send message */
+    USBD_Write(EP_IN, button1message, sizeof(button1message), dataSentCallback);
 }
 
-int RETARGET_WriteChar(char c) {
-  
-}
-
-void _exit(void) {
-    while(1);
-}
-
-void _sbrk(void) {
-
-}
-
-void _write(void) {
-
-}
-
-void _close(void) {
-
-}
-
-void _fstat(void) {
-
-}
-
-void _isatty(void) {
-
-}
-
-void _lseek(void) {
-
-}
-
-void _read(void) {
+int RETARGET_WriteChar(char c)
+{
 
 }

@@ -42,13 +42,15 @@
 
 #include "callbacks.h"
 
+#include "platform.h"
+
 #ifdef STK
 #include "segmentlcd.h"
 #endif
 
 #define BUFFERSIZE 500
 
-/* Buffer to receive incoming messages. Needs to be 
+/* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
 STATIC_UBUF(receiveBuffer, BUFFERSIZE);
 
@@ -61,111 +63,101 @@ extern uint8_t button1message[];
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
- * 
+ *
  * @param oldState
  *   The previous state
- * 
+ *
  * @param newState
  *   The new (current) state
- * 
+ *
  **********************************************************/
 void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
 {
-  /* Print state transition to debug output */
-  printf("\n%s => %s", USBD_GetUsbStateName(oldState), USBD_GetUsbStateName(newState));
-  
-  if (newState == USBD_STATE_CONFIGURED)
-  {
-    /* Start waiting for the 'tick' messages */
-    USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
-    
+    /* Print state transition to debug output */
+    printf("\n%s => %s", USBD_GetUsbStateName(oldState), USBD_GetUsbStateName(newState));
+
+    if (newState == USBD_STATE_CONFIGURED) {
+        /* Start waiting for the 'tick' messages */
+        USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
+
+        GPIO_PinOutSet(LED0_PORT, LED0_PIN);
+        GPIO_PinOutClear(LED1_PORT, LED1_PIN);
+    } else if ( newState != USBD_STATE_SUSPENDED ) {
+        GPIO_PinOutSet(LED1_PORT, LED1_PIN);
+        GPIO_PinOutClear(LED0_PORT, LED0_PIN);
+    }
+
+    /* Write the current state on the LCD */
 #ifdef STK
-    SegmentLCD_Symbol(LCD_SYMBOL_ANT, 1);
-#endif
-  }
-  else if ( newState != USBD_STATE_SUSPENDED )
-  {
-#ifdef STK
-    SegmentLCD_Symbol(LCD_SYMBOL_ANT, 0);
-#endif
-  }
-    
-  /* Write the current state on the LCD */
-#ifdef STK
-  SegmentLCD_Write((char *)USBD_GetUsbStateName(newState));
+    SegmentLCD_Write((char *)USBD_GetUsbStateName(newState));
 #endif
 }
 
 /**********************************************************
- * Called when data is sent on the IN endpoint. 
- * 
+ * Called when data is sent on the IN endpoint.
+ *
  * @param status
  *   The transfer status. Should be USB_STATUS_OK if the
  *   transfer completed successfully.
- * 
+ *
  * @param xferred
  *   The number of bytes actually transmitted
- * 
+ *
  * @param remaining
  *   The number of bytes remaining (not transferred)
  **********************************************************/
 int dataSentCallback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-  /* Remove warnings for unused variables */
-  (void)xferred;
-  (void)remaining;
-  
-  if ( status != USB_STATUS_OK )
-  {
-    /* Handle error */
-  }
-  return USB_STATUS_OK;
+    /* Remove warnings for unused variables */
+    (void)xferred;
+    (void)remaining;
+
+    if ( status != USB_STATUS_OK ) {
+        /* Handle error */
+    }
+    return USB_STATUS_OK;
 }
 
 /**********************************************************
- * Called when data is received on the OUT endpoint. 
+ * Called when data is received on the OUT endpoint.
  * This function will increase the counter and update
  * the LCD display when it receives a 'tick' message
  * to let the user know that the message was received
  * (only on STK example).
- * 
+ *
  * @param status
  *   The transfer status. Should be USB_STATUS_OK if the
  *   transfer completed successfully.
- * 
+ *
  * @param xferred
  *   The number of bytes actually received
- * 
+ *
  * @param remaining
  *   The number of bytes remaining (not transferred)
  **********************************************************/
 int dataReceivedCallback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-  /* Remove warnings for unused variables */
-  (void)xferred;
-  (void)remaining;
+    /* Remove warnings for unused variables */
+    (void)xferred;
+    (void)remaining;
 
-  printf("\nReceived %s", receiveBuffer);
-  
-  /* Check status to verify that the transfer has completed successfully */
-  if ( status == USB_STATUS_OK )
-  {
-    /* Check if we received the 'tick' message */
-    if ( strcmp((char *)receiveBuffer, "tick") == 0 )
-    {
-      /* Increase the number on the LCD */
+    printf("\nReceived %s", receiveBuffer);
+
+    /* Check status to verify that the transfer has completed successfully */
+    if ( status == USB_STATUS_OK ) {
+        /* Check if we received the 'tick' message */
+        if ( strcmp((char *)receiveBuffer, "tick") == 0 ) {
+            /* Increase the number on the LCD */
 #ifdef STK
-      SegmentLCD_Number(++tickCounter);
+            SegmentLCD_Number(++tickCounter);
 #endif
+        }
+
+        /* Prepare to accept the next message */
+        USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
+    } else {
+        /* Handle errors here.  */
     }
-    
-    /* Prepare to accept the next message */
-    USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
-  }
-  else
-  {
-    /* Handle errors here.  */
-  }
-  
-  return USB_STATUS_OK;
+
+    return USB_STATUS_OK;
 }
