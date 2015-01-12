@@ -101,9 +101,11 @@ int main(void)
      * When using a debugger it is pratical to uncomment the following three
      * lines to force host to re-enumerate the device.
      */
+#ifdef DEBUG_USB
     USBD_Disconnect();
     USBTIMER_DelayMs( 1000 );
     USBD_Connect();
+#endif
 
     while (1) {
         if ( USBD_SafeToEnterEM2() ) {

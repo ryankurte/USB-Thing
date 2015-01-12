@@ -76,21 +76,23 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     /* Print state transition to debug output */
     printf("\n%s => %s", USBD_GetUsbStateName(oldState), USBD_GetUsbStateName(newState));
 
-    if (newState == USBD_STATE_CONFIGURED) {
+    if ((newState == USBD_STATE_NONE)
+        || (newState == USBD_STATE_DEFAULT)
+        || (newState == USBD_STATE_SUSPENDED)) {
+        //Initial states, not configured
+        GPIO_PinOutSet(LED0_PORT, LED0_PIN);
+        GPIO_PinOutClear(LED1_PORT, LED1_PIN);
+
+    } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
         USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
 
-        GPIO_PinOutSet(LED0_PORT, LED0_PIN);
-        GPIO_PinOutClear(LED1_PORT, LED1_PIN);
-    } else if ( newState != USBD_STATE_SUSPENDED ) {
         GPIO_PinOutSet(LED1_PORT, LED1_PIN);
         GPIO_PinOutClear(LED0_PORT, LED0_PIN);
-    }
 
-    /* Write the current state on the LCD */
-#ifdef STK
-    SegmentLCD_Write((char *)USBD_GetUsbStateName(newState));
-#endif
+    } else if ( newState != USBD_STATE_SUSPENDED ) {
+
+    }
 }
 
 /**********************************************************

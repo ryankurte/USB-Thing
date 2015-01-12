@@ -120,14 +120,11 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
  * Here 0x04 = United States, 0x09 = English. 
  * Refer to the USB Language Identifiers documentation. */
 STATIC_CONST_STRING_DESC_LANGID( langID, 0x04, 0x09 );
-STATIC_CONST_STRING_DESC( iManufacturer, 'S','i','l','i','c','o','n',' ',
-                                         'L', 'a', 'b', 's' );
-STATIC_CONST_STRING_DESC( iProduct     , 'E','F','M','3','2',' ',
-                                         'E','x','a','m','p','l','e',' ',
-                                         'U','S','B',' ', 
-                                         'D','e','v','i','c','e');
+STATIC_CONST_STRING_DESC( iManufacturer, 'E','L','E','C','T','R','O','N',' ', 'P',
+                                         'O', 'W','E','R','E','D');
+STATIC_CONST_STRING_DESC( iProduct     , 'U','S','B','-','T',' ','H','I','N','G');
 STATIC_CONST_STRING_DESC( iSerialNumber, '0','0','0','0','0','0',             
-                                         '0','0','1','2','3','4' );
+                                         '0','0','0','0','0','1' );
 
 
 static const void * const strings[] =
