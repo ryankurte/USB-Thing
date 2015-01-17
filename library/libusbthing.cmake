@@ -1,3 +1,6 @@
+#Add common information
+include(${CMAKE_CURRENT_LIST_DIR}/../common/common.cmake)
+
 #Add usbthing driver sources
 set(USBTHING_SOURCES 
 	${CMAKE_CURRENT_LIST_DIR}/source/usbthing.c

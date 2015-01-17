@@ -10,7 +10,7 @@ project(${TARGET} C CXX)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Add libraries
-include(${PROJECT_SOURCE_DIR}/library/libusbthing.cmake)
+include(${PROJECT_SOURCE_DIR}/../library/libusbthing.cmake)
 
 # Add project sources
 set(SOURCES

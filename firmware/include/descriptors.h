@@ -36,6 +36,7 @@
 extern "C" {
 #endif
   
+#include "protocol.h"
 
 /* Device Descriptor. Refer to the USB 2.0 Specification, chapter 9.6 */
 EFM32_ALIGN(4)
@@ -48,8 +49,8 @@ static const USB_DeviceDescriptor_TypeDef deviceDesc __attribute__ ((aligned(4))
   .bDeviceSubClass    = 0,                              /* Ignored for vendor unique device */            
   .bDeviceProtocol    = 0,                              /* Ignored for vendor unique device */
   .bMaxPacketSize0    = USB_EP0_SIZE,                   /* Max packet size for EP0 */
-  .idVendor           = 0x2544,                         /* Energy Micro VID */
-  .idProduct          = 0x0007,                         /* PID */
+  .idVendor           = VENDOR_ID,                      /* Energy Micro VID */
+  .idProduct          = PRODUCT_ID,                     /* PID */
   .bcdDevice          = 0x0000,                         /* Device Release number */
   .iManufacturer      = 1,                              /* Index of Manufacturer String Descriptor */
   .iProduct           = 2,                              /* Index of Product String Descriptor */
@@ -149,7 +150,7 @@ static const USBD_Callbacks_TypeDef callbacks =
 {
   .usbReset        = NULL,              /* Called whenever USB reset signalling is detected on the USB port. */
   .usbStateChange  = stateChange,       /* Called whenever the device change state.  */
-  .setupCmd        = NULL,              /* Called on each setup request received from host. */
+  .setupCmd        = setupCmd,          /* Called on each setup request received from host. */
   .isSelfPowered   = NULL,              /* Called whenever the device stack needs to query if the device is currently self- or bus-powered. */
   .sofInt          = NULL               /* Called at each SOF (Start of Frame) interrupt. If NULL, the device stack will not enable the SOF interrupt. */
 };

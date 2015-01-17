@@ -37,6 +37,7 @@ set(CMAKE_BUILD_TYPE DEBUG)
 ##### Modules #####
 
 # Libraries should add themselves to the LIBS variable
+include(${PROJECT_SOURCE_DIR}/../common/common.cmake)
 
 # Add base libs (emlib, CMSIS, device files)
 include(${PROJECT_SOURCE_DIR}/efm32-base/drivers/usb/usb.cmake)

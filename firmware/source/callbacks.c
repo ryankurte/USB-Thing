@@ -95,6 +95,18 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
+int setupCmd(const USB_Setup_TypeDef *setup)
+{
+    //Fetch components of setup message
+    uint8_t request = setup->bRequest;
+    uint16_t value = setup->wValue;
+    uint16_t index = setup->wIndex;
+    uint16_t length = setup->wLength;
+
+    //TODO: handle commands with greater length
+    
+}
+
 /**********************************************************
  * Called when data is sent on the IN endpoint.
  *
