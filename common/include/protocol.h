@@ -1,0 +1,23 @@
+
+
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
+
+#ifndef VENDOR_ID
+#define VENDOR_ID 	0x0001
+#endif
+
+#ifndef PRODUCT_ID
+#define PRODUCT_ID 	0x0001
+#endif
+
+enum usb_thing_cmd_e {
+	USBTHING_CMD_NOP = 0x80,
+	USBTHING_CMD_SERIAL_GET = 0x81,
+	USBTHING_CMD_SERIAL_SET = 0x82,
+	USBTHING_CMD_GPIO_CFG = 0x93,
+	USBTHING_CMD_GPIO_SET = 0x94,
+	USBTHING_CMD_GPIO_CLEAR = 0x95
+};
+
+#endif

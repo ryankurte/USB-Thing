@@ -42,6 +42,7 @@
 
 #include "callbacks.h"
 
+#include "protocol.h"
 #include "platform.h"
 
 #ifdef STK
@@ -105,6 +106,10 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     //TODO: handle commands
     //TODO handle commands of greater length
+    if(request == USBTHING_CMD_NOP) {
+      __asm("nop");
+      return 0;
+    }
     
 
     //Signal command was not handled

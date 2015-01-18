@@ -1,7 +1,7 @@
 /**
  * @brief USB Thing Interface Library
  * @details [long description]
- * 
+ *
  * see: http://libusb.sourceforge.net/api-1.0
  */
 
@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "libusb-1.0/libusb.h"
+
+#include "protocol.h"
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
 
@@ -50,21 +52,31 @@ int USBTHING_list_devices(uint16_t vid_filter, uint16_t pid_filter)
 int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t pid_filter)
 {
     int res;
-    
+
     usbthing->handle = libusb_open_device_with_vid_pid(NULL, vid_filter, pid_filter);
 
-    if(usbthing->handle == NULL) {
+    if (usbthing->handle == NULL) {
         //Device not found (or error)
         return -1;
     }
+
+    libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             USBTHING_CMD_NOP,
+                             0xAA,
+                             0xBB,
+                             NULL,
+                             0,
+                             0);
 
     //Connected
     return 0;
 }
 
-int USBTHING_disconnect(struct usbthing_s *usbthing) {
+int USBTHING_disconnect(struct usbthing_s *usbthing)
+{
     //Check device is open
-    if(usbthing->handle == NULL) {
+    if (usbthing->handle == NULL) {
         return -1;
     }
 
