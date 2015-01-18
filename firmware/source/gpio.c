@@ -22,32 +22,33 @@ void GPIO_init()
     GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
 }
 
-void GPIO_configure(int pin, int mode, bool pull_up)
+void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
 {
+    //TODO: enable pull
     switch (pin) {
     case GPIO0:
-        if (mode == GPIO_MODE_OUTPUT) {
+        if (output == true) {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
         } else {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
         }
         return;
     case GPIO1:
-        if (mode == GPIO_MODE_OUTPUT) {
+        if (output == true) {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
         } else {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
         }
         return;
     case GPIO2:
-        if (mode == GPIO_MODE_OUTPUT) {
+        if (output == true) {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
         } else {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
         }
         return;
     case GPIO3:
-        if (mode == GPIO_MODE_OUTPUT) {
+        if (output == true) {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
         } else {
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);

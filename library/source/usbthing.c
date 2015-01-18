@@ -78,19 +78,78 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
+int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, int *length)
+{
+    int res;
+
+    unsigned char version_str[USBTHING_FIRMWARE_MAX_SIZE];
+    int response_length;
+
+    res = libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT,
+                             USBTHING_CMD_LED_SET,
+                             0x00,
+                             0x00,
+                             version_str,
+                             4,
+                             1000);
+
+    if(res < 0) {
+        perror("USBTHING get firmware version error");
+    } else {
+        printf("firmware: %s\n", version_str);
+    }
+
+    return res;
+}
+
 int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
 {
-    libusb_control_transfer (usbthing->handle,
+    int res;
+
+    res = libusb_control_transfer (usbthing->handle,
                              LIBUSB_REQUEST_TYPE_VENDOR,
                              USBTHING_CMD_LED_SET,
                              led,
                              value,
                              NULL,
                              0,
-                             0);
+                             1000);
     //TODO: timeout
 
-    return 0;
+    if(res < 0) {
+        perror("USBTHING led set error");
+    }
+
+    return res;
+}
+
+int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, bool pull_enabled, bool pull_up)
+{
+    uint8_t mode;
+    int res;
+
+    //TODO: Sanity check mode input
+    mode = 0;
+    mode |= (output == true) ? USBTHING_GPIO_CFG_MODE_OUTPUT : USBTHING_GPIO_CFG_MODE_INPUT;
+    mode |= (pull_enabled == true) ? USBTHING_GPIO_CFG_PULL_ENABLE : USBTHING_GPIO_CFG_PULL_DISABLE;
+    mode |= (pull_up == true) ? USBTHING_GPIO_CFG_PULL_HIGH : USBTHING_GPIO_CFG_PULL_LOW;
+
+    res = libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             USBTHING_CMD_GPIO_CFG,
+                             pin,
+                             mode,
+                             NULL,
+                             0,
+                             1000);
+    //TODO: timeout
+
+    if(res < 0) {
+        perror("USBTHING gpio configure error");
+    }
+
+    return res;
 }
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter)

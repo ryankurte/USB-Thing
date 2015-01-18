@@ -23,7 +23,7 @@ enum led_pin_e {
 
 extern void GPIO_init();
 
-extern void GPIO_configure(int pin, int mode, bool pull_up);
+extern void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up);
 
 extern void GPIO_set(int pin, bool value);
 

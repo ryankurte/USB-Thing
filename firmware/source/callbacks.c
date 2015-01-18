@@ -62,6 +62,8 @@ int tickCounter = 0;
 extern uint8_t button0message[];
 extern uint8_t button1message[];
 
+EFM32_ALIGN(4)
+uint8_t firmware_version[] = "Test";
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -92,6 +94,42 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
+void getFirmware(const USB_Setup_TypeDef *setup)
+{
+    int retVal = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wIndex      != 0                             ) ||
+         ( setup->wLength     != 0                             ) ||
+         ( setup->wValue      != 0                             ) ||
+         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_INTERFACE )    ) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    retVal = USBD_Write(0, firmware_version, 4, NULL);
+
+    return retVal;
+}
+
+void setGPIO(const USB_Setup_TypeDef *setup)
+{
+  
+  uint8_t pin = setup->wValue;
+  bool output = ((setup->wIndex & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
+  bool pull_enabled = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
+  bool pull_direction = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
+
+  GPIO_configure(pin, output, pull_enabled, pull_direction);
+}
+
+void getGPIO(const USB_Setup_TypeDef *setup)
+{
+  uint8_t pin = setup->wValue;
+  uin8_t value = GPIO_get(pin);
+
+  //TODO: respond
+}
+
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
     //Fetch components of setup message
@@ -103,17 +141,21 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     //TODO: handle commands
     //TODO handle commands of greater length
 
-    switch(setup->bRequest) {
-      case USBTHING_CMD_NOP:
+    switch (setup->bRequest) {
+    case USBTHING_CMD_NOP:
         __asm("nop");
         return USB_STATUS_OK;
 
-      case USBTHING_CMD_LED_SET:
+    case USBTHING_CMD_LED_SET:
         GPIO_led_set(value, index);
         return USB_STATUS_OK;
 
+    case USBTHING_CMD_FIRMWARE_GET:
+        getFirmware(setup);
+        return USB_STATUS_OK;
+
     }
-    
+
     //Signal command was not handled
     return USB_STATUS_REQ_UNHANDLED;
 }

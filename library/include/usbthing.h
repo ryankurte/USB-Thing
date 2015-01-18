@@ -21,6 +21,10 @@ int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t 
 
 int USBTHING_disconnect(struct usbthing_s *usbthing);
 
+int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char* version, int* length);
+
 int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value);
+
+int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, bool pull_enabled, bool pull_up);
 
 #endif

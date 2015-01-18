@@ -24,6 +24,8 @@ setup:
     /* TODO: actual things */
     printf("Connected\n");
 
+    //USBTHING_get_firmware_version(&usbthing, NULL, NULL);
+
     USBTHING_led_set(&usbthing, 0, 1);
 
     sleep(1);
