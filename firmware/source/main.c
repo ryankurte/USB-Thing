@@ -40,9 +40,11 @@
 #include "em_usb.h"
 #include "em_gpio.h"
 #include "em_emu.h"
+
 #include "callbacks.h"
 #include "descriptors.h"
 #include "platform.h"
+ #include "gpio.h"
 
 uint32_t INT_LockCnt;
 
@@ -53,31 +55,6 @@ EFM32_ALIGN(4)
 uint8_t button0message[] = "PB0 pressed!";
 EFM32_ALIGN(4)
 uint8_t button1message[] = "PB1 pressed!";
-
-/**********************************************************
- * Enable GPIO interrupts on both push buttons on the STK
- **********************************************************/
-void gpioInit(void)
-{
-    /* Enable clock to GPIO */
-    CMU_ClockEnable(cmuClock_GPIO, true);
-
-    /* Enable LED pins */
-    GPIO_PinModeSet(LED0_PORT, LED0_PIN, gpioModePushPull, 0);
-    GPIO_PinModeSet(LED1_PORT, LED1_PIN, gpioModePushPull, 0);
-
-    /* Enable interrupt on push button 0 */
-    GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0);
-    GPIO_IntConfig(gpioPortB, 9, false, true, true);
-    NVIC_ClearPendingIRQ(GPIO_ODD_IRQn);
-    NVIC_EnableIRQ(GPIO_ODD_IRQn);
-
-    /* Enable interrupt on push button 1 */
-    GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 0);
-    GPIO_IntConfig(gpioPortB, 10, false, true, true);
-    NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
-    NVIC_EnableIRQ(GPIO_EVEN_IRQn);
-}
 
 
 int main(void)
@@ -91,7 +68,7 @@ int main(void)
     printf("\nStarting USB Device...\n");
 
     /* Set up GPIO interrupts */
-    gpioInit();
+    GPIO_init();
 
     /* Start USB stack. Callback routines in callbacks.c will be called
      * when connected to a host.  */
@@ -116,30 +93,6 @@ int main(void)
             EMU_EnterEM1();
         }
     }
-}
-
-/**********************************************************
- * Interrupt handler for push button 0
- **********************************************************/
-void GPIO_ODD_IRQHandler(void)
-{
-    /* Clear the interrupt flag */
-    GPIO->IFC = 1 << 9;
-
-    /* Send message */
-    USBD_Write(EP_IN, button0message, sizeof(button0message), dataSentCallback);
-}
-
-/**********************************************************
- * Interrupt handler for push button 1
- **********************************************************/
-void GPIO_EVEN_IRQHandler(void)
-{
-    /* Clear the interrupt flag */
-    GPIO->IFC = 1 << 10;
-
-    /* Send message */
-    USBD_Write(EP_IN, button1message, sizeof(button1message), dataSentCallback);
 }
 
 int RETARGET_WriteChar(char c)

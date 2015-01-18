@@ -52,6 +52,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 set(SOURCES
 	source/main.c
 	source/callbacks.c
+	source/gpio.c
 	${EFM_USB_SOURCES}
 )
 

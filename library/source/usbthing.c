@@ -60,15 +60,6 @@ int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t 
         return -1;
     }
 
-    libusb_control_transfer (usbthing->handle,
-                             LIBUSB_REQUEST_TYPE_VENDOR,
-                             USBTHING_CMD_NOP,
-                             0xAA,
-                             0xBB,
-                             NULL,
-                             0,
-                             0);
-
     //Connected
     return 0;
 }
@@ -83,6 +74,21 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     libusb_close(usbthing->handle);
 
     usbthing->handle = NULL;
+
+    return 0;
+}
+
+int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
+{
+    libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             USBTHING_CMD_LED_SET,
+                             led,
+                             value,
+                             NULL,
+                             0,
+                             0);
+    //TODO: timeout
 
     return 0;
 }

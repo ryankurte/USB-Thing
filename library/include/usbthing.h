@@ -4,6 +4,8 @@
 #define USBTHING_H
 
 #include <stdint.h>
+#include <stdbool.h>
+
 #include "libusb-1.0/libusb.h"
 
 struct usbthing_s {
@@ -18,5 +20,7 @@ int USBTHING_list_devices(uint16_t vid_filter, uint16_t pid_filter);
 int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t pid_filter);
 
 int USBTHING_disconnect(struct usbthing_s *usbthing);
+
+int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value);
 
 #endif

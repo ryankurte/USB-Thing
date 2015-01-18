@@ -44,6 +44,7 @@
 
 #include "protocol.h"
 #include "platform.h"
+#include "gpio.h"
 
 #ifdef STK
 #include "segmentlcd.h"
@@ -81,15 +82,10 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
         || (newState == USBD_STATE_DEFAULT)
         || (newState == USBD_STATE_SUSPENDED)) {
         //Initial states, not configured
-        GPIO_PinOutSet(LED0_PORT, LED0_PIN);
-        GPIO_PinOutClear(LED1_PORT, LED1_PIN);
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
         USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
-
-        GPIO_PinOutSet(LED1_PORT, LED1_PIN);
-        GPIO_PinOutClear(LED0_PORT, LED0_PIN);
 
     } else if ( newState != USBD_STATE_SUSPENDED ) {
 
@@ -106,12 +102,18 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     //TODO: handle commands
     //TODO handle commands of greater length
-    if(request == USBTHING_CMD_NOP) {
-      __asm("nop");
-      return 0;
+
+    switch(setup->bRequest) {
+      case USBTHING_CMD_NOP:
+        __asm("nop");
+        return USB_STATUS_OK;
+
+      case USBTHING_CMD_LED_SET:
+        GPIO_led_set(value, index);
+        return USB_STATUS_OK;
+
     }
     
-
     //Signal command was not handled
     return USB_STATUS_REQ_UNHANDLED;
 }
