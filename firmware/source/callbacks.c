@@ -103,8 +103,12 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     uint16_t index = setup->wIndex;
     uint16_t length = setup->wLength;
 
-    //TODO: handle commands with greater length
+    //TODO: handle commands
+    //TODO handle commands of greater length
     
+
+    //Signal command was not handled
+    return USB_STATUS_REQ_UNHANDLED;
 }
 
 /**********************************************************
