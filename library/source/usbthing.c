@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include "libusb-1.0/libusb.h"
 
+#define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE)
+#define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE)
+
 #include "protocol.h"
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
@@ -86,13 +89,13 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
     int response_length;
 
     res = libusb_control_transfer (usbthing->handle,
-                             LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT,
-                             USBTHING_CMD_LED_SET,
+                             CONTROL_REQUEST_TYPE_IN,
+                             USBTHING_CMD_FIRMWARE_GET,
                              0x00,
                              0x00,
                              version_str,
-                             4,
-                             1000);
+                             16,
+                             0);
 
     if(res < 0) {
         perror("USBTHING get firmware version error");
@@ -108,7 +111,7 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
     int res;
 
     res = libusb_control_transfer (usbthing->handle,
-                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             CONTROL_REQUEST_TYPE_OUT,
                              USBTHING_CMD_LED_SET,
                              led,
                              value,

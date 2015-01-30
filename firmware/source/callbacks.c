@@ -99,10 +99,10 @@ void getFirmware(const USB_Setup_TypeDef *setup)
     int retVal = USB_STATUS_REQ_ERR;
 
     if ( ( setup->wIndex      != 0                             ) ||
-         ( setup->wLength     != 0                             ) ||
+         ( setup->wLength     != 16                            ) ||
          ( setup->wValue      != 0                             ) ||
          ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_INTERFACE )    ) {
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_INTERFACE )) {
         return USB_STATUS_REQ_ERR;
     }
 
@@ -125,7 +125,7 @@ void setGPIO(const USB_Setup_TypeDef *setup)
 void getGPIO(const USB_Setup_TypeDef *setup)
 {
   uint8_t pin = setup->wValue;
-  uin8_t value = GPIO_get(pin);
+  uint8_t value = GPIO_get(pin);
 
   //TODO: respond
 }
