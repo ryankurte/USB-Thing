@@ -45,10 +45,7 @@
 #include "protocol.h"
 #include "platform.h"
 #include "gpio.h"
-
-#ifdef STK
-#include "segmentlcd.h"
-#endif
+#include "version.h"
 
 #define BUFFERSIZE 500
 
@@ -63,7 +60,9 @@ extern uint8_t button0message[];
 extern uint8_t button1message[];
 
 EFM32_ALIGN(4)
-uint8_t firmware_version[] = "Test";
+uint8_t firmware_version[] = SOFTWARE_VERSION;
+EFM32_ALIGN(4)
+uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -94,65 +93,112 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
-void getFirmware(const USB_Setup_TypeDef *setup)
+int getFirmware(const USB_Setup_TypeDef *setup)
 {
-    int retVal = USB_STATUS_REQ_ERR;
+    int res = USB_STATUS_REQ_ERR;
 
     if ( ( setup->wIndex      != 0                             ) ||
-         ( setup->wLength     != 16                            ) ||
+         ( setup->wLength     != USBTHING_FIRMWARE_MAX_SIZE    ) ||
          ( setup->wValue      != 0                             ) ||
          ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
          ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
         return USB_STATUS_REQ_ERR;
     }
 
-    retVal = USBD_Write(0, firmware_version, 4, NULL);
+    res = USBD_Write(0, firmware_version, sizeof(firmware_version), NULL);
 
-    return retVal;
+    return res;
 }
 
-void setGPIO(const USB_Setup_TypeDef *setup)
-{
-  
-  uint8_t pin = setup->wValue;
-  bool output = ((setup->wIndex & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-  bool pull_enabled = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-  bool pull_direction = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
+int setLed(const USB_Setup_TypeDef* setup) {
+    int res = USB_STATUS_REQ_ERR;
 
-  GPIO_configure(pin, output, pull_enabled, pull_direction);
+    if ( ( setup->wLength     != USBTHING_CMD_LED_SET_SIZE     ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    GPIO_led_set(setup->wValue, setup->wIndex);
+
+    return USB_STATUS_OK;
 }
 
-void getGPIO(const USB_Setup_TypeDef *setup)
+int configureGPIO(const USB_Setup_TypeDef *setup)
 {
-  uint8_t pin = setup->wValue;
-  uint8_t value = GPIO_get(pin);
+    if ( ( setup->wLength     != USBTHING_CMD_GPIO_CFG_SIZE    ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
 
-  //TODO: respond
+    uint8_t pin = setup->wValue;
+    bool output = ((setup->wIndex & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
+    bool pull_enabled = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
+    bool pull_direction = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
+
+    GPIO_configure(pin, output, pull_enabled, pull_direction);
+
+    return USB_STATUS_OK;
+}
+
+int setGPIO(const USB_Setup_TypeDef *setup)
+{
+    if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    GPIO_set(setup->wValue, setup->wIndex);
+
+    return USB_STATUS_OK;
+}
+
+int getGPIO(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
+         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    uint8_t pin = setup->wValue;
+    pin_value[0] = GPIO_get(pin);
+
+    //TODO: respond
+    res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
+
+    return res;
 }
 
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
-    //Fetch components of setup message
-    uint8_t request = setup->bRequest;
-    uint16_t value = setup->wValue;
-    uint16_t index = setup->wIndex;
-    uint16_t length = setup->wLength;
-
     //TODO: handle commands
-    //TODO handle commands of greater length
 
     switch (setup->bRequest) {
     case USBTHING_CMD_NOP:
         __asm("nop");
         return USB_STATUS_OK;
 
-    case USBTHING_CMD_LED_SET:
-        GPIO_led_set(value, index);
-        return USB_STATUS_OK;
-
     case USBTHING_CMD_FIRMWARE_GET:
         getFirmware(setup);
         return USB_STATUS_OK;
+
+    case USBTHING_CMD_LED_SET:
+        setLed(setup);
+        return USB_STATUS_OK;
+
+    case USBTHING_CMD_GPIO_CFG:
+        return configureGPIO(setup);
+
+    case USBTHING_CMD_GPIO_SET:
+        return setGPIO(setup);
+
+    case USBTHING_CMD_GPIO_GET:
+        return getGPIO(setup);
 
     }
 

@@ -58,6 +58,7 @@ set(SOURCES
 
 ##### Pre Build #####
 add_custom_target(version ${PROJECT_SOURCE_DIR}/../version.py ${CMAKE_BINARY_DIR}/version.h)
+include_directories(${CMAKE_BINARY_DIR})
 
 ##### Outputs #####
 

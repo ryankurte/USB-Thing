@@ -13,6 +13,7 @@
 
 #define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
 #define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
+#define USBTHING_TIMEOUT    1000
 
 #include "protocol.h"
 
@@ -85,17 +86,17 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
 {
     int res;
 
-    unsigned char version_str[USBTHING_FIRMWARE_MAX_SIZE];
+    unsigned char version_str[USBTHING_CMD_FIRMWARE_GET_SIZE];
     int response_length;
 
     res = libusb_control_transfer (usbthing->handle,
-                             CONTROL_REQUEST_TYPE_IN | LIBUSB_RECIPIENT_DEVICE,
+                             CONTROL_REQUEST_TYPE_IN,
                              USBTHING_CMD_FIRMWARE_GET,
                              0x00,
                              0x00,
                              version_str,
-                             16,
-                             0);
+                             USBTHING_CMD_FIRMWARE_GET_SIZE,
+                             USBTHING_TIMEOUT);
 
     if(res < 0) {
         perror("USBTHING get firmware version error");
@@ -116,8 +117,8 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
                              led,
                              value,
                              NULL,
-                             0,
-                             1000);
+                             USBTHING_CMD_LED_SET_SIZE,
+                             USBTHING_TIMEOUT);
     //TODO: timeout
 
     if(res < 0) {
@@ -144,12 +145,54 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, b
                              pin,
                              mode,
                              NULL,
-                             0,
-                             1000);
-    //TODO: timeout
+                             USBTHING_CMD_GPIO_CFG_SIZE,
+                             USBTHING_TIMEOUT);
 
     if(res < 0) {
         perror("USBTHING gpio configure error");
+    }
+
+    return res;
+}
+
+
+int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value)
+{
+    int res;
+    res = libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             USBTHING_CMD_GPIO_SET,
+                             pin,
+                             value,
+                             NULL,
+                             USBTHING_CMD_GPIO_SET_SIZE,
+                             USBTHING_TIMEOUT);
+
+    if(res < 0) {
+        perror("USBTHING gpio set error");
+    }
+
+    return res;
+}
+
+int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
+{
+    int res;
+    unsigned char result[USBTHING_CMD_GPIO_GET_SIZE];
+
+    res = libusb_control_transfer (usbthing->handle,
+                             LIBUSB_REQUEST_TYPE_VENDOR,
+                             USBTHING_CMD_GPIO_CFG,
+                             pin,
+                             0,
+                             result,
+                             USBTHING_CMD_GPIO_GET_SIZE,
+                             USBTHING_TIMEOUT);
+
+    if(res < 0) {
+        perror("USBTHING gpio get error");
+    } else {
+        (*value) = (result[0] == 0) ? false : true;
     }
 
     return res;
