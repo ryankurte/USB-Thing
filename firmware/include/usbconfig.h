@@ -44,7 +44,7 @@ extern "C" {
 #define USB_DEVICE        
   
 /* Specify number of endpoints used (in addition to EP0) */
-#define NUM_EP_USED 2
+#define NUM_EP_USED 4
   
 /* Select TIMER0 to be used by the USB stack. This timer
  * must not be used by the application. */
@@ -56,11 +56,18 @@ extern "C" {
  **********************************************************/
   
 /* Endpoint for USB data IN  (device to host).    */  
-#define EP_IN             0x81  
+#define EP1_IN             0x81  
   
 /* Endpoint for USB data OUT (host to device).    */
-#define EP_OUT            0x01  
+#define EP1_OUT            0x01  
   
+
+ /* Endpoint for USB data IN  (device to host).    */  
+#define EP2_IN             0x82  
+  
+/* Endpoint for USB data OUT (host to device).    */
+#define EP2_OUT            0x02  
+
 /********************************************************** 
  * Debug Configuration. Enable the stack to output
  * debug messages to a console. This example is

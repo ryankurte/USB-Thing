@@ -44,7 +44,9 @@
 #include "callbacks.h"
 #include "descriptors.h"
 #include "platform.h"
- #include "gpio.h"
+#include "gpio.h"
+
+ #define DEBUG_USB
 
 uint32_t INT_LockCnt;
 
@@ -75,7 +77,7 @@ int main(void)
     USBD_Init(&initstruct);;
 
     /*
-     * When using a debugger it is pratical to uncomment the following three
+     * When using a debugger it is practical to uncomment the following three
      * lines to force host to re-enumerate the device.
      */
 #ifdef DEBUG_USB
@@ -85,6 +87,7 @@ int main(void)
 #endif
 
     while (1) {
+#if 0
         if ( USBD_SafeToEnterEM2() ) {
             /* Enter EM2 when in suspend or disconnected */
             EMU_EnterEM2(true);
@@ -92,6 +95,7 @@ int main(void)
             /* When USB is active we can sleep in EM1. */
             EMU_EnterEM1();
         }
+#endif
     }
 }
 

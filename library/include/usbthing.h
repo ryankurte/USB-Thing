@@ -31,4 +31,6 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value);
 
 int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value);
 
+int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length);
+
 #endif

@@ -51,7 +51,11 @@
 
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
-STATIC_UBUF(receiveBuffer, BUFFERSIZE);
+STATIC_UBUF(spi_receive_buffer, BUFFERSIZE);
+//STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
+
+STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
+//STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
 
 /* Counter to increase when receiving a 'tick' message */
 int tickCounter = 0;
@@ -86,7 +90,8 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
-        USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
+        USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
+        USBD_Read(EP2_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
 
     } else if ( newState != USBD_STATE_SUSPENDED ) {
 
@@ -206,24 +211,15 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     return USB_STATUS_REQ_UNHANDLED;
 }
 
-/**********************************************************
- * Called when data is sent on the IN endpoint.
- *
- * @param status
- *   The transfer status. Should be USB_STATUS_OK if the
- *   transfer completed successfully.
- *
- * @param xferred
- *   The number of bytes actually transmitted
- *
- * @param remaining
- *   The number of bytes remaining (not transferred)
- **********************************************************/
-int dataSentCallback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+
+int spi_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
     /* Remove warnings for unused variables */
     (void)xferred;
     (void)remaining;
+
+    //Restart EP_OUT
+    USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
 
     if ( status != USB_STATUS_OK ) {
         /* Handle error */
@@ -231,45 +227,62 @@ int dataSentCallback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remai
     return USB_STATUS_OK;
 }
 
-/**********************************************************
- * Called when data is received on the OUT endpoint.
- * This function will increase the counter and update
- * the LCD display when it receives a 'tick' message
- * to let the user know that the message was received
- * (only on STK example).
- *
- * @param status
- *   The transfer status. Should be USB_STATUS_OK if the
- *   transfer completed successfully.
- *
- * @param xferred
- *   The number of bytes actually received
- *
- * @param remaining
- *   The number of bytes remaining (not transferred)
- **********************************************************/
-int dataReceivedCallback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+int spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
     /* Remove warnings for unused variables */
     (void)xferred;
     (void)remaining;
 
-    printf("\nReceived %s", receiveBuffer);
+    printf("\nReceived %s", spi_receive_buffer);
 
     /* Check status to verify that the transfer has completed successfully */
     if ( status == USB_STATUS_OK ) {
-        /* Check if we received the 'tick' message */
-        if ( strcmp((char *)receiveBuffer, "tick") == 0 ) {
-            /* Increase the number on the LCD */
-#ifdef STK
-            SegmentLCD_Number(++tickCounter);
-#endif
-        }
-
-        /* Prepare to accept the next message */
-        USBD_Read(EP_OUT, receiveBuffer, BUFFERSIZE, dataReceivedCallback);
+        //TODO: Call hardware functions here
+        USBD_Write(EP1_IN, spi_receive_buffer, xferred, spi_data_sent_callback);
+        
     } else {
-        /* Handle errors here.  */
+        //TODO: handle errors
+
+        //Restart EP_OUT
+        USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
+    }
+
+    return USB_STATUS_OK;
+}
+
+int i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+    /* Remove warnings for unused variables */
+    (void)xferred;
+    (void)remaining;
+
+    //Restart EP_OUT
+    USBD_Read(EP1_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
+
+    if ( status != USB_STATUS_OK ) {
+        /* Handle error */
+    }
+    return USB_STATUS_OK;
+}
+
+int i2c_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+    /* Remove warnings for unused variables */
+    (void)xferred;
+    (void)remaining;
+
+    printf("\nReceived %s", i2c_receive_buffer);
+
+    /* Check status to verify that the transfer has completed successfully */
+    if ( status == USB_STATUS_OK ) {
+        //TODO: Call hardware functions here
+        USBD_Write(EP2_IN, i2c_receive_buffer, xferred, i2c_data_sent_callback);
+        
+    } else {
+        //TODO: handle errors
+
+        //Restart EP_OUT
+        USBD_Read(EP1_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
     }
 
     return USB_STATUS_OK;

@@ -26,19 +26,17 @@ setup:
 
     USBTHING_get_firmware_version(&usbthing, NULL, NULL);
 
+    unsigned char data_out[] = "tick";
+    unsigned char data_in[sizeof(data_out)];
+    USBTHING_spi_transfer(&usbthing, data_out, data_in, sizeof(data_out));
+    USBTHING_i2c_transfer(&usbthing, data_out, data_in, sizeof(data_out));
+
     USBTHING_led_set(&usbthing, 0, 1);
 
     sleep(1);
 
     USBTHING_led_set(&usbthing, 0, 0);
 
-    sleep(1);
-
-    USBTHING_led_set(&usbthing, 1, 1);
-
-    sleep(1);
-
-    USBTHING_led_set(&usbthing, 1, 0);
 
 
 teardown:
