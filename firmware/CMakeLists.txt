@@ -56,11 +56,15 @@ set(SOURCES
 	${EFM_USB_SOURCES}
 )
 
+##### Pre Build #####
+add_custom_target(version ${PROJECT_SOURCE_DIR}/../version.py ${CMAKE_BINARY_DIR}/version.h)
+
 ##### Outputs #####
 
 # Generate executable and link
 add_executable(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET} ${LIBS})
+add_dependencies(${TARGET} version)
 
 ##### Post build #####
 

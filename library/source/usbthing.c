@@ -11,8 +11,8 @@
 #include <stdint.h>
 #include "libusb-1.0/libusb.h"
 
-#define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE)
-#define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE)
+#define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
+#define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
 
 #include "protocol.h"
 
@@ -89,7 +89,7 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
     int response_length;
 
     res = libusb_control_transfer (usbthing->handle,
-                             CONTROL_REQUEST_TYPE_IN,
+                             CONTROL_REQUEST_TYPE_IN | LIBUSB_RECIPIENT_DEVICE,
                              USBTHING_CMD_FIRMWARE_GET,
                              0x00,
                              0x00,

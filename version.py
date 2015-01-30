@@ -11,19 +11,9 @@ args = parser.parse_args()
 output = args.output
  
 #Load git description
-p = subprocess.Popen('git describe', stdout=subprocess.PIPE, shell=True)
+p = subprocess.Popen('git describe --dirty=+', stdout=subprocess.PIPE, shell=True)
 version = p.communicate()[0]
 versionString = version.replace('\n', '').replace('\r', '');
- 
-#Determine if branch is dirty
-cleanString = 'nothing to commit (working directory clean)'
-p = subprocess.Popen('git status', stdout=subprocess.PIPE, shell=True)
-result = p.communicate()[0]
-if(cleanString in result):
-	cleanFlag = True
-else:
-	cleanFlag = False
-	versionString += '-dirty'
  
 #Generate new file string
 baseString = '#ifndef GIT_VERSION_H\r\n#define GIT_VERSION_H\r\n#define SOFTWARE_VERSION \"version_here\"\r\n#endif\r\n'

@@ -102,7 +102,7 @@ void getFirmware(const USB_Setup_TypeDef *setup)
          ( setup->wLength     != 16                            ) ||
          ( setup->wValue      != 0                             ) ||
          ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_INTERFACE )) {
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
         return USB_STATUS_REQ_ERR;
     }
 
