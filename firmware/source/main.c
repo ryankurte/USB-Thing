@@ -46,7 +46,7 @@
 #include "platform.h"
 #include "gpio.h"
 
- #define DEBUG_USB
+#define DEBUG_USB
 
 uint32_t INT_LockCnt;
 
