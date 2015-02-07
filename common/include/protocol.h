@@ -72,6 +72,7 @@ enum usb_thing_cmd_e {
 /*****		I2C Configuration messages 			*****/
 #define USBTHING_I2C_CFG_SPEED_SHIFT 			(0)
 #define USBTHING_I2C_CFG_SPEED_MASK 			(3 << USBTHING_I2C_CFG_SPEED_SHIFT)
+#define USBTHING_I2C_CFG_SIZE					0
 
 enum usbthing_i2c_speed_e {
 	USBTHING_I2C_SPEED_STANDARD = 0,			//!< Standard mode (100 kbps)
