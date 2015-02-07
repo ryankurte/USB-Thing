@@ -10,14 +10,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+
 #include "libusb-1.0/libusb.h"
+
+#include "protocol.h"
 
 #define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
 #define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
 #define USBTHING_TIMEOUT        1000
 #define USBTHING_BUFFER_SIZE    64
 
-#include "protocol.h"
+#ifdef DEBUG_USBTHING
+#define USBTHING_DEBUG_PRINT(...) printf(...)
+#else
+#define USBTHING_DEBUG_PRINT(...)
+#endif
 
 static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
@@ -75,6 +82,8 @@ int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t 
         return -2;
     }
 
+    USBTHING_DEBUG_PRINT("Connected to device: %.4x:%.4x\r\n", vid_filter, pid_filter);
+
     //Connected
     return 0;
 }
@@ -112,7 +121,7 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
     if (res < 0) {
         perror("USBTHING get firmware version error");
     } else {
-        printf("firmware: %s\n", version_str);
+        USBTHING_DEBUG_PRINT("firmware: %s\n", version_str);
     }
 
     return res;
@@ -248,7 +257,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -1;
     }
 
-    printf("SPI write: ");
+    USBTHING_DEBUG_PRINT("SPI write: ");
     print_buffer(length, data_out);
 
     res = libusb_bulk_transfer (usbthing->handle,
@@ -264,7 +273,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -2;
     }
 
-    printf("SPI read: ");
+    USBTHING_DEBUG_PRINT("SPI read: ");
     print_buffer(length, data_in);
 
     return 0;
@@ -389,7 +398,7 @@ int USBTHING_i2c_read(struct usbthing_s *usbthing,
         return -2;
     }
 
-    printf("I2C Read: ");
+    USBTHING_DEBUG_PRINT("I2C Read: ");
     print_buffer(transferred, data_in);
 
     return 0;
@@ -431,7 +440,7 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
         return -1;
     }
 
-    printf("I2C write: ");
+    USBTHING_DEBUG_PRINT("I2C write: ");
     print_buffer(length_out, data_out);
 
     res = libusb_bulk_transfer (usbthing->handle,
@@ -447,7 +456,7 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
         return -2;
     }
 
-    printf("I2C Read: ");
+    USBTHING_DEBUG_PRINT("I2C Read: ");
     print_buffer(transferred, data_in);
 
     return 0;
@@ -456,9 +465,9 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
 static void print_buffer(uint8_t length, uint8_t *buffer)
 {
     for (uint8_t i = 0; i < length; i++) {
-        printf("%.2x ", buffer[i]);
+        USBTHING_DEBUG_PRINT("%.2x ", buffer[i]);
     }
-    printf("\r\n");
+    USBTHING_DEBUG_PRINT("\r\n");
 }
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter)
