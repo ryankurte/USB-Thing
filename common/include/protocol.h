@@ -21,7 +21,9 @@ enum usb_thing_cmd_e {
 	USBTHING_CMD_GPIO_CFG = 0x92,
 	USBTHING_CMD_GPIO_SET = 0x93,
 	USBTHING_CMD_GPIO_GET = 0x94,
-	USBTHING_CMD_SPI_CFG = 0xA1
+	USBTHING_CMD_SPI_CFG = 0xA1,
+	USBTHING_CMD_I2C_CFG = 0xB1,
+	USBTHING_CMD_I2C_TRANSFER = 0xB2
 };
 
 
@@ -40,7 +42,7 @@ enum usb_thing_cmd_e {
 #define USBTHING_CMD_GPIO_CFG_SIZE 				0
 //Mode field
 #define USBTHING_GPIO_CFG_MODE_SHIFT			(0)
-#define USBTHING_GPIO_CFG_MODE_MASK				0x01
+#define USBTHING_GPIO_CFG_MODE_MASK				(1 << USBTHING_GPIO_CFG_MODE_SHIFT)
 #define USBTHING_GPIO_CFG_MODE_INPUT 			(0 << USBTHING_GPIO_CFG_MODE_SHIFT)
 #define USBTHING_GPIO_CFG_MODE_OUTPUT 			(1 << USBTHING_GPIO_CFG_MODE_SHIFT)
 //Pull enable field
@@ -67,5 +69,28 @@ enum usb_thing_cmd_e {
 #define USBTHING_CMD_GPIO_SET_SIZE 				0
 #define USBTHING_CMD_GPIO_GET_SIZE				1
 
+/*****		I2C Configuration messages 			*****/
+#define USBTHING_I2C_CFG_SPEED_SHIFT 			(0)
+#define USBTHING_I2C_CFG_SPEED_MASK 			(3 << USBTHING_I2C_CFG_SPEED_SHIFT)
+
+enum usbthing_i2c_speed_e {
+	USBTHING_I2C_SPEED_STANDARD = 0,			//!< Standard mode (100 kbps)
+	USBTHING_I2C_SPEED_FULL = 1,				//!< Full mode (400 kbps)
+	USBTHING_I2C_SPEED_FAST = 2, 				//!< Fast mode (1 Mpbs)
+	USBTHING_I2C_SPEED_HIGH = 3 				//!< High speed mode (3.2 Mbps)
+};
+
+enum usbthing_i2c_transfer_mode_e {
+	USBTHING_I2C_MODE_READ = 0,					//!< Read only mode
+	USBTHING_I2C_MODE_WRITE = 1,				//!< Write only mode
+	USBTHING_I2C_MODE_WRITE_READ = 2			//!< Write and read mode
+};
+
+struct usbthing_i2c_transfer_s {
+	uint8_t mode;								//!< I2C Transfer mode
+	uint8_t address;							//!< I2C Device address
+	uint8_t num_write;							//!< Number of bytes to write
+	uint8_t num_read;							//!< Number of bytes to read
+} usbthing_i2c_transfer_s;
 
 #endif

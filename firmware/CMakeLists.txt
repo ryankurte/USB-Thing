@@ -53,6 +53,8 @@ set(SOURCES
 	source/main.c
 	source/callbacks.c
 	source/gpio.c
+	source/spi.c
+	source/i2c.c
 	${EFM_USB_SOURCES}
 )
 

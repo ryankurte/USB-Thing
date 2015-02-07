@@ -115,7 +115,7 @@ int getFirmware(const USB_Setup_TypeDef *setup)
     return res;
 }
 
-int setLed(const USB_Setup_TypeDef* setup) {
+int led_set(const USB_Setup_TypeDef* setup) {
     int res = USB_STATUS_REQ_ERR;
 
     if ( ( setup->wLength     != USBTHING_CMD_LED_SET_SIZE     ) ||
@@ -129,7 +129,7 @@ int setLed(const USB_Setup_TypeDef* setup) {
     return USB_STATUS_OK;
 }
 
-int configureGPIO(const USB_Setup_TypeDef *setup)
+int gpio_configure(const USB_Setup_TypeDef *setup)
 {
     if ( ( setup->wLength     != USBTHING_CMD_GPIO_CFG_SIZE    ) ||
          ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
@@ -147,7 +147,7 @@ int configureGPIO(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
-int setGPIO(const USB_Setup_TypeDef *setup)
+int gpio_set(const USB_Setup_TypeDef *setup)
 {
     if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
          ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
@@ -160,7 +160,7 @@ int setGPIO(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
-int getGPIO(const USB_Setup_TypeDef *setup)
+int gpio_get(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
@@ -179,6 +179,20 @@ int getGPIO(const USB_Setup_TypeDef *setup)
     return res;
 }
 
+int i2c_configure(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
+         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    
+
+}
+
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
     //TODO: handle commands
@@ -193,17 +207,17 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return USB_STATUS_OK;
 
     case USBTHING_CMD_LED_SET:
-        setLed(setup);
+        led_set(setup);
         return USB_STATUS_OK;
 
     case USBTHING_CMD_GPIO_CFG:
-        return configureGPIO(setup);
+        return gpio_configure(setup);
 
     case USBTHING_CMD_GPIO_SET:
-        return setGPIO(setup);
+        return gpio_set(setup);
 
     case USBTHING_CMD_GPIO_GET:
-        return getGPIO(setup);
+        return gpio_get(setup);
 
     }
 
