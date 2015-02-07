@@ -67,6 +67,8 @@ int main(void)
     /* Enable HFXO */
     CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
+    CMU_ClockEnable(cmuClock_HFPER, true);
+
     printf("\nStarting USB Device...\n");
 
     /* Set up GPIO interrupts */

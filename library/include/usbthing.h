@@ -33,6 +33,8 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value);
 
 int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value);
 
+int USBTHING_spi_configure(struct usbthing_s *usbthing, int speed, int mode);
+
 int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length);
 
 int USBTHING_i2c_configure(struct usbthing_s *usbthing, int mode);

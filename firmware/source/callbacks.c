@@ -101,7 +101,7 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
-int getFirmware(const USB_Setup_TypeDef *setup)
+int firmware_get(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
@@ -256,19 +256,19 @@ int spi_configure(const USB_Setup_TypeDef *setup)
     }
 
     //Set clock mode
-    switch(mode) {
-    case USBTHING_I2C_CLOCK_MODE0:
+    switch (mode) {
+    case USBTHING_SPI_CLOCK_MODE0:
         clock_mode = usartClockMode0;
-    break;
-    case USBTHING_I2C_CLOCK_MODE1:
+        break;
+    case USBTHING_SPI_CLOCK_MODE1:
         clock_mode = usartClockMode1;
-    break;
-    case USBTHING_I2C_CLOCK_MODE2:
+        break;
+    case USBTHING_SPI_CLOCK_MODE2:
         clock_mode = usartClockMode2;
-    break;
-    case USBTHING_I2C_CLOCK_MODE3:
+        break;
+    case USBTHING_SPI_CLOCK_MODE3:
         clock_mode = usartClockMode3;
-    break;
+        break;
     }
 
     //Initialize I2C
@@ -289,7 +289,7 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return USB_STATUS_OK;
 
     case USBTHING_CMD_FIRMWARE_GET:
-        getFirmware(setup);
+        firmware_get(setup);
         return USB_STATUS_OK;
 
     case USBTHING_CMD_LED_SET:
@@ -307,6 +307,9 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
+
+    case USBTHING_CMD_SPI_CFG:
+        return spi_configure(setup);
     }
 
     //Signal command was not handled

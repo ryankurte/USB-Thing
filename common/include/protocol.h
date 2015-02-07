@@ -84,10 +84,10 @@ enum usbthing_spi_speed_e {
 };
 
 enum usbthing_spi_clock_mode_e {
-    USBTHING_I2C_CLOCK_MODE0 = 0,               //!< Idle low, sample leading edge
-    USBTHING_I2C_CLOCK_MODE1 = 1,               //!< Idle low, sample trailing edge
-    USBTHING_I2C_CLOCK_MODE2 = 2,               //!< Idle high, sample leading edge
-    USBTHING_I2C_CLOCK_MODE3 = 3,               //!< Idle low, sample trailing edge
+    USBTHING_SPI_CLOCK_MODE0 = 0,               //!< Idle low, sample leading edge
+    USBTHING_SPI_CLOCK_MODE1 = 1,               //!< Idle low, sample trailing edge
+    USBTHING_SPI_CLOCK_MODE2 = 2,               //!< Idle high, sample leading edge
+    USBTHING_SPI_CLOCK_MODE3 = 3,               //!< Idle low, sample trailing edge
 };
 
 /*****      I2C Configuration messages          *****/

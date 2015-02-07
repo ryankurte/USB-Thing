@@ -19,6 +19,7 @@
 
 #include "protocol.h"
 
+static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
 
 int USBTHING_init()
@@ -208,6 +209,25 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     return res;
 }
 
+int USBTHING_spi_configure(struct usbthing_s *usbthing, int speed, int mode)
+{
+    int res;
+    res = libusb_control_transfer (usbthing->handle,
+                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   USBTHING_CMD_SPI_CFG,
+                                   speed,
+                                   mode,
+                                   NULL,
+                                   USBTHING_SPI_CFG_SIZE,
+                                   USBTHING_TIMEOUT);
+
+    if (res < 0) {
+        perror("USBTHING spi configuration error");
+    }
+
+    return res;
+}
+
 int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length)
 {
     int res;
@@ -228,7 +248,8 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -1;
     }
 
-    printf("Sent: %s\n", data_out);
+    printf("SPI write: ");
+    print_buffer(length, data_out);
 
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x81,
@@ -243,18 +264,19 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -2;
     }
 
-    printf("Received: %s\n", data_in);
+    printf("SPI read: ");
+    print_buffer(length, data_in);
 
     return 0;
 }
 
-int USBTHING_i2c_configure(struct usbthing_s *usbthing, int mode)
+int USBTHING_i2c_configure(struct usbthing_s *usbthing, int speed)
 {
     int res;
     res = libusb_control_transfer (usbthing->handle,
                                    LIBUSB_REQUEST_TYPE_VENDOR,
                                    USBTHING_CMD_I2C_CFG,
-                                   mode,
+                                   speed,
                                    0,
                                    NULL,
                                    USBTHING_I2C_CFG_SIZE,
@@ -268,8 +290,8 @@ int USBTHING_i2c_configure(struct usbthing_s *usbthing, int mode)
 }
 
 int USBTHING_i2c_write(struct usbthing_s *usbthing,
-                            int address,
-                            int length_out, unsigned char *data_out)
+                       int address,
+                       int length_out, unsigned char *data_out)
 {
     uint8_t output_buffer[USBTHING_BUFFER_SIZE];
     uint8_t input_buffer[USBTHING_BUFFER_SIZE];
@@ -302,7 +324,8 @@ int USBTHING_i2c_write(struct usbthing_s *usbthing,
         return -1;
     }
 
-    printf("Sent: %s\n", data_out);
+    printf("I2C write: ");
+    print_buffer(length_out, data_out);
 
     //Stub for write function response (written data)
     res = libusb_bulk_transfer (usbthing->handle,
@@ -322,8 +345,8 @@ int USBTHING_i2c_write(struct usbthing_s *usbthing,
 }
 
 int USBTHING_i2c_read(struct usbthing_s *usbthing,
-                            int address,
-                            int length_in, unsigned char *data_in)
+                      int address,
+                      int length_in, unsigned char *data_in)
 {
     uint8_t output_buffer[USBTHING_BUFFER_SIZE];
     int output_buffer_length;
@@ -366,7 +389,8 @@ int USBTHING_i2c_read(struct usbthing_s *usbthing,
         return -2;
     }
 
-    printf("Received: %s\n", data_in);
+    printf("I2C Read: ");
+    print_buffer(transferred, data_in);
 
     return 0;
 }
@@ -407,7 +431,8 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
         return -1;
     }
 
-    printf("Sent: %s\n", data_out);
+    printf("I2C write: ");
+    print_buffer(length_out, data_out);
 
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x82,
@@ -422,9 +447,18 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
         return -2;
     }
 
-    printf("Received: %s\n", data_in);
+    printf("I2C Read: ");
+    print_buffer(transferred, data_in);
 
     return 0;
+}
+
+static void print_buffer(uint8_t length, uint8_t *buffer)
+{
+    for (uint8_t i = 0; i < length; i++) {
+        printf("%.2x ", buffer[i]);
+    }
+    printf("\r\n");
 }
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter)
