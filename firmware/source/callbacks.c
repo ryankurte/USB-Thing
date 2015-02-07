@@ -124,7 +124,7 @@ int led_set(const USB_Setup_TypeDef* setup) {
         return USB_STATUS_REQ_ERR;
     }
 
-    GPIO_led_set(setup->wValue, setup->wIndex);
+    GPIO_led_set(setup->wIndex, setup->wValue);
 
     return USB_STATUS_OK;
 }
@@ -137,10 +137,10 @@ int gpio_configure(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    uint8_t pin = setup->wValue;
-    bool output = ((setup->wIndex & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-    bool pull_enabled = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-    bool pull_direction = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
+    uint8_t pin = setup->wIndex;
+    bool output = ((setup->wValue & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
+    bool pull_enabled = ((setup->wValue & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
+    bool pull_direction = ((setup->wValue & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
 
     GPIO_configure(pin, output, pull_enabled, pull_direction);
 
@@ -155,7 +155,7 @@ int gpio_set(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    GPIO_set(setup->wValue, setup->wIndex);
+    GPIO_set(setup->wIndex, setup->wValue);
 
     return USB_STATUS_OK;
 }
@@ -170,7 +170,7 @@ int gpio_get(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    uint8_t pin = setup->wValue;
+    uint8_t pin = setup->wIndex;
     pin_value[0] = GPIO_get(pin);
 
     //TODO: respond
@@ -189,7 +189,7 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    
+
 
 }
 
@@ -218,7 +218,6 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     case USBTHING_CMD_GPIO_GET:
         return gpio_get(setup);
-
     }
 
     //Signal command was not handled

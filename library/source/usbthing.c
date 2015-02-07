@@ -122,8 +122,8 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_OUT,
                                    USBTHING_CMD_LED_SET,
-                                   led,
                                    value,
+                                   led,
                                    NULL,
                                    USBTHING_CMD_LED_SET_SIZE,
                                    USBTHING_TIMEOUT);
@@ -150,8 +150,8 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, b
     res = libusb_control_transfer (usbthing->handle,
                                    LIBUSB_REQUEST_TYPE_VENDOR,
                                    USBTHING_CMD_GPIO_CFG,
-                                   pin,
                                    mode,
+                                   pin,
                                    NULL,
                                    USBTHING_CMD_GPIO_CFG_SIZE,
                                    USBTHING_TIMEOUT);
@@ -170,8 +170,8 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value)
     res = libusb_control_transfer (usbthing->handle,
                                    LIBUSB_REQUEST_TYPE_VENDOR,
                                    USBTHING_CMD_GPIO_SET,
-                                   pin,
                                    value,
+                                   pin,
                                    NULL,
                                    USBTHING_CMD_GPIO_SET_SIZE,
                                    USBTHING_TIMEOUT);
@@ -191,8 +191,8 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     res = libusb_control_transfer (usbthing->handle,
                                    LIBUSB_REQUEST_TYPE_VENDOR,
                                    USBTHING_CMD_GPIO_CFG,
-                                   pin,
                                    0,
+                                   pin,
                                    result,
                                    USBTHING_CMD_GPIO_GET_SIZE,
                                    USBTHING_TIMEOUT);
