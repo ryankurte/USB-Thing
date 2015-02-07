@@ -34,6 +34,8 @@
 #define GPIO7_PIN 			10
 #define GPIO7_PORT		 	gpioPortA
 
+#define GPIO_CLOCK 			cmuClock_GPIO
+
 /*** 			SPI Pins 				***/
 #define SPI_MOSI_PIN 		10
 #define SPI_MOSI_PORT	 	gpioPortE
@@ -43,6 +45,10 @@
 #define SPI_CLK_PORT 		gpioPortE
 #define SPI_CS_PIN 			13
 #define SPI_CS_PORT 		gpioPortE
+
+#define SPI_DEVICE 			USART0
+#define SPI_CLOCK 			cmuClock_USART0
+#define SPI_ROUTE 			USART_ROUTE_LOCATION_LOC0 | USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN
 
 /*** 			I2C Pins 				***/
 #define I2C_SDA_PIN 		6

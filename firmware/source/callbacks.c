@@ -39,6 +39,7 @@
 #include "em_cmu.h"
 #include "em_usb.h"
 #include "em_gpio.h"
+#include "em_usart.h"
 
 #include "callbacks.h"
 
@@ -46,6 +47,7 @@
 #include "platform.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "spi.h"
 #include "version.h"
 
 #define BUFFERSIZE 500
@@ -53,7 +55,7 @@
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
 STATIC_UBUF(spi_receive_buffer, BUFFERSIZE);
-//STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
+STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
 
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
 STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
@@ -221,6 +223,62 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
+static int spi_configured = 0;
+
+int spi_configure(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wLength     != USBTHING_SPI_CFG_SIZE         ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    uint8_t speed = setup->wValue;
+    uint8_t mode = setup->wIndex;
+    uint32_t baud, clock_mode;
+
+    //Set baud rate based on speed
+    switch (speed) {
+    case USBTHING_SPI_SPEED_100KHZ:
+        baud = 100000;
+        break;
+    case USBTHING_SPI_SPEED_400KHZ:
+        baud = 400000;
+        break;
+    case USBTHING_SPI_SPEED_1MHZ:
+        baud = 1000000;
+        break;
+    case USBTHING_SPI_SPEED_5MHZ:
+        baud = 5000000;
+        break;
+    }
+
+    //Set clock mode
+    switch(mode) {
+    case USBTHING_I2C_CLOCK_MODE0:
+        clock_mode = usartClockMode0;
+    break;
+    case USBTHING_I2C_CLOCK_MODE1:
+        clock_mode = usartClockMode1;
+    break;
+    case USBTHING_I2C_CLOCK_MODE2:
+        clock_mode = usartClockMode2;
+    break;
+    case USBTHING_I2C_CLOCK_MODE3:
+        clock_mode = usartClockMode3;
+    break;
+    }
+
+    //Initialize I2C
+    SPI_init(baud, clock_mode);
+
+    spi_configured = 1;
+
+    return USB_STATUS_OK;
+}
+
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
     //TODO: handle commands
@@ -277,12 +335,12 @@ int spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint3
     (void)xferred;
     (void)remaining;
 
-    printf("\nReceived %s", spi_receive_buffer);
+    //TODO: what if SPI is not initialized?
 
     /* Check status to verify that the transfer has completed successfully */
     if ( status == USB_STATUS_OK ) {
-        //TODO: Call hardware functions here
-        USBD_Write(EP1_IN, spi_receive_buffer, xferred, spi_data_sent_callback);
+        SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
+        USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_sent_callback);
 
     } else {
         //TODO: handle errors
