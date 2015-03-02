@@ -8,15 +8,25 @@
 #include "usbthing.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
-#include "libusb-1.0/libusb.h"
 
-#define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
-#define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
-#define USBTHING_TIMEOUT    1000
+#include "libusb-1.0/libusb.h"
 
 #include "protocol.h"
 
+#define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
+#define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
+#define USBTHING_TIMEOUT        1000
+#define USBTHING_BUFFER_SIZE    64
+
+#ifdef DEBUG_USBTHING
+#define USBTHING_DEBUG_PRINT(...) printf(...)
+#else
+#define USBTHING_DEBUG_PRINT(...)
+#endif
+
+static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
 
 int USBTHING_init()
@@ -67,10 +77,12 @@ int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t 
 
     //Claim appropriate interface
     res = libusb_claim_interface(usbthing->handle, 0);
-    if(res != 0) {
+    if (res != 0) {
         //Could not claim interface
         return -2;
     }
+
+    USBTHING_DEBUG_PRINT("Connected to device: %.4x:%.4x\r\n", vid_filter, pid_filter);
 
     //Connected
     return 0;
@@ -109,7 +121,7 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
     if (res < 0) {
         perror("USBTHING get firmware version error");
     } else {
-        printf("firmware: %s\n", version_str);
+        USBTHING_DEBUG_PRINT("firmware: %s\n", version_str);
     }
 
     return res;
@@ -122,8 +134,8 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_OUT,
                                    USBTHING_CMD_LED_SET,
-                                   led,
                                    value,
+                                   led,
                                    NULL,
                                    USBTHING_CMD_LED_SET_SIZE,
                                    USBTHING_TIMEOUT);
@@ -148,10 +160,10 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, b
     mode |= (pull_up == true) ? USBTHING_GPIO_CFG_PULL_HIGH : USBTHING_GPIO_CFG_PULL_LOW;
 
     res = libusb_control_transfer (usbthing->handle,
-                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   CONTROL_REQUEST_TYPE_OUT,
                                    USBTHING_CMD_GPIO_CFG,
-                                   pin,
                                    mode,
+                                   pin,
                                    NULL,
                                    USBTHING_CMD_GPIO_CFG_SIZE,
                                    USBTHING_TIMEOUT);
@@ -168,10 +180,10 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value)
 {
     int res;
     res = libusb_control_transfer (usbthing->handle,
-                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   CONTROL_REQUEST_TYPE_OUT,
                                    USBTHING_CMD_GPIO_SET,
-                                   pin,
                                    value,
+                                   pin,
                                    NULL,
                                    USBTHING_CMD_GPIO_SET_SIZE,
                                    USBTHING_TIMEOUT);
@@ -191,8 +203,8 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     res = libusb_control_transfer (usbthing->handle,
                                    LIBUSB_REQUEST_TYPE_VENDOR,
                                    USBTHING_CMD_GPIO_CFG,
-                                   pin,
                                    0,
+                                   pin,
                                    result,
                                    USBTHING_CMD_GPIO_GET_SIZE,
                                    USBTHING_TIMEOUT);
@@ -201,6 +213,25 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
         perror("USBTHING gpio get error");
     } else {
         (*value) = (result[0] == 0) ? false : true;
+    }
+
+    return res;
+}
+
+int USBTHING_spi_configure(struct usbthing_s *usbthing, int speed, int mode)
+{
+    int res;
+    res = libusb_control_transfer (usbthing->handle,
+                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   USBTHING_CMD_SPI_CFG,
+                                   speed,
+                                   mode,
+                                   NULL,
+                                   USBTHING_SPI_CFG_SIZE,
+                                   USBTHING_TIMEOUT);
+
+    if (res < 0) {
+        perror("USBTHING spi configuration error");
     }
 
     return res;
@@ -226,7 +257,8 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -1;
     }
 
-    printf("Sent: %s\n", data_out);
+    USBTHING_DEBUG_PRINT("SPI write: ");
+    print_buffer(length, data_out);
 
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x81,
@@ -241,47 +273,201 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
         return -2;
     }
 
-    printf("Received: %s\n", data_in);
+    USBTHING_DEBUG_PRINT("SPI read: ");
+    print_buffer(length, data_in);
 
     return 0;
 }
 
-int USBTHING_i2c_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length)
+int USBTHING_i2c_configure(struct usbthing_s *usbthing, int speed)
 {
+    int res;
+    res = libusb_control_transfer (usbthing->handle,
+                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   USBTHING_CMD_I2C_CFG,
+                                   speed,
+                                   0,
+                                   NULL,
+                                   USBTHING_I2C_CFG_SIZE,
+                                   USBTHING_TIMEOUT);
+
+    if (res < 0) {
+        perror("USBTHING i2c configuration error");
+    }
+
+    return res;
+}
+
+int USBTHING_i2c_write(struct usbthing_s *usbthing,
+                       int address,
+                       int length_out, unsigned char *data_out)
+{
+    uint8_t output_buffer[USBTHING_BUFFER_SIZE];
+    uint8_t input_buffer[USBTHING_BUFFER_SIZE];
+    int output_buffer_length;
     int res;
     int transferred;
 
+    struct usbthing_i2c_transfer_s *config;
+    config = (struct usbthing_i2c_transfer_s *) output_buffer;
+
+    //Configure transfer
+    config->mode = USBTHING_I2C_MODE_WRITE;
+    config->address = address;
+    config->num_write = length_out;
+
+    //Copy data
+    memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
+    output_buffer_length = length_out + sizeof(struct usbthing_i2c_transfer_s);
+
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x02,
-                                data_out,
-                                length,
+                                output_buffer,
+                                output_buffer_length,
                                 &transferred,
                                 USBTHING_TIMEOUT);
 
     //TODO: check for complete transfer
     if (res < 0) {
-        perror("USBTHING i2c transfer outgoing error");
+        perror("USBTHING i2c write outgoing error");
         return -1;
     }
 
-    printf("Sent: %s\n", data_out);
+    printf("I2C write: ");
+    print_buffer(length_out, data_out);
+
+    //Stub for write function response (written data)
+    res = libusb_bulk_transfer (usbthing->handle,
+                                0x82,
+                                input_buffer,
+                                sizeof(input_buffer),
+                                &transferred,
+                                USBTHING_TIMEOUT);
+
+    //TODO: check for complete write
+    if (res < 0) {
+        perror("USBTHING i2c write incoming error");
+        return -2;
+    }
+
+    return 0;
+}
+
+int USBTHING_i2c_read(struct usbthing_s *usbthing,
+                      int address,
+                      int length_in, unsigned char *data_in)
+{
+    uint8_t output_buffer[USBTHING_BUFFER_SIZE];
+    int output_buffer_length;
+    int res;
+    int transferred;
+
+    struct usbthing_i2c_transfer_s *config;
+    config = (struct usbthing_i2c_transfer_s *) output_buffer;
+
+    //Configure transfer
+    config->mode = USBTHING_I2C_MODE_READ;
+    config->address = address;
+    config->num_read = length_in;
+
+    output_buffer_length = sizeof(struct usbthing_i2c_transfer_s);
+
+    res = libusb_bulk_transfer (usbthing->handle,
+                                0x02,
+                                output_buffer,
+                                output_buffer_length,
+                                &transferred,
+                                USBTHING_TIMEOUT);
+
+    //TODO: check for complete transfer
+    if (res < 0) {
+        perror("USBTHING i2c read outgoing error");
+        return -1;
+    }
 
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x82,
                                 data_in,
-                                length,
+                                length_in,
                                 &transferred,
                                 USBTHING_TIMEOUT);
 
     //TODO: check for complete transfer
     if (res < 0) {
-        perror("USBTHING i2c transfer incoming error");
+        perror("USBTHING i2c read incoming error");
         return -2;
     }
 
-    printf("Received: %s\n", data_in);
+    USBTHING_DEBUG_PRINT("I2C Read: ");
+    print_buffer(transferred, data_in);
 
     return 0;
+}
+
+int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
+                            int address,
+                            int length_out, unsigned char *data_out,
+                            int length_in, unsigned char *data_in)
+{
+    uint8_t output_buffer[USBTHING_BUFFER_SIZE];
+    int output_buffer_length;
+    int res;
+    int transferred;
+
+    struct usbthing_i2c_transfer_s *config;
+    config = (struct usbthing_i2c_transfer_s *) output_buffer;
+
+    //Configure transfer
+    config->mode = USBTHING_I2C_MODE_WRITE_READ;
+    config->address = address;
+    config->num_write = length_out;
+    config->num_read = length_in;
+
+    //Copy data
+    memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
+    output_buffer_length = length_out + sizeof(struct usbthing_i2c_transfer_s);
+
+    res = libusb_bulk_transfer (usbthing->handle,
+                                0x02,
+                                output_buffer,
+                                output_buffer_length,
+                                &transferred,
+                                USBTHING_TIMEOUT);
+
+    //TODO: check for complete transfer
+    if (res < 0) {
+        perror("USBTHING i2c read write outgoing error");
+        return -1;
+    }
+
+    USBTHING_DEBUG_PRINT("I2C write: ");
+    print_buffer(length_out, data_out);
+
+    res = libusb_bulk_transfer (usbthing->handle,
+                                0x82,
+                                data_in,
+                                length_in,
+                                &transferred,
+                                USBTHING_TIMEOUT);
+
+    //TODO: check for complete transfer
+    if (res < 0) {
+        perror("USBTHING i2c read write incoming error");
+        return -2;
+    }
+
+    USBTHING_DEBUG_PRINT("I2C Read: ");
+    print_buffer(transferred, data_in);
+
+    return 0;
+}
+
+static void print_buffer(uint8_t length, uint8_t *buffer)
+{
+    for (uint8_t i = 0; i < length; i++) {
+        USBTHING_DEBUG_PRINT("%.2x ", buffer[i]);
+    }
+    USBTHING_DEBUG_PRINT("\r\n");
 }
 
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter)

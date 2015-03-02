@@ -39,12 +39,15 @@
 #include "em_cmu.h"
 #include "em_usb.h"
 #include "em_gpio.h"
+#include "em_usart.h"
 
 #include "callbacks.h"
 
 #include "protocol.h"
 #include "platform.h"
 #include "gpio.h"
+#include "i2c.h"
+#include "spi.h"
 #include "version.h"
 
 #define BUFFERSIZE 500
@@ -52,10 +55,10 @@
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
 STATIC_UBUF(spi_receive_buffer, BUFFERSIZE);
-//STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
+STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
 
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
-//STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
+STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
 
 /* Counter to increase when receiving a 'tick' message */
 int tickCounter = 0;
@@ -98,7 +101,7 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
-int getFirmware(const USB_Setup_TypeDef *setup)
+int firmware_get(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
@@ -115,7 +118,8 @@ int getFirmware(const USB_Setup_TypeDef *setup)
     return res;
 }
 
-int setLed(const USB_Setup_TypeDef* setup) {
+int led_set(const USB_Setup_TypeDef *setup)
+{
     int res = USB_STATUS_REQ_ERR;
 
     if ( ( setup->wLength     != USBTHING_CMD_LED_SET_SIZE     ) ||
@@ -124,12 +128,12 @@ int setLed(const USB_Setup_TypeDef* setup) {
         return USB_STATUS_REQ_ERR;
     }
 
-    GPIO_led_set(setup->wValue, setup->wIndex);
+    GPIO_led_set(setup->wIndex, setup->wValue);
 
     return USB_STATUS_OK;
 }
 
-int configureGPIO(const USB_Setup_TypeDef *setup)
+int gpio_configure(const USB_Setup_TypeDef *setup)
 {
     if ( ( setup->wLength     != USBTHING_CMD_GPIO_CFG_SIZE    ) ||
          ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
@@ -137,17 +141,17 @@ int configureGPIO(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    uint8_t pin = setup->wValue;
-    bool output = ((setup->wIndex & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-    bool pull_enabled = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-    bool pull_direction = ((setup->wIndex & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
+    uint8_t pin = setup->wIndex;
+    bool output = ((setup->wValue & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
+    bool pull_enabled = ((setup->wValue & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
+    bool pull_direction = ((setup->wValue & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
 
     GPIO_configure(pin, output, pull_enabled, pull_direction);
 
     return USB_STATUS_OK;
 }
 
-int setGPIO(const USB_Setup_TypeDef *setup)
+int gpio_set(const USB_Setup_TypeDef *setup)
 {
     if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
          ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
@@ -155,12 +159,12 @@ int setGPIO(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    GPIO_set(setup->wValue, setup->wIndex);
+    GPIO_set(setup->wIndex, setup->wValue);
 
     return USB_STATUS_OK;
 }
 
-int getGPIO(const USB_Setup_TypeDef *setup)
+int gpio_get(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
@@ -170,13 +174,109 @@ int getGPIO(const USB_Setup_TypeDef *setup)
         return USB_STATUS_REQ_ERR;
     }
 
-    uint8_t pin = setup->wValue;
+    uint8_t pin = setup->wIndex;
     pin_value[0] = GPIO_get(pin);
 
     //TODO: respond
     res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
 
     return res;
+}
+
+static int i2c_configured = 0;
+
+int i2c_configure(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wLength     != USBTHING_I2C_CFG_SIZE         ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    uint8_t mode = setup->wValue;
+    uint8_t flags = setup->wIndex;
+    uint32_t baud;
+
+    //Set baud rate based on mode
+    switch (mode) {
+    case USBTHING_I2C_SPEED_STANDARD:
+        baud = 100000;
+        break;
+    case USBTHING_I2C_SPEED_FULL:
+        baud = 400000;
+        break;
+    case USBTHING_I2C_SPEED_FAST:
+        baud = 1000000;
+        break;
+    case USBTHING_I2C_SPEED_HIGH:
+        baud = 3200000;
+        break;
+    }
+
+    //Initialize I2C
+    I2C_init(baud);
+
+    i2c_configured = 1;
+
+    return USB_STATUS_OK;
+}
+
+static int spi_configured = 0;
+
+int spi_configure(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    if ( ( setup->wLength     != USBTHING_SPI_CFG_SIZE         ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    uint8_t speed = setup->wValue;
+    uint8_t mode = setup->wIndex;
+    uint32_t baud, clock_mode;
+
+    //Set baud rate based on speed
+    switch (speed) {
+    case USBTHING_SPI_SPEED_100KHZ:
+        baud = 100000;
+        break;
+    case USBTHING_SPI_SPEED_400KHZ:
+        baud = 400000;
+        break;
+    case USBTHING_SPI_SPEED_1MHZ:
+        baud = 1000000;
+        break;
+    case USBTHING_SPI_SPEED_5MHZ:
+        baud = 5000000;
+        break;
+    }
+
+    //Set clock mode
+    switch (mode) {
+    case USBTHING_SPI_CLOCK_MODE0:
+        clock_mode = usartClockMode0;
+        break;
+    case USBTHING_SPI_CLOCK_MODE1:
+        clock_mode = usartClockMode1;
+        break;
+    case USBTHING_SPI_CLOCK_MODE2:
+        clock_mode = usartClockMode2;
+        break;
+    case USBTHING_SPI_CLOCK_MODE3:
+        clock_mode = usartClockMode3;
+        break;
+    }
+
+    //Initialize I2C
+    SPI_init(baud, clock_mode);
+
+    spi_configured = 1;
+
+    return USB_STATUS_OK;
 }
 
 int setupCmd(const USB_Setup_TypeDef *setup)
@@ -189,22 +289,27 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return USB_STATUS_OK;
 
     case USBTHING_CMD_FIRMWARE_GET:
-        getFirmware(setup);
+        firmware_get(setup);
         return USB_STATUS_OK;
 
     case USBTHING_CMD_LED_SET:
-        setLed(setup);
+        led_set(setup);
         return USB_STATUS_OK;
 
     case USBTHING_CMD_GPIO_CFG:
-        return configureGPIO(setup);
+        return gpio_configure(setup);
 
     case USBTHING_CMD_GPIO_SET:
-        return setGPIO(setup);
+        return gpio_set(setup);
 
     case USBTHING_CMD_GPIO_GET:
-        return getGPIO(setup);
+        return gpio_get(setup);
 
+    case USBTHING_CMD_I2C_CFG:
+        return i2c_configure(setup);
+
+    case USBTHING_CMD_SPI_CFG:
+        return spi_configure(setup);
     }
 
     //Signal command was not handled
@@ -233,13 +338,13 @@ int spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint3
     (void)xferred;
     (void)remaining;
 
-    printf("\nReceived %s", spi_receive_buffer);
+    //TODO: what if SPI is not initialized?
 
     /* Check status to verify that the transfer has completed successfully */
     if ( status == USB_STATUS_OK ) {
-        //TODO: Call hardware functions here
-        USBD_Write(EP1_IN, spi_receive_buffer, xferred, spi_data_sent_callback);
-        
+        SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
+        USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_sent_callback);
+
     } else {
         //TODO: handle errors
 
@@ -267,17 +372,34 @@ int i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t
 
 int i2c_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-    /* Remove warnings for unused variables */
+    //Remove unused variable warnings
     (void)xferred;
     (void)remaining;
 
-    printf("\nReceived %s", i2c_receive_buffer);
+    //TODO: what if i2c is not initialized?
 
-    /* Check status to verify that the transfer has completed successfully */
     if ( status == USB_STATUS_OK ) {
-        //TODO: Call hardware functions here
-        USBD_Write(EP2_IN, i2c_receive_buffer, xferred, i2c_data_sent_callback);
-        
+        struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) i2c_receive_buffer;
+
+        //TODO: bounds checking of num_write, num_read vs. xferred and maximum
+
+        //Call hardware function based on mode
+        switch (config->mode) {
+        case USBTHING_I2C_MODE_WRITE:
+            I2C_write(config->address, config->num_write, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s));
+            //nb. dummy write back to USB (allows ordering/exclusion)
+            USBD_Write(EP2_IN, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s), config->num_write, i2c_data_sent_callback);
+            break;
+        case USBTHING_I2C_MODE_READ:
+            I2C_read(config->address, config->num_read, i2c_transmit_buffer);
+            USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_data_sent_callback);
+            break;
+        case USBTHING_I2C_MODE_WRITE_READ:
+            I2C_write_read(config->address, config->num_write, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
+            USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_data_sent_callback);
+            break;
+        }
+
     } else {
         //TODO: handle errors
 
