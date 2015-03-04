@@ -90,11 +90,13 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
         || (newState == USBD_STATE_DEFAULT)
         || (newState == USBD_STATE_SUSPENDED)) {
         //Initial states, not configured
+        GPIO_act_led_set(false);
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
         USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
         USBD_Read(EP2_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
+        GPIO_act_led_set(true);
 
     } else if ( newState != USBD_STATE_SUSPENDED ) {
 

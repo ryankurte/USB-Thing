@@ -3,12 +3,10 @@
 #define PLATFORM_H
 
 /***			STATUS LED Pins 		***/
-#define LED_CONN_PIN		
-#define LED_CONN_PORT		
-#define LED_WAKE_PIN		
-#define LED_WAKE_PORT		
-#define LED_BUSY_PIN		
-#define LED_BUSY_PORT		
+#define LED_CONN_PIN		8
+#define LED_CONN_PORT		gpioPortE
+#define LED_ACT_PIN			9
+#define LED_ACT_PORT		gpioPortE
 
 /*** 			USER LED Pins 			***/
 #define LED0_PIN  		  	3

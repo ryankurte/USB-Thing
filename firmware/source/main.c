@@ -65,7 +65,7 @@ int main(void)
     CHIP_Init();
 
     /* Enable HFXO */
-    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    //CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
     CMU_ClockEnable(cmuClock_HFPER, true);
 
@@ -104,4 +104,5 @@ int main(void)
 int RETARGET_WriteChar(char c)
 {
 
+    return 0;
 }

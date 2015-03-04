@@ -27,6 +27,10 @@ extern void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up
 
 extern void GPIO_set(int pin, bool value);
 
+extern void GPIO_conn_led_set(bool value);
+
+extern void GPIO_act_led_set(bool value);
+
 extern void GPIO_led_set(int led, bool value);
 
 extern bool GPIO_get(int pin);
