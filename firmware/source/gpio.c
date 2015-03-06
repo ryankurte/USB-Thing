@@ -11,8 +11,10 @@ void GPIO_init()
     //Start clock
     CMU_ClockEnable(cmuClock_GPIO, true);
 
-	//Initialize LEDs
-	GPIO_PinModeSet(LED0_PORT, LED0_PIN, gpioModePushPull, 0);
+    //Initialize LEDs
+    GPIO_PinModeSet(LED_CONN_PORT, LED_CONN_PIN, gpioModePushPull, 0);
+    GPIO_PinModeSet(LED_ACT_PORT, LED_ACT_PIN, gpioModePushPull, 0);
+    GPIO_PinModeSet(LED0_PORT, LED0_PIN, gpioModePushPull, 0);
     GPIO_PinModeSet(LED1_PORT, LED1_PIN, gpioModePushPull, 0);
 
     //Initialize GPIOs as inputs
@@ -20,6 +22,8 @@ void GPIO_init()
     GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModeInput, 0);
     GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModeInput, 0);
     GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
+
+    GPIO_PinOutSet(LED_CONN_PORT, LED_CONN_PIN);
 }
 
 void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
@@ -54,6 +58,24 @@ void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
             GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
         }
         return;
+    }
+}
+
+void GPIO_conn_led_set(bool value)
+{
+    if (value == true) {
+        GPIO_PinOutSet(LED_CONN_PORT, LED_CONN_PIN);
+    } else {
+        GPIO_PinOutClear(LED_CONN_PORT, LED_CONN_PIN);
+    }
+}
+
+void GPIO_act_led_set(bool value)
+{
+    if (value == true) {
+        GPIO_PinOutSet(LED_ACT_PORT, LED_ACT_PIN);
+    } else {
+        GPIO_PinOutClear(LED_ACT_PORT, LED_ACT_PIN);
     }
 }
 
@@ -132,7 +154,7 @@ bool GPIO_get(int pin)
  **********************************************************/
 void GPIO_ODD_IRQHandler(void)
 {
-	//TODO
+    //TODO
     //USBD_Write(EP_IN, button0message, sizeof(button0message), dataSentCallback);
 }
 

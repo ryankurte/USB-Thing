@@ -29,7 +29,7 @@ set(TARGET usb-thing)
 project(${TARGET} C CXX ASM)
 
 # Set device
-set(DEVICE EFM32GG990F1024)
+set(DEVICE EFM32GG332F1024)
 
 # Set build
 set(CMAKE_BUILD_TYPE DEBUG)
