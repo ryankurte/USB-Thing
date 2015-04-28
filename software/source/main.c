@@ -7,6 +7,7 @@
 int main(int argc, char **argv)
 {
     struct usbthing_s usbthing;
+    char version[32];
     int res;
 
     USBTHING_init();
@@ -24,7 +25,9 @@ setup:
     /* TODO: actual things */
     printf("Connected\n");
 
-    USBTHING_get_firmware_version(&usbthing, NULL, NULL);
+    USBTHING_get_firmware_version(&usbthing, sizeof(version), version);
+
+    printf("Firmware version: %s\r\n", version);
 
     USBTHING_led_set(&usbthing, 0, 1);
 
@@ -41,7 +44,7 @@ setup:
 
     USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
 
-    USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
+    //USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
 
 teardown:
 

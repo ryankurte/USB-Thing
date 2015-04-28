@@ -17,8 +17,12 @@ set(SOURCES
 	source/main.c
 )
 
-##### Outputs #####
+# Pre Build
+# Version header generation
+add_custom_target(version ${PROJECT_SOURCE_DIR}/../version.py ${CMAKE_BINARY_DIR}/version.h)
+include_directories(${CMAKE_BINARY_DIR})
 
+# Outputs
 # Generate executable and link
 add_executable(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET} ${LIBS})

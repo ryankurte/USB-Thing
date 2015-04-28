@@ -9,10 +9,10 @@
 #define LED_ACT_PORT		gpioPortE
 
 /*** 			USER LED Pins 			***/
-#define LED0_PIN  		  	3
-#define LED0_PORT 		  	gpioPortE
-#define LED1_PIN  		  	2
-#define LED1_PORT 		  	gpioPortE
+#define LED0_PIN  		  	4
+#define LED0_PORT 		  	gpioPortD
+#define LED1_PIN  		  	5
+#define LED1_PORT 		  	gpioPortD
 
 /*** 			GPIO Pins 				***/
 #define GPIO0_PIN 			3
@@ -49,20 +49,20 @@
 #define SPI_ROUTE 			USART_ROUTE_LOCATION_LOC0 | USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN
 
 /*** 			I2C Pins 				***/
-#define I2C_SDA_PIN 		6
-#define I2C_SDA_PORT	 	gpioPortD
-#define I2C_SCL_PIN 		7
-#define I2C_SCL_PORT	 	gpioPortD
+#define I2C_SDA_PIN 		4
+#define I2C_SDA_PORT	 	gpioPortC
+#define I2C_SCL_PIN 		5
+#define I2C_SCL_PORT	 	gpioPortC
 
 #define I2C_DEVICE 			I2C0
 #define I2C_CLOCK 			cmuClock_I2C0
 #define I2C_ROUTE 			I2C_ROUTE_LOCATION_LOC1 | I2C_ROUTE_SCLPEN | I2C_ROUTE_SDAPEN
 
 /*** 			PWM Pins 				***/
-#define TIM2_CC0_PIN 		8
-#define TIM2_CC0_PORT	 	gpioPortC
-#define TIM2_CC1_PIN 		9
-#define TIM2_CC1_PORT	 	gpioPortC
+#define TIM2_CC0_PIN 		7
+#define TIM2_CC0_PORT	 	gpioPortB
+#define TIM2_CC1_PIN 		8
+#define TIM2_CC1_PORT	 	gpioPortB
 
 /*** 			ADC Pins 				***/
 //ADC0_CH0
@@ -80,7 +80,7 @@
 
 /*** 			DAC Pins				***/
 //DAC0_OUT0
-#define DAC0_PIN 			1
+#define DAC0_PIN 			11
 #define DAC0_PORT  	 		gpioPortB
 
 #endif

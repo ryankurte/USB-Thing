@@ -102,7 +102,7 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
-int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, int *length)
+int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char *version)
 {
     int res;
 
@@ -122,6 +122,8 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
         perror("USBTHING get firmware version error");
     } else {
         USBTHING_DEBUG_PRINT("firmware: %s\n", version_str);
+        strncpy(version, version_str, length);
+        version[length] = '\0';
     }
 
     return res;

@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#define USBTHING_PROTOCOL_VERSION       1
+
 #ifndef VENDOR_ID
 #define VENDOR_ID   0x0001
 #endif

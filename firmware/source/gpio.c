@@ -23,7 +23,6 @@ void GPIO_init()
     GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModeInput, 0);
     GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
 
-    GPIO_PinOutSet(LED_CONN_PORT, LED_CONN_PIN);
 }
 
 void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
