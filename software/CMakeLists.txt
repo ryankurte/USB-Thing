@@ -15,6 +15,7 @@ include(${PROJECT_SOURCE_DIR}/../library/libusbthing.cmake)
 # Add project sources
 set(SOURCES
 	source/main.c
+	source/selftest.c
 )
 
 # Pre Build
