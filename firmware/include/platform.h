@@ -65,18 +65,20 @@
 #define TIM2_CC1_PORT	 	gpioPortB
 
 /*** 			ADC Pins 				***/
+#define ADC_DEV				ADC0
+
 //ADC0_CH0
-#define ADC0_CH0_PIN 		0
-#define ADC0_CH0_PORT 		gpioPortD
+#define ADC_CH0_PIN 		0
+#define ADC_CH0_PORT 		gpioPortD
 //ADC0_CH1
-#define ADC0_CH1_PIN 		1
-#define ADC0_CH1_PORT 		gpioPortD
+#define ADC_CH1_PIN 		1
+#define ADC_CH1_PORT 		gpioPortD
 //ADC0_CH2
-#define ADC0_CH2_PIN 		2
-#define ADC0_CH2_PORT 		gpioPortD
+#define ADC_CH2_PIN 		2
+#define ADC_CH2_PORT 		gpioPortD
 //ADC0_CH3
-#define ADC0_CH3_PIN 		3
-#define ADC0_CH3_PORT 		gpioPortD
+#define ADC_CH3_PIN 		3
+#define ADC_CH3_PORT 		gpioPortD
 
 /*** 			DAC Pins				***/
 //DAC0_OUT0
