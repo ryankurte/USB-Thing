@@ -1,8 +1,8 @@
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "usbthing.h"
-
 
 int self_test(struct usbthing_s* usbthing)
 {

@@ -33,7 +33,27 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value);
 
 int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value);
 
-int USBTHING_spi_configure(struct usbthing_s *usbthing, int speed, int mode);
+int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, bool *value);
+
+int USBTHING_pwm_configure(struct usbthing_s *usbthing, unsigned int frequency);
+
+int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, bool enable);
+
+int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle);
+
+int USBTHING_dac_configure(struct usbthing_s *usbthing);
+
+int USBTHING_dac_enable(struct usbthing_s *usbthing, bool enable);
+
+int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value);
+
+int USBTHING_acd_configure(struct usbthing_s *usbthing);
+
+int USBTHING_acd_enable(struct usbthing_s *usbthing, bool enable);
+
+int USBTHING_acd_get(struct usbthing_s *usbthing, int channel, unsigned int *value);
+
+int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int mode);
 
 int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length);
 
