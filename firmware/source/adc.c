@@ -6,7 +6,7 @@
 #include "em_cmu.h"
 #include "em_adc.h"
 
-int8_t ADC_init() 
+void ADC_init() 
 {
     ADC_Init_TypeDef adc_init = ADC_INIT_DEFAULT;
     ADC_InitSingle_TypeDef single_init = ADC_INITSINGLE_DEFAULT
@@ -19,14 +19,14 @@ int8_t ADC_init()
     ADC_InitSingle(ADC_DEV, &single_init);
 }
 
-int8_t ADC_close()
+void ADC_close()
 {
     ADC_Reset(ADC_DEV);
 
     CMU_ClockEnable(cmuClockADC0, false);
 }
 
-uint16_t ADC_read(uint8_t channel) 
+uint32_t ADC_read(uint8_t channel) 
 {
     uint16_t res;
 
