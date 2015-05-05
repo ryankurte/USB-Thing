@@ -66,6 +66,7 @@
 
 /*** 			ADC Pins 				***/
 #define ADC_DEVICE			ADC0
+#define ADC_CLOCK 			cmuClock_ADC0
 
 //ADC0_CH0
 #define ADC_CH0_PIN 		0
@@ -83,7 +84,8 @@
 /*** 			DAC Pins				***/
 //DAC0_OUT0
 #define DAC_DEVICE			DAC0
-#define DAC_CHANNEL 		//TODO
+#define DAC_CLOCK			cmuClock_DAC0
+#define DAC_CHANNEL 		0
 #define DAC0_PIN 			11
 #define DAC0_PORT  	 		gpioPortB
 

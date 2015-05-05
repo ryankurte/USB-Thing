@@ -6,6 +6,8 @@
 #include "em_cmu.h"
 #include "em_adc.h"
 
+#include "platform.h"
+
 void PWM_init() 
 {
 

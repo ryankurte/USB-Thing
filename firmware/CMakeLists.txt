@@ -55,6 +55,9 @@ set(SOURCES
 	source/gpio.c
 	source/spi.c
 	source/i2c.c
+	source/pwm.c
+	source/adc.c
+	source/dac.c
 	${EFM_USB_SOURCES}
 )
 
