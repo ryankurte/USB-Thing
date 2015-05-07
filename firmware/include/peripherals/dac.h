@@ -8,10 +8,10 @@
 extern "C" {
 #endif
 
-void DAC_init();
+void DAC_configure();
 void DAC_close();
 void DAC_enable(bool enable);
-void DAC_write(uint32_t value);
+void DAC_set(uint32_t value);
 
 #ifdef __cplusplus
 }

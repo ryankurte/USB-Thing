@@ -45,25 +45,19 @@
 
 #include "protocol.h"
 #include "platform.h"
+#include "version.h"
+
+#include "mappings/gpio_usb.h"
+
 #include "peripherals/gpio.h"
 #include "peripherals/i2c.h"
 #include "peripherals/spi.h"
 #include "peripherals/dac.h"
-#include "version.h"
+
 
 #define BUFFERSIZE 500
 
-#define CHECK_SETUP_IN(type)     if ((setup->wLength != type) \
-        ||(setup->Direction != USB_SETUP_DIR_IN) \
-        ||(setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) { \
-        return USB_STATUS_REQ_ERR; \
-    }
 
-#define CHECK_SETUP_OUT(type)     if ((setup->wLength != type) \
-        ||(setup->Direction != USB_SETUP_DIR_OUT) \
-        ||(setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) { \
-        return USB_STATUS_REQ_ERR; \
-    }
 
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
@@ -81,11 +75,6 @@ extern uint8_t button1message[];
 
 EFM32_ALIGN(4)
 uint8_t firmware_version[] = SOFTWARE_VERSION;
-EFM32_ALIGN(4)
-uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
-EFM32_ALIGN(4)
-uint8_t dac_value[USBTHING_CMD_DAC_SET_SIZE];
-
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -147,76 +136,6 @@ int led_set(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
-int gpio_configure(const USB_Setup_TypeDef *setup)
-{
-    CHECK_SETUP_OUT(USBTHING_CMD_GPIO_CFG_SIZE);
-
-    uint8_t pin = setup->wIndex;
-    bool output = ((setup->wValue & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-    bool pull_enabled = ((setup->wValue & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-    bool pull_direction = ((setup->wValue & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
-
-    GPIO_configure(pin, output, pull_enabled, pull_direction);
-
-    return USB_STATUS_OK;
-}
-
-int gpio_set(const USB_Setup_TypeDef *setup)
-{
-    CHECK_SETUP_OUT(USBTHING_CMD_GPIO_SET_SIZE);
-
-    GPIO_set(setup->wIndex, setup->wValue);
-
-    return USB_STATUS_OK;
-}
-
-int gpio_get(const USB_Setup_TypeDef *setup)
-{
-    int res = USB_STATUS_REQ_ERR;
-
-    CHECK_SETUP_OUT(USBTHING_CMD_GPIO_GET_SIZE);
-
-    uint8_t pin = setup->wIndex;
-    pin_value[0] = GPIO_get(pin);
-
-    //TODO: respond
-    res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
-
-    return res;
-}
-
-int dac_configure(const USB_Setup_TypeDef *setup)
-{
-    CHECK_SETUP_OUT(USBTHING_CMD_DAC_CFG_SIZE);
-
-    DAC_configure();
-
-    return USB_STATUS_OK;
-}
-
-int dac_enable(const USB_Setup_TypeDef *setup)
-{
-    CHECK_SETUP_OUT(USBTHING_CMD_DAC_ENABLE_SIZE);
-
-    DAC_enable(setup->wValue);
-
-    return USB_STATUS_OK;
-}
-
-int dac_set(const USB_Setup_TypeDef *setup)
-{
-    int8_t res;
-
-    CHECK_SETUP_IN(USBTHING_CMD_DAC_SET_SIZE);
-
-    //TODO: respond
-    res = USBD_Read(0, dac_value, USBTHING_CMD_DAC_SET_SIZE, NULL);
-
-    //TODO: cast between types? (perhaps HTON function would work here)
-    DAC_set(dac_value);
-
-    return USB_STATUS_OK;
-}
 
 static int i2c_configured = 0;
 
@@ -324,13 +243,13 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return USB_STATUS_OK;
 
     case USBTHING_CMD_GPIO_CFG:
-        return gpio_configure(setup);
+        return gpio_cb_configure(setup);
 
     case USBTHING_CMD_GPIO_SET:
-        return gpio_set(setup);
+        return gpio_cb_set(setup);
 
     case USBTHING_CMD_GPIO_GET:
-        return gpio_get(setup);
+        return gpio_cb_get(setup);
 
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
