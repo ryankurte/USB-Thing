@@ -58,7 +58,6 @@ uint8_t button0message[] = "PB0 pressed!";
 EFM32_ALIGN(4)
 uint8_t button1message[] = "PB1 pressed!";
 
-
 int main(void)
 {
     /* Chip errata */
@@ -68,6 +67,7 @@ int main(void)
     //CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
     CMU_ClockEnable(cmuClock_HFPER, true);
+    //TODO: set new clock freq?
 
     printf("\nStarting USB Device...\n");
 
@@ -103,6 +103,6 @@ int main(void)
 
 int RETARGET_WriteChar(char c)
 {
-
+    //RetargetIO disabled
     return 0;
 }
