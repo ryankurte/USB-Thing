@@ -11,7 +11,7 @@
 #include "protocol.h"
 
 struct usbthing_s {
-    libusb_device_handle *handle;
+	libusb_device_handle *handle;
 };
 
 int USBTHING_init();
@@ -60,12 +60,12 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
 int USBTHING_i2c_configure(struct usbthing_s *usbthing, int mode);
 
 int USBTHING_i2c_write(struct usbthing_s *usbthing,
-                            int address,
-                            int length_out, unsigned char *data_out);
+                       int address,
+                       int length_out, unsigned char *data_out);
 
 int USBTHING_i2c_read(struct usbthing_s *usbthing,
-                            int address,
-                            int length_in, unsigned char *data_in);
+                      int address,
+                      int length_in, unsigned char *data_in);
 
 int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
                             int address,

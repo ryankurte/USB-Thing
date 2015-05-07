@@ -1,4 +1,6 @@
 
+#include "peripherals/spi.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -22,7 +24,7 @@ int8_t SPI_init(uint32_t baud, uint8_t clock_mode)
 
     GPIO_PinOutSet(SPI_CS_PORT, SPI_CS_PIN);
 
-   	//TODO: determine clock mode
+    //TODO: determine clock mode
 
     //Configure USART
     USART_InitSync_TypeDef spiConfig = {

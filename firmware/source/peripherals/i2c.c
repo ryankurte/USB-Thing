@@ -1,5 +1,5 @@
 
-#include "i2c.h"
+#include "peripherals/i2c.h"
 
 #include "em_i2c.h"
 #include "em_gpio.h"

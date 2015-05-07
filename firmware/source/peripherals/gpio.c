@@ -1,5 +1,5 @@
 
-#include "gpio.h"
+#include "peripherals/gpio.h"
 
 #include "em_cmu.h"
 #include "em_gpio.h"

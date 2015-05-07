@@ -37,6 +37,7 @@
 
 int  setupCmd(const USB_Setup_TypeDef *setup);
 void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState);
+
 int  spi_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 int  spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 int  i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);

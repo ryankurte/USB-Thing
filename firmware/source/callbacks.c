@@ -45,9 +45,9 @@
 
 #include "protocol.h"
 #include "platform.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "spi.h"
+#include "peripherals/gpio.h"
+#include "peripherals/i2c.h"
+#include "peripherals/spi.h"
 #include "version.h"
 
 #define BUFFERSIZE 500
@@ -70,6 +70,9 @@ EFM32_ALIGN(4)
 uint8_t firmware_version[] = SOFTWARE_VERSION;
 EFM32_ALIGN(4)
 uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
+EFM32_ALIGN(4)
+uint8_t dac_value[USBTHING_CMD_DAC_SET_SIZE];
+
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -183,6 +186,51 @@ int gpio_get(const USB_Setup_TypeDef *setup)
     res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
 
     return res;
+}
+
+int dac_configure(const USB_Setup_TypeDef *setup)
+{
+    if ( ( setup->wLength     != USBTHING_CMD_DAC_CFG_SIZE      ) ||
+         ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE     )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    DAC_configure();
+
+    return USB_STATUS_OK;
+}
+
+int dac_enable(const USB_Setup_TypeDef *setup)
+{
+    if ( ( setup->wLength     != USBTHING_CMD_DAC_ENABLE_SIZE  ) ||
+         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    DAC_enable(setup->wValue);
+
+    return USB_STATUS_OK;
+}
+
+int dac_set(const USB_Setup_TypeDef *setup)
+{
+    int8_t res;
+
+    if ( ( setup->wLength     != USBTHING_CMD_DAC_SET_SIZE     ) ||
+         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
+         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
+        return USB_STATUS_REQ_ERR;
+    }
+
+    //TODO: respond
+    res = USBD_Read(0, dac_value, USBTHING_CMD_DAC_SET_SIZE, NULL);
+
+    //TODO: cast between types? (perhaps HTON function would work here)
+    DAC_set(dac_value);
+
+    return USB_STATUS_OK;
 }
 
 static int i2c_configured = 0;

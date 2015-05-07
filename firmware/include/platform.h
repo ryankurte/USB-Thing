@@ -59,6 +59,8 @@
 #define I2C_ROUTE 			I2C_ROUTE_LOCATION_LOC1 | I2C_ROUTE_SCLPEN | I2C_ROUTE_SDAPEN
 
 /*** 			PWM Pins 				***/
+#define PWM_TIMER_CLOCK		cmuClock_HFPER
+#define PWM_TIMER 			TIMER2
 #define TIM2_CC0_PIN 		7
 #define TIM2_CC0_PORT	 	gpioPortB
 #define TIM2_CC1_PIN 		8

@@ -44,7 +44,7 @@
 #include "callbacks.h"
 #include "descriptors.h"
 #include "platform.h"
-#include "gpio.h"
+#include "peripherals/gpio.h"
 
 #define DEBUG_USB
 

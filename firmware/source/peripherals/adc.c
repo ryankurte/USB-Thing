@@ -1,5 +1,5 @@
 
-#include "adc.h"
+#include "peripherals/adc.h"
 
 #include <stdint.h>
 
@@ -8,7 +8,7 @@
 
 #include "platform.h"
 
-void ADC_init() 
+void ADC_init()
 {
     ADC_Init_TypeDef adc_init = ADC_INIT_DEFAULT;
     ADC_InitSingle_TypeDef single_init = ADC_INITSINGLE_DEFAULT;
@@ -28,7 +28,7 @@ void ADC_close()
     CMU_ClockEnable(ADC_CLOCK, false);
 }
 
-uint32_t ADC_read(uint8_t channel) 
+uint32_t ADC_read(uint8_t channel)
 {
     uint16_t res;
 

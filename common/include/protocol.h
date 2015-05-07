@@ -98,6 +98,10 @@ struct usbthing_dac_config_s {
 
 } usbthing_dac_config_s;
 
+#define USBTHING_CMD_DAC_CFG_SIZE               0
+#define USBTHING_CMD_DAC_ENABLE_SIZE            0
+#define USBTHING_CMD_DAC_SET_SIZE               4
+
 /*****      PWM Configuration messages          *****/
 struct usbthing_pwm_config_s {
     uint32_t freq_le;
@@ -112,7 +116,7 @@ struct usbthing_pwm_config_s {
 
 struct usbthing_spi_cfg_s {
     uint32_t freq_le;
-    uint8_t mode;
+    uint8_t clk_mode;
 } usbthing_spi_cfg_s;
 
 enum usbthing_spi_speed_e {
@@ -148,7 +152,7 @@ enum usbthing_i2c_transfer_mode_e {
 };
 
 struct usbthing_i2c_cfg_s {
-
+    uint32_t freq_le;                             //!< I2C device speed
 } usbthing_i2c_cfg_s;
 
 struct usbthing_i2c_transfer_s {
