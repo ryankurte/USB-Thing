@@ -54,6 +54,7 @@ set(SOURCES
 	source/callbacks.c
 	source/mappings/dac_usb.c
 	source/mappings/gpio_usb.c
+	source/mappings/spi_usb.c
 	source/peripherals/gpio.c
 	source/peripherals/spi.c
 	source/peripherals/i2c.c
