@@ -64,10 +64,10 @@ int main(void)
     CHIP_Init();
 
     /* Enable HFXO */
-    //CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    SystemHFXOClockSet(48000000);
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
     CMU_ClockEnable(cmuClock_HFPER, true);
-    //TODO: set new clock freq?
 
     printf("\nStarting USB Device...\n");
 

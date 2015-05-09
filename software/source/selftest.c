@@ -8,13 +8,15 @@ int self_test(struct usbthing_s* usbthing)
 {
 	//Test connectivity
 
-	
+
 }
 
-static int test_dac_adc(struct usbthing_s usbthing) {
+static int test_dac_adc(struct usbthing_s usbthing)
+{
+	char c;
+
 	printf("DAC and ADC test\r\n");
 	printf("Connect DAC to ADC port 0 and press any key to continue\r\n");
-	getc();
 
 	//USBTHING_dac_configure();
 
@@ -31,7 +33,8 @@ static int test_dac_adc(struct usbthing_s usbthing) {
 	return 0;
 }
 
-static int test_gpio(struct usbthing_s usbthing) {
+static int test_gpio(struct usbthing_s usbthing)
+{
 	printf("GPIO test\r\n");
 	printf("Connect pins GPIO0 to GPIO1 and GPIO2 to GPIO3 and press any key to continue\r\n");
 
@@ -48,7 +51,8 @@ static int test_gpio(struct usbthing_s usbthing) {
 	return 0;
 }
 
-static int test_spi(struct usbthing_s usbthing) {
+static int test_spi(struct usbthing_s usbthing)
+{
 	printf("SPI test\r\n");
 	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
 
@@ -65,7 +69,8 @@ static int test_spi(struct usbthing_s usbthing) {
 	return 0;
 }
 
-static int test_i2c(struct usbthing_s usbthing) {
+static int test_i2c(struct usbthing_s usbthing)
+{
 
 	//I don't even know how to start this
 
