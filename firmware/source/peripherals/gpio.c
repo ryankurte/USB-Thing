@@ -38,23 +38,23 @@ void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
         return;
     case GPIO1:
         if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
+            GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModePushPull, 0);
         } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
+            GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModeInput, 0);
         }
         return;
     case GPIO2:
         if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
+            GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModePushPull, 0);
         } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
+            GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModeInput, 0);
         }
         return;
     case GPIO3:
         if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
+            GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModePushPull, 0);
         } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
+            GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
         }
         return;
     }

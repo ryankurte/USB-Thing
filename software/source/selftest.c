@@ -17,7 +17,11 @@ int self_test(struct usbthing_s* usbthing)
 	if (res < 0) {
 		printf("GPIO test failed: %d\r\n", res);
 		return -2;
+	} else {
+		printf("GPIO test OK\r\n");
 	}
+
+
 
 #if 0
 	res = test_dac_adc(usbthing);
@@ -70,27 +74,33 @@ static int test_gpio(struct usbthing_s* usbthing)
 	//First pair, low
 	res = USBTHING_gpio_set(usbthing, 0, false);
 	if (res < 0) {
+		printf("GPIO0 set output low failed\r\n");
 		return -1;
 	}
-	res = USBTHING_gpio_get(usbthing, 0, &value);
+	res = USBTHING_gpio_get(usbthing, 1, &value);
 	if (res < 0) {
-		return -2;
+		printf("GPIO1 read low input failed\r\n");
+		//return -2;
 	}
 	if (value != false) {
-		return -3;
+		printf("GPIO1 read low input incorrect\r\n");
+		//return -3;
 	}
 
 	//First pair, high
 	res = USBTHING_gpio_set(usbthing, 0, true);
 	if (res < 0) {
+		printf("GPIO0 set output high failed\r\n");
 		return -4;
 	}
 	res = USBTHING_gpio_get(usbthing, 0, &value);
 	if (res < 0) {
-		return -5;
+		printf("GPIO1 read high input failed\r\n");
+		//return -5;
 	}
 	if (value != true) {
-		return -6;
+		printf("GPIO1 read high input incorrect\r\n");
+		//return -6;
 	}
 
 

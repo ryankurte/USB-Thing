@@ -37,15 +37,16 @@ int gpio_cb_set(const USB_Setup_TypeDef *setup)
 
 int gpio_cb_get(const USB_Setup_TypeDef *setup)
 {
-	int res = USB_STATUS_REQ_ERR;
-
-	CHECK_SETUP_IN(USBTHING_CMD_GPIO_GET_SIZE);
+	if ((setup->wLength != USBTHING_CMD_GPIO_GET_SIZE)
+	    || (setup->Direction != USB_SETUP_DIR_IN)
+	    || (setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) {
+		return USB_STATUS_REQ_ERR;
+	}
+	//CHECK_SETUP_IN(USBTHING_CMD_GPIO_GET_SIZE);
 
 	uint8_t pin = setup->wIndex;
 	pin_value[0] = GPIO_get(pin);
 
 	//TODO: respond
-	res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
-
-	return res;
+	return USBD_Write(0, pin_value, USBTHING_CMD_GPIO_GET_SIZE, NULL);
 }
