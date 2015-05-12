@@ -31,9 +31,17 @@ setup:
 
     USBTHING_led_set(&usbthing, 0, 1);
 
-    sleep(1);
+    usleep(500000);
 
     USBTHING_led_set(&usbthing, 0, 0);
+
+    usleep(500000);
+
+    USBTHING_led_set(&usbthing, 1, 1);
+
+    usleep(500000);
+
+    USBTHING_led_set(&usbthing, 1, 0);
 
     unsigned char data_out[] = "tick";
     unsigned char data_in[sizeof(data_out)];
@@ -43,6 +51,8 @@ setup:
     USBTHING_spi_transfer(&usbthing, data_out, data_in, sizeof(data_out));
 
     USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
+
+    self_test(&usbthing);
 
     //USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
 

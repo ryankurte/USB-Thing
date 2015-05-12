@@ -203,7 +203,7 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     unsigned char result[USBTHING_CMD_GPIO_GET_SIZE];
 
     res = libusb_control_transfer (usbthing->handle,
-                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   CONTROL_REQUEST_TYPE_IN,
                                    USBTHING_CMD_GPIO_GET,
                                    0,
                                    pin,
