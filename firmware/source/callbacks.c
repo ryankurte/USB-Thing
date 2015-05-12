@@ -110,15 +110,7 @@ int firmware_get(const USB_Setup_TypeDef *setup)
     int res = USB_STATUS_REQ_ERR;
 
     CHECK_SETUP_IN(USBTHING_FIRMWARE_MAX_SIZE);
-#if 0
-    if ( ( setup->wIndex      != 0                             ) ||
-         ( setup->wLength     != USBTHING_FIRMWARE_MAX_SIZE    ) ||
-         ( setup->wValue      != 0                             ) ||
-         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
-#endif
+
     res = USBD_Write(0, firmware_version, sizeof(firmware_version), NULL);
 
     return res;

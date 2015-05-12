@@ -39,7 +39,7 @@ int gpio_cb_get(const USB_Setup_TypeDef *setup)
 {
 	int res = USB_STATUS_REQ_ERR;
 
-	CHECK_SETUP_OUT(USBTHING_CMD_GPIO_GET_SIZE);
+	CHECK_SETUP_IN(USBTHING_CMD_GPIO_GET_SIZE);
 
 	uint8_t pin = setup->wIndex;
 	pin_value[0] = GPIO_get(pin);

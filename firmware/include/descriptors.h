@@ -35,18 +35,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  
+
 #include "protocol.h"
 
 /* Device Descriptor. Refer to the USB 2.0 Specification, chapter 9.6 */
 EFM32_ALIGN(4)
-static const USB_DeviceDescriptor_TypeDef deviceDesc __attribute__ ((aligned(4)))=
-{
+static const USB_DeviceDescriptor_TypeDef deviceDesc __attribute__ ((aligned(4))) = {
   .bLength            = USB_DEVICE_DESCSIZE,            /* Size of the Descriptor in Bytes */
   .bDescriptorType    = USB_DEVICE_DESCRIPTOR,          /* Device Descriptor type */
   .bcdUSB             = 0x0200,                         /* USB 2.0 compliant */
   .bDeviceClass       = 0xFF,                           /* Vendor unique device */
-  .bDeviceSubClass    = 0,                              /* Ignored for vendor unique device */            
+  .bDeviceSubClass    = 0,                              /* Ignored for vendor unique device */
   .bDeviceProtocol    = 0,                              /* Ignored for vendor unique device */
   .bMaxPacketSize0    = USB_EP0_SIZE,                   /* Max packet size for EP0 */
   .idVendor           = VENDOR_ID,                      /* Energy Micro VID */
@@ -62,8 +61,7 @@ static const USB_DeviceDescriptor_TypeDef deviceDesc __attribute__ ((aligned(4))
  * Interface and Endpoint Descriptors for the device.
  * Refer to the USB 2.0 Specification, chapter 9.6. */
 EFM32_ALIGN(4)
-static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
-{
+static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   /*** Configuration descriptor ***/
   USB_CONFIG_DESCSIZE,                  /* bLength              */
   USB_CONFIG_DESCRIPTOR,                /* bDescriptorType      */
@@ -74,7 +72,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
 
   (USB_CONFIG_DESCSIZE +                /* wTotalLength (MSB)   */
   USB_INTERFACE_DESCSIZE +
-  (USB_ENDPOINT_DESCSIZE * NUM_EP_USED))>>8,
+  (USB_ENDPOINT_DESCSIZE * NUM_EP_USED)) >> 8,
 
   1,                                    /* bNumInterfaces       */
   1,                                    /* bConfigurationValue  */
@@ -94,7 +92,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
   0,                                    /* bInterfaceSubClass   */
   0,                                    /* bInterfaceProtocol   */
   0,                                    /* iInterface           */
-  
+
   /*** Bulk Endpoint Descriptor 1 (OUT) ***/
   USB_ENDPOINT_DESCSIZE,                /* bLength              */
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
@@ -102,9 +100,9 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
   USB_EPTYPE_BULK,                      /* bmAttributes         */
   USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
-  0,                                    /* bInterval            */    
-  
-  
+  0,                                    /* bInterval            */
+
+
   /*** Bulk Endpoint Descriptor 1 (IN) ***/
   USB_ENDPOINT_DESCSIZE,                /* bLength              */
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
@@ -121,8 +119,8 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
   USB_EPTYPE_BULK,                      /* bmAttributes         */
   USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
-  0,                                    /* bInterval            */    
-  
+  0,                                    /* bInterval            */
+
   /*** Bulk Endpoint Descriptor 2 (IN) ***/
   USB_ENDPOINT_DESCSIZE,                /* bLength              */
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
@@ -140,23 +138,22 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4)))=
   USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   1,                                    /* bInterval            */
-   
+
 };
 
 /* Define the String Descriptor for the device. String must be properly
- * aligned and unicode encoded. The first element defines the language id. 
- * Here 0x04 = United States, 0x09 = English. 
+ * aligned and unicode encoded. The first element defines the language id.
+ * Here 0x04 = United States, 0x09 = English.
  * Refer to the USB Language Identifiers documentation. */
 STATIC_CONST_STRING_DESC_LANGID( langID, 0x04, 0x09 );
-STATIC_CONST_STRING_DESC( iManufacturer, 'E','L','E','C','T','R','O','N',' ', 'P',
-                                         'O', 'W','E','R','E','D');
-STATIC_CONST_STRING_DESC( iProduct     , 'U','S','B','-','T',' ','H','I','N','G');
-STATIC_CONST_STRING_DESC( iSerialNumber, '0','0','0','0','0','0',             
-                                         '0','0','0','0','0','1' );
+STATIC_CONST_STRING_DESC( iManufacturer, 'E', 'L', 'E', 'C', 'T', 'R', 'O', 'N', ' ', 'P',
+                          'O', 'W', 'E', 'R', 'E', 'D');
+STATIC_CONST_STRING_DESC( iProduct     , 'U', 'S', 'B', '-', 'T', 'H', 'I', 'N', 'G');
+STATIC_CONST_STRING_DESC( iSerialNumber, '0', '0', '0', '0', '0', '0',
+                          '0', '0', '0', '0', '0', '1' );
 
 
-static const void * const strings[] =
-{
+static const void * const strings[] = {
   &langID,
   &iManufacturer,
   &iProduct,
@@ -165,8 +162,7 @@ static const void * const strings[] =
 
 /* Endpoint buffer sizes. Use 1 for Control/Interrupt
  * endpoints and 2 for Bulk endpoints. */
-static const uint8_t bufferingMultiplier[ NUM_EP_USED + 1 ] = 
-{ 
+static const uint8_t bufferingMultiplier[ NUM_EP_USED + 1 ] = {
   1,  /* Control */
   2,  /* Bulk */
   2,  /* Bulk */
@@ -176,8 +172,7 @@ static const uint8_t bufferingMultiplier[ NUM_EP_USED + 1 ] =
 };
 
 /* Define callbacks that are called by the USB stack on different events. */
-static const USBD_Callbacks_TypeDef callbacks =
-{
+static const USBD_Callbacks_TypeDef callbacks = {
   .usbReset        = NULL,              /* Called whenever USB reset signalling is detected on the USB port. */
   .usbStateChange  = stateChange,       /* Called whenever the device change state.  */
   .setupCmd        = setupCmd,          /* Called on each setup request received from host. */
@@ -185,14 +180,13 @@ static const USBD_Callbacks_TypeDef callbacks =
   .sofInt          = NULL               /* Called at each SOF (Start of Frame) interrupt. If NULL, the device stack will not enable the SOF interrupt. */
 };
 
-/* Fill the init struct. This struct is passed to USBD_Init() in order 
+/* Fill the init struct. This struct is passed to USBD_Init() in order
  * to initialize the USB Stack */
-static const USBD_Init_TypeDef initstruct =
-{
+static const USBD_Init_TypeDef initstruct = {
   .deviceDescriptor    = &deviceDesc,
   .configDescriptor    = configDesc,
   .stringDescriptors   = strings,
-  .numberOfStrings     = sizeof(strings)/sizeof(void*),
+  .numberOfStrings     = sizeof(strings) / sizeof(void*),
   .callbacks           = &callbacks,
   .bufferingMultiplier = bufferingMultiplier,
   .reserved            = 0
