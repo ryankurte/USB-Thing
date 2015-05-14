@@ -8,7 +8,7 @@
 
 #include "platform.h"
 
-void DAC_init()
+void DAC_configure()
 {
     DAC_Init_TypeDef dac_init = DAC_INIT_DEFAULT;
     DAC_InitChannel_TypeDef channel_init = DAC_INITCHANNEL_DEFAULT;
@@ -33,7 +33,7 @@ void DAC_enable(bool enable)
     DAC_Enable(DAC_DEVICE, DAC_CHANNEL, enable);
 }
 
-void DAC_write(uint32_t value)
+void DAC_set(uint32_t value)
 {
 #if DAC_CHANNEL == 0
     DAC_Channel0OutputSet(DAC_DEVICE, value);

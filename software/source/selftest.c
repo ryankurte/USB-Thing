@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "usbthing.h"
 
@@ -20,8 +21,6 @@ int self_test(struct usbthing_s* usbthing)
 	} else {
 		printf("GPIO test OK\r\n");
 	}
-
-
 
 #if 0
 	res = test_dac_adc(usbthing);
@@ -151,12 +150,13 @@ static int test_spi(struct usbthing_s* usbthing)
 
 	//TODO: compare sent and response values
 
-	if (strncmp(data_out, data_in, sizeof(data_out) != 0)) {
+	if (strncmp(data_out, data_in, sizeof(data_out)) != 0) {
 		printf("SPI test data mismatch\r\n");
 		printf("out: %s\r\n", data_out);
 		printf("in: %s\r\n", data_out);
 		return -1;
 	}
+
 
 	//TODO: check CS
 

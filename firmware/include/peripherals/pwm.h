@@ -12,7 +12,7 @@ extern "C" {
 void PWM_init();
 void PWM_close();
 void PWM_enable(uint8_t channel, bool enable);
-void PWM_write(uint8_t channel);
+void PWM_set(uint8_t channel);
 
 #ifdef __cplusplus
 }

@@ -49,6 +49,7 @@
 
 #include "mappings/gpio_usb.h"
 #include "mappings/spi_usb.h"
+#include "mappings/dac_usb.h"
 
 #include "peripherals/gpio.h"
 #include "peripherals/i2c.h"
@@ -196,6 +197,15 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     case USBTHING_CMD_SPI_CFG:
         return spi_cb_configure(setup);
+
+    case USBTHING_CMD_DAC_CFG:
+        return dac_cb_configure(setup);
+
+    case USBTHING_CMD_DAC_EN:
+        return dac_cb_enable(setup);
+
+    case USBTHING_CMD_DAC_SET:
+        return dac_cb_set(setup);
     }
 
     //Signal command was not handled

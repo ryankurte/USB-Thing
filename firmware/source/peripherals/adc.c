@@ -28,7 +28,7 @@ void ADC_close()
     CMU_ClockEnable(ADC_CLOCK, false);
 }
 
-uint32_t ADC_read(uint8_t channel)
+uint32_t ADC_get(uint8_t channel)
 {
     uint16_t res;
 
