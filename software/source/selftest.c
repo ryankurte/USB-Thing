@@ -31,6 +31,12 @@ int self_test(struct usbthing_s* usbthing)
 	}
 #endif
 
+	res = test_spi(usbthing);
+	if (res < 0) {
+		printf("DAC -> ADC test failed: %d\r\n", res);
+		return -2;
+	}
+
 	return 0;
 }
 
@@ -57,67 +63,100 @@ static int test_dac_adc(struct usbthing_s* usbthing)
 	return 0;
 }
 
-static int test_gpio(struct usbthing_s* usbthing)
+static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
 {
 	bool value;
 	int res;
 
-	printf("GPIO test\r\n");
-	printf("Connect pins GPIO0 to GPIO1 and GPIO2 to GPIO3 and press any key to continue\r\n");
-	getchar();
-
-	USBTHING_gpio_configure(usbthing, 0, true, false, false);
-	USBTHING_gpio_configure(usbthing, 1, false, false, false);
-	USBTHING_gpio_configure(usbthing, 2, true, false, false);
-	USBTHING_gpio_configure(usbthing, 3, false, false, false);
+	//Configure
+	USBTHING_gpio_configure(usbthing, out, true, false, false);
+	USBTHING_gpio_configure(usbthing, in, false, false, false);
 
 	//First pair, low
-	res = USBTHING_gpio_set(usbthing, 0, false);
+	res = USBTHING_gpio_set(usbthing, out, false);
 	if (res < 0) {
-		printf("GPIO0 set output low failed\r\n");
+		printf("GPIO %d set output low failed\r\n", in);
 		return -1;
 	}
-	res = USBTHING_gpio_get(usbthing, 1, &value);
+	res = USBTHING_gpio_get(usbthing, in, &value);
 	if (res < 0) {
-		printf("GPIO1 read low input failed\r\n");
-		//return -2;
+		printf("GPIO %d read low input failed\r\n", out);
+		return -2;
 	}
 	if (value != false) {
-		printf("GPIO1 read low input incorrect\r\n");
-		//return -3;
+		printf("GPIO %d read low input incorrect\r\n", out);
+		return -3;
 	}
 
 	//First pair, high
-	res = USBTHING_gpio_set(usbthing, 0, true);
+	res = USBTHING_gpio_set(usbthing, out, true);
 	if (res < 0) {
-		printf("GPIO0 set output high failed\r\n");
+		printf("GPIO %d set output high failed\r\n", in);
 		return -4;
 	}
-	res = USBTHING_gpio_get(usbthing, 0, &value);
+	res = USBTHING_gpio_get(usbthing, in, &value);
 	if (res < 0) {
-		printf("GPIO1 read high input failed\r\n");
-		//return -5;
+		printf("GPIO %d read high input failed\r\n", out);
+		return -5;
 	}
 	if (value != true) {
-		printf("GPIO1 read high input incorrect\r\n");
-		//return -6;
+		printf("GPIO %d read high input incorrect\r\n", out);
+		return -6;
 	}
 
+	return 0;
+}
 
+static int test_gpio(struct usbthing_s* usbthing)
+{
+	int res;
+
+	printf("GPIO test\r\n");
+	printf("Connect pins GPIO0 to GPIO1, GPIO2 to GPIO3 and GPIO4 to GPIO5 and press any key to continue\r\n");
+	getchar();
+
+	res = test_gpio_pair(usbthing, 0, 1);
+	if (res < 0) {
+		printf("GPIO test pair 0 failed\r\n");
+		return -1;
+	}
+
+	res = test_gpio_pair(usbthing, 2, 3);
+	if (res < 0) {
+		printf("GPIO test pair 1 failed\r\n");
+		return -2;
+	}
+#if 0
+	res = test_gpio_pair(usbthing, 4, 5);
+	if (res < 0) {
+		printf("GPIO test pair 2 failed\r\n");
+		return -3;
+	}
+#endif
 	return 0;
 }
 
 static int test_spi(struct usbthing_s* usbthing)
 {
+	unsigned char data_out[] = "tick";
+	unsigned char data_in[sizeof(data_out)];
+
 	printf("SPI test\r\n");
 	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
 	getchar();
 
-	//USBTHING_SPI_configure()
+	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
-	//USBTHING_SPI_writeread()
+	USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
 
 	//TODO: compare sent and response values
+
+	if (strncmp(data_out, data_in, sizeof(data_out) != 0)) {
+		printf("SPI test data mismatch\r\n");
+		printf("out: %s\r\n", data_out);
+		printf("in: %s\r\n", data_out);
+		return -1;
+	}
 
 	//TODO: check CS
 

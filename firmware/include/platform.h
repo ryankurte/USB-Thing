@@ -15,22 +15,18 @@
 #define LED1_PORT 		  	gpioPortD
 
 /*** 			GPIO Pins 				***/
-#define GPIO0_PIN 			3
+#define GPIO0_PIN 			9
 #define GPIO0_PORT		 	gpioPortA
-#define GPIO1_PIN 			4
+#define GPIO1_PIN 			8
 #define GPIO1_PORT		 	gpioPortA
-#define GPIO2_PIN 			5
+#define GPIO2_PIN 			3
 #define GPIO2_PORT		 	gpioPortA
-#define GPIO3_PIN 			8
+#define GPIO3_PIN 			4
 #define GPIO3_PORT		 	gpioPortA
-#define GPIO4_PIN 			9
-#define GPIO4_PORT		 	gpioPortA
-#define GPIO5_PIN 			10
-#define GPIO5_PORT		 	gpioPortA
-#define GPIO6_PIN 			14
-#define GPIO6_PORT		 	gpioPortE
-#define GPIO7_PIN 			15
-#define GPIO7_PORT		 	gpioPortE
+#define GPIO4_PIN 			14
+#define GPIO4_PORT		 	gpioPortE
+#define GPIO5_PIN 			15
+#define GPIO5_PORT		 	gpioPortE
 
 #define GPIO_CLOCK 			cmuClock_GPIO
 

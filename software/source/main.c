@@ -43,15 +43,7 @@ setup:
 
     USBTHING_led_set(&usbthing, 1, 0);
 
-    unsigned char data_out[] = "tick";
-    unsigned char data_in[sizeof(data_out)];
-
-    //USBTHING_spi_configure(&usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
-
-    //USBTHING_spi_transfer(&usbthing, data_out, data_in, sizeof(data_out));
-
     //USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
-
 
     //USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
 
