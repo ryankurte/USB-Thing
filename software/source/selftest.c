@@ -5,6 +5,7 @@
 
 #include "usbthing.h"
 
+static int test_adc(struct usbthing_s* usbthing);
 static int test_dac_adc(struct usbthing_s* usbthing);
 static int test_gpio(struct usbthing_s* usbthing);
 static int test_spi(struct usbthing_s* usbthing);
@@ -32,8 +33,18 @@ int self_test(struct usbthing_s* usbthing)
 
 	res = test_spi(usbthing);
 	if (res < 0) {
-		printf("DAC -> ADC test failed: %d\r\n", res);
+		printf("SPI test failed: %d\r\n", res);
 		return -2;
+	} else {
+		printf("SPI test OK\r\n");
+	}
+
+	res = test_adc(usbthing);
+	if (res < 0) {
+		printf("ADC test failed: %d\r\n", res);
+		return -2;
+	} else {
+		printf("ADC test OK\r\n");
 	}
 
 	return 0;
@@ -161,6 +172,26 @@ static int test_spi(struct usbthing_s* usbthing)
 	//TODO: check CS
 
 	//TODO: check CLK
+
+	return 0;
+}
+
+static int test_adc(struct usbthing_s* usbthing)
+{
+	uint32_t val;
+
+	printf("ADC test\r\n");
+	printf("Connect ADC port 0 to 3V3, ADC port 4 to GND, and press any key to continue\r\n");
+	getchar();
+
+	USBTHING_adc_configure(usbthing);
+
+	USBTHING_adc_get(usbthing, 0, &val);
+	if (val >= (pow(2, 12) * 0.9)) {
+		printf("ADC read channel 0 error\r\n");
+		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.8, val);
+		return -1;
+	}
 
 	return 0;
 }
