@@ -11,7 +11,7 @@ args = parser.parse_args()
 output = args.output
  
 #Load git description
-p = subprocess.Popen('git describe --dirty=+', stdout=subprocess.PIPE, shell=True)
+p = subprocess.Popen('git describe --dirty', stdout=subprocess.PIPE, shell=True)
 version = p.communicate()[0]
 versionString = version.replace('\n', '').replace('\r', '');
  

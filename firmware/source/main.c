@@ -44,7 +44,7 @@
 #include "callbacks.h"
 #include "descriptors.h"
 #include "platform.h"
-#include "gpio.h"
+#include "peripherals/gpio.h"
 
 #define DEBUG_USB
 
@@ -58,14 +58,14 @@ uint8_t button0message[] = "PB0 pressed!";
 EFM32_ALIGN(4)
 uint8_t button1message[] = "PB1 pressed!";
 
-
 int main(void)
 {
     /* Chip errata */
     CHIP_Init();
 
     /* Enable HFXO */
-    //CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    SystemHFXOClockSet(48000000);
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
     CMU_ClockEnable(cmuClock_HFPER, true);
 
@@ -103,6 +103,6 @@ int main(void)
 
 int RETARGET_WriteChar(char c)
 {
-
+    //RetargetIO disabled
     return 0;
 }

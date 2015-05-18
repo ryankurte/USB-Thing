@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#define USBTHING_PROTOCOL_VERSION       1
+
 #ifndef VENDOR_ID
 #define VENDOR_ID   0x0001
 #endif
@@ -17,13 +19,31 @@ enum usb_thing_cmd_e {
     USBTHING_CMD_NOP = 0x80,
     USBTHING_CMD_SERIAL_GET = 0x81,
     USBTHING_CMD_FIRMWARE_GET = 0x82,
-    USBTHING_CMD_LED_SET = 0x91,
-    USBTHING_CMD_GPIO_CFG = 0x92,
-    USBTHING_CMD_GPIO_SET = 0x93,
-    USBTHING_CMD_GPIO_GET = 0x94,
+    USBTHING_CMD_LED_SET = 0x83,
+    USBTHING_CMD_RESET = 0x84,
+    USBTHING_CMD_GPIO_CFG = 0x91,
+    USBTHING_CMD_GPIO_SET = 0x92,
+    USBTHING_CMD_GPIO_GET = 0x93,
     USBTHING_CMD_SPI_CFG = 0xA1,
     USBTHING_CMD_I2C_CFG = 0xB1,
-    USBTHING_CMD_I2C_TRANSFER = 0xB2
+    USBTHING_CMD_I2C_TRANSFER = 0xB2,
+    USBTHING_CMD_PWM_CFG = 0xC1,
+    USBTHING_CMD_PWM_EN = 0xC2,
+    USBTHING_CMD_PWM_SET = 0xC3,
+    USBTHING_CMD_ADC_CFG = 0xD1,
+    USBTHING_CMD_ADC_GET = 0xD2,
+    USBTHING_CMD_DAC_CFG = 0xE1,
+    USBTHING_CMD_DAC_EN = 0xE2,
+    USBTHING_CMD_DAC_SET = 0xE3,
+    USBTHING_CMD_UART_CFG = 0xF1
+};
+
+enum usb_thing_error_e {
+    USBTHING_ERROR_OK = 0,
+    USBTHING_ERROR_USB_DISCONNECT = -1,
+    USBTHING_ERROR_USB_TIMEOUT = -2,
+    USBTHING_ERROR_PERIPHERAL_FAILED = -3,
+    USBTHING_ERROR_PERIPHERAL_TIMEOut = -4
 };
 
 
@@ -69,12 +89,36 @@ enum usb_thing_cmd_e {
 #define USBTHING_CMD_GPIO_SET_SIZE              0
 #define USBTHING_CMD_GPIO_GET_SIZE              1
 
+/*****      ADC Configuration messages          *****/
+struct usbthing_adc_config_s {
+
+} usbthing_adc_config_s;
+
+/*****      DAC Configuration messages          *****/
+struct usbthing_dac_config_s {
+
+} usbthing_dac_config_s;
+
+#define USBTHING_CMD_DAC_CFG_SIZE               0
+#define USBTHING_CMD_DAC_ENABLE_SIZE            0
+#define USBTHING_CMD_DAC_SET_SIZE               4
+
+/*****      PWM Configuration messages          *****/
+struct usbthing_pwm_config_s {
+    uint32_t freq_le;
+} usbthing_pwm_config_s;
+
 /*****      SPI Configuration messages          *****/
 #define USBTHING_SPI_CFG_SPEED_SHIFT            (0)
 #define USBTHING_SPI_CFG_SPEED_MASK             (0x0F << USBTHING_I2C_CFG_SPEED_SHIFT)
 #define USBTHING_SPI_CFG_CLOCK_SHIFT            (4)
 #define USBTHING_SPI_CFG_CLOCK_MASK             (0x03 << USBTHING_SPI_CFG_CPOL_SHIFT)
 #define USBTHING_SPI_CFG_SIZE                   0
+
+struct usbthing_spi_cfg_s {
+    uint32_t freq_le;
+    uint8_t clk_mode;
+} usbthing_spi_cfg_s;
 
 enum usbthing_spi_speed_e {
     USBTHING_SPI_SPEED_100KHZ = 0,              //!< Standard mode (100 kbps)
@@ -107,6 +151,10 @@ enum usbthing_i2c_transfer_mode_e {
     USBTHING_I2C_MODE_WRITE = 1,                //!< Write only mode
     USBTHING_I2C_MODE_WRITE_READ = 2            //!< Write and read mode
 };
+
+struct usbthing_i2c_cfg_s {
+    uint32_t freq_le;                             //!< I2C device speed
+} usbthing_i2c_cfg_s;
 
 struct usbthing_i2c_transfer_s {
     uint8_t mode;                               //!< I2C Transfer mode

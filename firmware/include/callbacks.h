@@ -35,10 +35,22 @@
 #ifndef _CALLBACKS_H_
 #define _CALLBACKS_H_
 
+//Check macros
+#define CHECK_SETUP_IN(type)     if ((setup->wLength != type) \
+        ||(setup->Direction != USB_SETUP_DIR_IN) \
+        ||(setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) { \
+        return USB_STATUS_REQ_ERR; \
+    }
+
+#define CHECK_SETUP_OUT(type)     if ((setup->wLength != type) \
+        ||(setup->Direction != USB_SETUP_DIR_OUT) \
+        ||(setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) { \
+        return USB_STATUS_REQ_ERR; \
+    }
+
 int  setupCmd(const USB_Setup_TypeDef *setup);
 void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState);
-int  spi_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
-int  spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+
 int  i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 int  i2c_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 

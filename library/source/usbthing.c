@@ -17,7 +17,7 @@
 
 #define CONTROL_REQUEST_TYPE_IN  (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
 #define CONTROL_REQUEST_TYPE_OUT  (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE)
-#define USBTHING_TIMEOUT        1000
+#define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
 #ifdef DEBUG_USBTHING
@@ -102,7 +102,7 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
-int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, int *length)
+int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char *version)
 {
     int res;
 
@@ -122,6 +122,8 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, char *version, in
         perror("USBTHING get firmware version error");
     } else {
         USBTHING_DEBUG_PRINT("firmware: %s\n", version_str);
+        strncpy(version, version_str, length);
+        version[length] = '\0';
     }
 
     return res;
@@ -201,8 +203,8 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     unsigned char result[USBTHING_CMD_GPIO_GET_SIZE];
 
     res = libusb_control_transfer (usbthing->handle,
-                                   LIBUSB_REQUEST_TYPE_VENDOR,
-                                   USBTHING_CMD_GPIO_CFG,
+                                   CONTROL_REQUEST_TYPE_IN,
+                                   USBTHING_CMD_GPIO_GET,
                                    0,
                                    pin,
                                    result,
@@ -218,7 +220,59 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     return res;
 }
 
-int USBTHING_spi_configure(struct usbthing_s *usbthing, int speed, int mode)
+
+int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, bool *value)
+{
+
+}
+
+int USBTHING_pwm_configure(struct usbthing_s *usbthing, unsigned int frequency)
+{
+
+}
+
+int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, bool enable)
+{
+
+}
+
+int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle)
+{
+
+}
+
+int USBTHING_dac_configure(struct usbthing_s *usbthing)
+{
+
+}
+
+int USBTHING_dac_enable(struct usbthing_s *usbthing, bool enable)
+{
+
+}
+
+int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value)
+{
+
+}
+
+int USBTHING_adc_configure(struct usbthing_s *usbthing)
+{
+
+}
+
+int USBTHING_adc_enable(struct usbthing_s *usbthing, bool enable)
+{
+
+}
+
+int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value)
+{
+
+}
+
+
+int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int mode)
 {
     int res;
     res = libusb_control_transfer (usbthing->handle,

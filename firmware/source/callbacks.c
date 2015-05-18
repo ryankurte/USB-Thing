@@ -45,17 +45,22 @@
 
 #include "protocol.h"
 #include "platform.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "spi.h"
 #include "version.h"
+
+#include "mappings/gpio_usb.h"
+#include "mappings/spi_usb.h"
+#include "mappings/dac_usb.h"
+
+#include "peripherals/gpio.h"
+#include "peripherals/i2c.h"
+#include "peripherals/spi.h"
+#include "peripherals/dac.h"
+
 
 #define BUFFERSIZE 500
 
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
-STATIC_UBUF(spi_receive_buffer, BUFFERSIZE);
-STATIC_UBUF(spi_transmit_buffer, BUFFERSIZE);
 
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
 STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
@@ -68,8 +73,6 @@ extern uint8_t button1message[];
 
 EFM32_ALIGN(4)
 uint8_t firmware_version[] = SOFTWARE_VERSION;
-EFM32_ALIGN(4)
-uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -90,16 +93,16 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
         || (newState == USBD_STATE_DEFAULT)
         || (newState == USBD_STATE_SUSPENDED)) {
         //Initial states, not configured
-        GPIO_act_led_set(false);
+        GPIO_conn_led_set(false);
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
-        USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
+        spi_cb_start();
         USBD_Read(EP2_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
-        GPIO_act_led_set(true);
+        GPIO_conn_led_set(true);
 
     } else if ( newState != USBD_STATE_SUSPENDED ) {
-
+        GPIO_conn_led_set(false);
     }
 }
 
@@ -107,13 +110,7 @@ int firmware_get(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
-    if ( ( setup->wIndex      != 0                             ) ||
-         ( setup->wLength     != USBTHING_FIRMWARE_MAX_SIZE    ) ||
-         ( setup->wValue      != 0                             ) ||
-         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
+    CHECK_SETUP_IN(USBTHING_FIRMWARE_MAX_SIZE);
 
     res = USBD_Write(0, firmware_version, sizeof(firmware_version), NULL);
 
@@ -124,66 +121,13 @@ int led_set(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
-    if ( ( setup->wLength     != USBTHING_CMD_LED_SET_SIZE     ) ||
-         ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
+    CHECK_SETUP_OUT(USBTHING_CMD_LED_SET_SIZE);
 
     GPIO_led_set(setup->wIndex, setup->wValue);
 
     return USB_STATUS_OK;
 }
 
-int gpio_configure(const USB_Setup_TypeDef *setup)
-{
-    if ( ( setup->wLength     != USBTHING_CMD_GPIO_CFG_SIZE    ) ||
-         ( setup->Direction   != USB_SETUP_DIR_OUT              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
-
-    uint8_t pin = setup->wIndex;
-    bool output = ((setup->wValue & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-    bool pull_enabled = ((setup->wValue & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-    bool pull_direction = ((setup->wValue & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
-
-    GPIO_configure(pin, output, pull_enabled, pull_direction);
-
-    return USB_STATUS_OK;
-}
-
-int gpio_set(const USB_Setup_TypeDef *setup)
-{
-    if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
-         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
-
-    GPIO_set(setup->wIndex, setup->wValue);
-
-    return USB_STATUS_OK;
-}
-
-int gpio_get(const USB_Setup_TypeDef *setup)
-{
-    int res = USB_STATUS_REQ_ERR;
-
-    if ( ( setup->wLength     != USBTHING_CMD_GPIO_GET_SIZE    ) ||
-         ( setup->Direction   != USB_SETUP_DIR_IN              ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
-
-    uint8_t pin = setup->wIndex;
-    pin_value[0] = GPIO_get(pin);
-
-    //TODO: respond
-    res = USBD_Write(0, pin_value, USBTHING_CMD_FIRMWARE_GET_SIZE, NULL);
-
-    return res;
-}
 
 static int i2c_configured = 0;
 
@@ -191,11 +135,7 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
 {
     int res = USB_STATUS_REQ_ERR;
 
-    if ( ( setup->wLength     != USBTHING_I2C_CFG_SIZE         ) ||
-         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
+    CHECK_SETUP_OUT(USBTHING_I2C_CFG_SIZE);
 
     uint8_t mode = setup->wValue;
     uint8_t flags = setup->wIndex;
@@ -225,61 +165,6 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
-static int spi_configured = 0;
-
-int spi_configure(const USB_Setup_TypeDef *setup)
-{
-    int res = USB_STATUS_REQ_ERR;
-
-    if ( ( setup->wLength     != USBTHING_SPI_CFG_SIZE         ) ||
-         ( setup->Direction   != USB_SETUP_DIR_OUT             ) ||
-         ( setup->Recipient   != USB_SETUP_RECIPIENT_DEVICE    )) {
-        return USB_STATUS_REQ_ERR;
-    }
-
-    uint8_t speed = setup->wValue;
-    uint8_t mode = setup->wIndex;
-    uint32_t baud, clock_mode;
-
-    //Set baud rate based on speed
-    switch (speed) {
-    case USBTHING_SPI_SPEED_100KHZ:
-        baud = 100000;
-        break;
-    case USBTHING_SPI_SPEED_400KHZ:
-        baud = 400000;
-        break;
-    case USBTHING_SPI_SPEED_1MHZ:
-        baud = 1000000;
-        break;
-    case USBTHING_SPI_SPEED_5MHZ:
-        baud = 5000000;
-        break;
-    }
-
-    //Set clock mode
-    switch (mode) {
-    case USBTHING_SPI_CLOCK_MODE0:
-        clock_mode = usartClockMode0;
-        break;
-    case USBTHING_SPI_CLOCK_MODE1:
-        clock_mode = usartClockMode1;
-        break;
-    case USBTHING_SPI_CLOCK_MODE2:
-        clock_mode = usartClockMode2;
-        break;
-    case USBTHING_SPI_CLOCK_MODE3:
-        clock_mode = usartClockMode3;
-        break;
-    }
-
-    //Initialize I2C
-    SPI_init(baud, clock_mode);
-
-    spi_configured = 1;
-
-    return USB_STATUS_OK;
-}
 
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
@@ -299,19 +184,28 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return USB_STATUS_OK;
 
     case USBTHING_CMD_GPIO_CFG:
-        return gpio_configure(setup);
+        return gpio_cb_configure(setup);
 
     case USBTHING_CMD_GPIO_SET:
-        return gpio_set(setup);
+        return gpio_cb_set(setup);
 
     case USBTHING_CMD_GPIO_GET:
-        return gpio_get(setup);
+        return gpio_cb_get(setup);
 
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
 
     case USBTHING_CMD_SPI_CFG:
-        return spi_configure(setup);
+        return spi_cb_configure(setup);
+
+    case USBTHING_CMD_DAC_CFG:
+        return dac_cb_configure(setup);
+
+    case USBTHING_CMD_DAC_EN:
+        return dac_cb_enable(setup);
+
+    case USBTHING_CMD_DAC_SET:
+        return dac_cb_set(setup);
     }
 
     //Signal command was not handled
@@ -319,43 +213,7 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 }
 
 
-int spi_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
-{
-    /* Remove warnings for unused variables */
-    (void)xferred;
-    (void)remaining;
 
-    //Restart EP_OUT
-    USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
-
-    if ( status != USB_STATUS_OK ) {
-        /* Handle error */
-    }
-    return USB_STATUS_OK;
-}
-
-int spi_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
-{
-    /* Remove warnings for unused variables */
-    (void)xferred;
-    (void)remaining;
-
-    //TODO: what if SPI is not initialized?
-
-    /* Check status to verify that the transfer has completed successfully */
-    if ( status == USB_STATUS_OK ) {
-        SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
-        USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_sent_callback);
-
-    } else {
-        //TODO: handle errors
-
-        //Restart EP_OUT
-        USBD_Read(EP1_OUT, spi_receive_buffer, BUFFERSIZE, spi_data_receive_callback);
-    }
-
-    return USB_STATUS_OK;
-}
 
 int i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {

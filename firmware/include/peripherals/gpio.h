@@ -13,7 +13,9 @@ enum gpio_pin_e {
 	GPIO0 = 0,
 	GPIO1 = 1,
 	GPIO2 = 2,
-	GPIO3 = 3
+	GPIO3 = 3,
+	GPIO4 = 4,
+	GPIO5 = 5
 };
 
 enum led_pin_e {

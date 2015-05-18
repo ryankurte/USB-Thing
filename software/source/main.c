@@ -7,6 +7,7 @@
 int main(int argc, char **argv)
 {
     struct usbthing_s usbthing;
+    char version[32];
     int res;
 
     USBTHING_init();
@@ -24,24 +25,29 @@ setup:
     /* TODO: actual things */
     printf("Connected\n");
 
-    USBTHING_get_firmware_version(&usbthing, NULL, NULL);
+    USBTHING_get_firmware_version(&usbthing, sizeof(version), version);
+
+    printf("Firmware version: %s\r\n", version);
 
     USBTHING_led_set(&usbthing, 0, 1);
 
-    sleep(1);
+    usleep(100000);
 
     USBTHING_led_set(&usbthing, 0, 0);
 
-    unsigned char data_out[] = "tick";
-    unsigned char data_in[sizeof(data_out)];
+    usleep(100000);
 
-    USBTHING_spi_configure(&usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
+    USBTHING_led_set(&usbthing, 1, 1);
 
-    USBTHING_spi_transfer(&usbthing, data_out, data_in, sizeof(data_out));
+    usleep(100000);
 
-    USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
+    USBTHING_led_set(&usbthing, 1, 0);
 
-    USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
+    //USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
+
+    //USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
+
+    self_test(&usbthing);
 
 teardown:
 

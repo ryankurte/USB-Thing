@@ -52,9 +52,15 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 set(SOURCES
 	source/main.c
 	source/callbacks.c
-	source/gpio.c
-	source/spi.c
-	source/i2c.c
+	source/mappings/dac_usb.c
+	source/mappings/gpio_usb.c
+	source/mappings/spi_usb.c
+	source/peripherals/gpio.c
+	source/peripherals/spi.c
+	source/peripherals/i2c.c
+	source/peripherals/pwm.c
+	source/peripherals/adc.c
+	source/peripherals/dac.c
 	${EFM_USB_SOURCES}
 )
 

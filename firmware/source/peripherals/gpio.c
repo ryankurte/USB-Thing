@@ -1,5 +1,5 @@
 
-#include "gpio.h"
+#include "peripherals/gpio.h"
 
 #include "em_cmu.h"
 #include "em_gpio.h"
@@ -22,43 +22,9 @@ void GPIO_init()
     GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModeInput, 0);
     GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModeInput, 0);
     GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
+    GPIO_PinModeSet(GPIO4_PORT, GPIO4_PIN, gpioModeInput, 0);
+    GPIO_PinModeSet(GPIO5_PORT, GPIO5_PIN, gpioModeInput, 0);
 
-    GPIO_PinOutSet(LED_CONN_PORT, LED_CONN_PIN);
-}
-
-void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
-{
-    //TODO: enable pull
-    switch (pin) {
-    case GPIO0:
-        if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
-        } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
-        }
-        return;
-    case GPIO1:
-        if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
-        } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
-        }
-        return;
-    case GPIO2:
-        if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
-        } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
-        }
-        return;
-    case GPIO3:
-        if (output == true) {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
-        } else {
-            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
-        }
-        return;
-    }
 }
 
 void GPIO_conn_led_set(bool value)
@@ -99,6 +65,55 @@ void GPIO_led_set(int led, bool value)
     }
 }
 
+void GPIO_configure(int pin, bool output, bool pull_enabled, bool pull_up)
+{
+    //TODO: enable pull
+    switch (pin) {
+    case GPIO0:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO0_PORT, GPIO0_PIN, gpioModeInput, 0);
+        }
+        return;
+    case GPIO1:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO1_PORT, GPIO1_PIN, gpioModeInput, 0);
+        }
+        return;
+    case GPIO2:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO2_PORT, GPIO2_PIN, gpioModeInput, 0);
+        }
+        return;
+    case GPIO3:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO3_PORT, GPIO3_PIN, gpioModeInput, 0);
+        }
+        return;
+    case GPIO4:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO4_PORT, GPIO4_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO4_PORT, GPIO4_PIN, gpioModeInput, 0);
+        }
+        return;
+    case GPIO5:
+        if (output == true) {
+            GPIO_PinModeSet(GPIO5_PORT, GPIO5_PIN, gpioModePushPull, 0);
+        } else {
+            GPIO_PinModeSet(GPIO5_PORT, GPIO5_PIN, gpioModeInput, 0);
+        }
+        return;
+    }
+}
+
 void GPIO_set(int pin, bool value)
 {
     switch (pin) {
@@ -130,6 +145,20 @@ void GPIO_set(int pin, bool value)
             GPIO_PinOutClear(GPIO3_PORT, GPIO3_PIN);
         }
         return;
+    case GPIO4:
+        if (value == true) {
+            GPIO_PinOutSet(GPIO4_PORT, GPIO4_PIN);
+        } else {
+            GPIO_PinOutClear(GPIO4_PORT, GPIO4_PIN);
+        }
+        return;
+    case GPIO5:
+        if (value == true) {
+            GPIO_PinOutSet(GPIO5_PORT, GPIO5_PIN);
+        } else {
+            GPIO_PinOutClear(GPIO5_PORT, GPIO5_PIN);
+        }
+        return;
     }
 }
 
@@ -144,6 +173,10 @@ bool GPIO_get(int pin)
         return GPIO_PinInGet(GPIO2_PORT, GPIO2_PIN);
     case GPIO3:
         return GPIO_PinInGet(GPIO3_PORT, GPIO3_PIN);
+    case GPIO4:
+        return GPIO_PinInGet(GPIO4_PORT, GPIO4_PIN);
+    case GPIO5:
+        return GPIO_PinInGet(GPIO5_PORT, GPIO5_PIN);
     default:
         return 0;
     }
