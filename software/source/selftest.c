@@ -187,10 +187,17 @@ static int test_adc(struct usbthing_s* usbthing)
 	USBTHING_adc_configure(usbthing);
 
 	USBTHING_adc_get(usbthing, 0, &val);
-	if (val >= (pow(2, 12) * 0.9)) {
+	if (val < (pow(2, 12) * 0.9)) {
 		printf("ADC read channel 0 error\r\n");
-		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.8, val);
+		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.9, val);
 		return -1;
+	}
+
+	USBTHING_adc_get(usbthing, 4, &val);
+	if (val > (pow(2, 12) * 0.1)) {
+		printf("ADC read channel 4 error\r\n");
+		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.1, val);
+		return -2;
 	}
 
 	return 0;
