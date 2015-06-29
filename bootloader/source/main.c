@@ -80,7 +80,7 @@ static const uint8_t unknownString[] = "\r\n?\r\n";
 /**************************************************************************//**
  * The main entry point.
  *****************************************************************************/
-int main(void)
+int bootloader_main(void)
 {
   int msElapsed, i;
 

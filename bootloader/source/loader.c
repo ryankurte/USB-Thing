@@ -27,11 +27,15 @@
  *****************************************************************************/
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "em_device.h"
 #include "boot.h"
 
 const
 #include "bootld.h"
+
+extern void* __isr_vector;
+uint32_t vector_size = sizeof(__isr_vector);
 
 /**************************************************************************//**
  * The main entry point.
