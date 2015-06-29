@@ -106,3 +106,4 @@ int RETARGET_WriteChar(char c)
     //RetargetIO disabled
     return 0;
 }
+

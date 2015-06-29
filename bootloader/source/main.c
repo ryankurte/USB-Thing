@@ -37,6 +37,7 @@
 #include "xmodem.h"
 #include "bootldio.h"
 #include "retargetdebug.h"
+#include "ramfuncs.h"
 
 /*** Typedef's and defines. ***/
 
@@ -64,18 +65,7 @@ static void StartRTC( void );
 
 /*** Variables ***/
 
-/*
- * This variable holds the computed CRC-16 of the bootloader and is used during
- * production testing to ensure the correct programming of the bootloader.
- * This can safely be omitted if you are rolling your own bootloader.
- * It is placed rigth after the interrupt vector table.
- */
-#if defined ( __ICCARM__ )
-#pragma location=0x200000dc
-__no_init uint32_t bootloaderCRC;
-#else
-#error Undefined toolkit
-#endif
+uint32_t bootloaderCRC;
 
 /**************************************************************************//**
  * Strings.
@@ -119,17 +109,13 @@ int main(void)
   StartRTC();
 
 #if !defined( SIMULATE_SWDCLK_PIN_HI )
-  while ( SWDCLK_PIN_IS_LO() )
-  {
+  while ( SWDCLK_PIN_IS_LO() ) {
     USB_PUTS( "SWDCLK is low\r\n" );
 
-    if ( BOOT_checkFirmwareIsValid() )
-    {
+    if ( BOOT_checkFirmwareIsValid() ) {
       USB_PUTS( "Booting application\r\n  " );
       BOOT_boot();
-    }
-    else
-    {
+    } else {
       USB_PUTS( "No valid application, resetting EFM32... \r\n" );
 
       /* Go to EM2 and wait for RTC wakeup. */
@@ -146,19 +132,15 @@ int main(void)
 
   /* Wait approx. 1 second to see if HFXO starts. */
   i = 1500000;
-  while ( i && !( CMU->STATUS & CMU_STATUS_HFXORDY ) )
-  {
+  while ( i && !( CMU->STATUS & CMU_STATUS_HFXORDY ) ) {
     i--;
   }
 
   USBTIMER_Init();
 
-  if ( i == 0 )
-  {
+  if ( i == 0 ) {
     CMU_HFRCOBandSet( cmuHFRCOBand_28MHz );
-  }
-  else
-  {
+  } else {
     CMU_ClockSelectSet( cmuClock_HF, cmuSelect_HFXO );
     USBD_Init( &initstruct );       /* Start USB CDC functionality  */
   }
@@ -167,13 +149,11 @@ int main(void)
 
   /* Wait 30 seconds for USART or USB connection */
   msElapsed = 0;
-  while ( msElapsed < 30000 )
-  {
+  while ( msElapsed < 30000 ) {
     if ( AUTOBAUD_completed() )
       break;
 
-    if ( CDC_Configured )
-    {
+    if ( CDC_Configured ) {
       BOOTLDIO_setMode( CDC_Configured );
       break;
     }
@@ -183,8 +163,7 @@ int main(void)
   }
   AUTOBAUD_stop();
 
-  if ( msElapsed >= 30000 )
-  {
+  if ( msElapsed >= 30000 ) {
     USB_PUTS( "USART0/USB timeout, resetting EFM32...\r\n  " );
     Disconnect( 0, 2000 );
     SCB->AIRCR = 0x05FA0004;        /* Reset EFM32. */
@@ -220,18 +199,15 @@ static void commandlineLoop( void )
   uint8_t  c;
 
   /* The main command loop */
-  while (1)
-  {
+  while (1) {
     /* Retrieve new character */
     c = BOOTLDIO_rxByte();
     /* Echo */
-    if (c != 0)
-    {
+    if (c != 0) {
       BOOTLDIO_txByte( c );
     }
 
-    switch (c)
-    {
+    switch (c) {
     /* Bootloader version command */
     case 'i':
       /* Print version */
@@ -278,22 +254,16 @@ static void commandlineLoop( void )
       /* We check if there is a debug session active in DHCSR. If there is we
        * abort the locking. This is because we wish to make sure that the debug
        * lock functionality works without a debugger attatched. */
-      if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0x0)
-      {
+      if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0x0) {
         USB_PUTS( "\r\n\r\n **** WARNING: DEBUG SESSION ACTIVE. NOT LOCKING!  **** \r\n\r\n" );
         BOOTLDIO_printString( "Debug active.\r\n" );
-      }
-      else
-      {
+      } else {
         USB_PUTS( "Starting debug lock sequence.\r\n" );
 #endif
         FLASH_writeWord( DEBUG_LOCK_WORD, 0x0 );
-        if ( *(volatile uint32_t*)DEBUG_LOCK_WORD == 0x0 )
-        {
+        if ( *(volatile uint32_t*)DEBUG_LOCK_WORD == 0x0 ) {
           BOOTLDIO_printString( okString );
-        }
-        else
-        {
+        } else {
           BOOTLDIO_printString( failString );
         }
 #if defined( BL_DEBUG )
@@ -364,18 +334,15 @@ static void verify(uint32_t start, uint32_t end)
  *****************************************************************************/
 static void Disconnect( int predelay, int postdelay )
 {
-  if ( BOOTLDIO_usbMode() )
-  {
-    if ( predelay )
-    {
+  if ( BOOTLDIO_usbMode() ) {
+    if ( predelay ) {
       /* Allow time to do a disconnect in a terminal program. */
       USBTIMER_DelayMs( predelay );
     }
 
     USBD_Disconnect();
 
-    if ( postdelay )
-    {
+    if ( postdelay ) {
       /*
        * Stay disconnected long enough to let host OS tear down the
        * USB CDC driver.

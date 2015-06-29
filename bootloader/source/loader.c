@@ -38,11 +38,11 @@ const
  *****************************************************************************/
 int main(void)
 {
-  __set_MSP( ( 0x20000000 + sizeof( bootloader ) + 0x400 ) & 0xFFFFFFF0 );
+	__set_MSP( ( 0x20000000 + sizeof( bootloader ) + 0x400 ) & 0xFFFFFFF0 );
 
-  /* Load the entire bootloader into SRAM. */
-  memcpy( (void*)0x20000000, bootloader, sizeof( bootloader ) );
+	/* Load the entire bootloader into SRAM. */
+	memcpy( (void*)0x20000000, bootloader, sizeof( bootloader ) );
 
-  /* Start executing the bootloader. */
-  BOOT_jump( *(uint32_t*)0x20000000, *(uint32_t*)0x20000004 );
+	/* Start executing the bootloader. */
+	BOOT_jump( *(uint32_t*)0x20000000, *(uint32_t*)0x20000004 );
 }
