@@ -31,8 +31,8 @@
 #include "em_device.h"
 #include "boot.h"
 
-const
-#include "bootld.h"
+#define APP_ADDR	0x00001000
+#define APP_SIZE	(15 * 1024)
 
 extern void* __isr_vector;
 uint32_t vector_size = sizeof(__isr_vector);
@@ -42,10 +42,10 @@ uint32_t vector_size = sizeof(__isr_vector);
  *****************************************************************************/
 int main(void)
 {
-	__set_MSP( ( 0x20000000 + sizeof( bootloader ) + 0x400 ) & 0xFFFFFFF0 );
+	__set_MSP( ( 0x20000000 + APP_ADDR + 0x400 ) & 0xFFFFFFF0 );
 
 	/* Load the entire bootloader into SRAM. */
-	memcpy( (void*)0x20000000, bootloader, sizeof( bootloader ) );
+	memcpy( (void*)0x20000000, (void*)APP_ADDR, APP_SIZE );
 
 	/* Start executing the bootloader. */
 	BOOT_jump( *(uint32_t*)0x20000000, *(uint32_t*)0x20000004 );
