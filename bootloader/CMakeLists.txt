@@ -32,7 +32,7 @@ project(${TARGET} C CXX ASM)
 set(DEVICE EFM32GG332F1024)
 
 # Set flash start address
-set(FLASH_START 0x2000000)
+#set(FLASH_START 0x2000000)
 #set(USE_FLTO 1)
 
 # Set build
@@ -97,5 +97,5 @@ add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJCOPY} -O binary shim shim
 add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJCOPY} -O ihex shim shim.hex)
 add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJDUMP} -d -S shim > shim.dmp)
 
-
+# TODO: combine binaries
 

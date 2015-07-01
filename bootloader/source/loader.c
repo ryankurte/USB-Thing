@@ -31,7 +31,8 @@
 #include "em_device.h"
 #include "boot.h"
 
-#define APP_ADDR	0x00001000
+// 1k for shim, 15k for loader
+#define APP_ADDR	(1  * 1024)
 #define APP_SIZE	(15 * 1024)
 
 extern void* __isr_vector;
