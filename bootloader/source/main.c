@@ -108,6 +108,7 @@ int main(void)
 
   StartRTC();
 
+#define SIMULATE_SWDCLK_PIN_HI
 #if !defined( SIMULATE_SWDCLK_PIN_HI )
   while ( SWDCLK_PIN_IS_LO() ) {
     USB_PUTS( "SWDCLK is low\r\n" );
@@ -118,6 +119,7 @@ int main(void)
     } else {
       USB_PUTS( "No valid application, resetting EFM32... \r\n" );
 
+      while (1);
       /* Go to EM2 and wait for RTC wakeup. */
       EMU_EnterEM2( false );
     }
