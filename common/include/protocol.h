@@ -63,10 +63,7 @@ enum usb_thing_error_e {
 #define USBTHING_SPI_MAX_SIZE           64
 
 
-#define USBTHING_CMD_NOP_SIZE                   0
-#define USBTHING_CMD_SERIAL_GET_SIZE            USBTHING_SERIAL_MAX_SIZE
-#define USBTHING_CMD_FIRMWARE_GET_SIZE          USBTHING_FIRMWARE_MAX_SIZE
-#define USBTHING_CMD_LED_SET_SIZE               0
+
 
 
 /*****       Protocol Configuration         *****/
@@ -78,16 +75,31 @@ enum base_cmd_e {
     BASE_CMD_RESET = 4
 };
 
+struct serial_get_s {
+    uint8_t serial[USBTHING_SERIAL_MAX_SIZE];
+} __attribute((packed));
+
+struct firmware_get_s {
+    uint8_t version[USBTHING_FIRMWARE_MAX_SIZE];
+} __attribute((packed));
+
+struct led_set_s {
+    uint8_t pin;
+    uint8_t enable;
+} __attribute((packed));
+
 struct base_cmd_s {
     union {
-        struct {
-            uint8_t serial[USBTHING_SERIAL_MAX_SIZE];
-        } serial_get;
-        struct {
-            uint8_t version[USBTHING_FIRMWARE_MAX_SIZE];
-        } firmware_get;
+        struct serial_get_s serial_get;
+        struct firmware_get_s firmware_get;
+        struct led_set_s led_set;
     };
 } __attribute((packed));
+
+#define USBTHING_CMD_NOP_SIZE                   0
+#define USBTHING_CMD_SERIAL_GET_SIZE            USBTHING_SERIAL_MAX_SIZE
+#define USBTHING_CMD_FIRMWARE_GET_SIZE          USBTHING_FIRMWARE_MAX_SIZE
+#define USBTHING_CMD_LED_SET_SIZE               2
 
 /*****       GPIO Configuration messages        *****/
 

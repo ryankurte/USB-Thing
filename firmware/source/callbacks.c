@@ -64,6 +64,7 @@
 
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
 STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
+STATIC_UBUF(cmd_buffer, 32);
 
 /* Counter to increase when receiving a 'tick' message */
 int tickCounter = 0;
@@ -90,8 +91,8 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     printf("\n%s => %s", USBD_GetUsbStateName(oldState), USBD_GetUsbStateName(newState));
 
     if ((newState == USBD_STATE_NONE)
-        || (newState == USBD_STATE_DEFAULT)
-        || (newState == USBD_STATE_SUSPENDED)) {
+            || (newState == USBD_STATE_DEFAULT)
+            || (newState == USBD_STATE_SUSPENDED)) {
         //Initial states, not configured
         GPIO_conn_led_set(false);
 
@@ -123,7 +124,11 @@ int led_set(const USB_Setup_TypeDef *setup)
 
     CHECK_SETUP_OUT(USBTHING_CMD_LED_SET_SIZE);
 
-    GPIO_led_set(setup->wIndex, setup->wValue);
+    res = USBD_Read(0, cmd_buffer, sizeof(cmd_buffer), NULL);
+
+    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+    GPIO_led_set(ctrl->base_cmd.led_set.pin, ctrl->base_cmd.led_set.enable);
 
     return USB_STATUS_OK;
 }
@@ -170,19 +175,19 @@ int service_base(const USB_Setup_TypeDef *setup)
     switch (setup->wValue) {
     case BASE_CMD_NOOP:
 
-    break;
+        break;
     case BASE_CMD_SERIAL_GET:
-    //serial_get(setup);
-    break;
+        //serial_get(setup);
+        break;
     case BASE_CMD_FIRMWARE_GET:
-    firmware_get(setup);
-    break;
+        firmware_get(setup);
+        break;
     case BASE_CMD_LED_SET:
-    led_set(setup);
-    break;
+        led_set(setup);
+        break;
     case BASE_CMD_RESET:
 
-    break;
+        break;
     }
 }
 

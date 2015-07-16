@@ -104,7 +104,7 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
-static int control_put(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
+static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
     int res;
 
     int response_length;
@@ -113,9 +113,9 @@ static int control_put(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    CONTROL_REQUEST_TYPE_OUT,
                                    service,
                                    operation,
-                                   0xFF,
-                                   data,
-                                   size,
+                                   0xFF,        // Unused (as yet, maybe sequence number)
+                                   data,        // Data to be transferred
+                                   size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
 
     return res;
@@ -130,9 +130,9 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    CONTROL_REQUEST_TYPE_IN,
                                    service,
                                    operation,
-                                   0xFF,
-                                   data,
-                                   size,
+                                   0xFF,        // Unused (as yet, maybe sequence number)
+                                   data,        // Data to be transferred
+                                   size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
 
     return res;
@@ -161,19 +161,20 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char 
     return res;
 }
 
-int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool value)
+int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool enable)
 {
     int res;
 
-    res = libusb_control_transfer (usbthing->handle,
-                                   CONTROL_REQUEST_TYPE_OUT,
-                                   USBTHING_CMD_LED_SET,
-                                   value,
-                                   led,
-                                   NULL,
-                                   USBTHING_CMD_LED_SET_SIZE,
-                                   USBTHING_TIMEOUT);
-    //TODO: timeout
+    struct usbthing_ctrl_s cmd;
+
+    cmd.base_cmd.led_set.pin = led;
+    cmd.base_cmd.led_set.enable = enable;
+
+    res = control_set(usbthing,
+        USBTHING_MODULE_BASE,
+        BASE_CMD_LED_SET,
+        USBTHING_CMD_LED_SET_SIZE,
+        cmd.data);
 
     if (res < 0) {
         perror("USBTHING led set error");

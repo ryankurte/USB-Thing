@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "usbthing.h"
 
@@ -148,8 +149,8 @@ static int test_gpio(struct usbthing_s* usbthing)
 
 static int test_spi(struct usbthing_s* usbthing)
 {
-	unsigned char data_out[] = "tick";
-	unsigned char data_in[sizeof(data_out)];
+	uint8_t data_out[] = "tick";
+	uint8_t data_in[sizeof(data_out)];
 
 	printf("SPI test\r\n");
 	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
@@ -161,7 +162,7 @@ static int test_spi(struct usbthing_s* usbthing)
 
 	//TODO: compare sent and response values
 
-	if (strncmp(data_out, data_in, sizeof(data_out)) != 0) {
+	if (strncmp((const char*)data_out, (const char*)data_in, sizeof(data_out)) != 0) {
 		printf("SPI test data mismatch\r\n");
 		printf("out: %s\r\n", data_out);
 		printf("in: %s\r\n", data_out);
@@ -189,14 +190,14 @@ static int test_adc(struct usbthing_s* usbthing)
 	USBTHING_adc_get(usbthing, 0, &val);
 	if (val < (pow(2, 12) * 0.9)) {
 		printf("ADC read channel 0 error\r\n");
-		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.9, val);
+		printf("Expected: %u actual: %u\r\n", (unsigned int)(pow(2, 12) * 0.9), val);
 		return -1;
 	}
 
 	USBTHING_adc_get(usbthing, 4, &val);
 	if (val > (pow(2, 12) * 0.1)) {
 		printf("ADC read channel 4 error\r\n");
-		printf("Expected: %u actual: %u\r\n", (unsigned int)pow(2, 12) * 0.1, val);
+		printf("Expected: %u actual: %u\r\n", (unsigned int)(pow(2, 12) * 0.1), val);
 		return -2;
 	}
 
