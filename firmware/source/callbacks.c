@@ -165,12 +165,36 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
+int service_base(const USB_Setup_TypeDef *setup)
+{
+    switch (setup->wValue) {
+    case BASE_CMD_NOOP:
+
+    break;
+    case BASE_CMD_SERIAL_GET:
+    //serial_get(setup);
+    break;
+    case BASE_CMD_FIRMWARE_GET:
+    firmware_get(setup);
+    break;
+    case BASE_CMD_LED_SET:
+    led_set(setup);
+    break;
+    case BASE_CMD_RESET:
+
+    break;
+    }
+}
 
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
     //TODO: handle commands
 
     switch (setup->bRequest) {
+    case USBTHING_MODULE_BASE:
+        service_base(setup);
+        return USB_STATUS_OK;
+
     case USBTHING_CMD_NOP:
         __asm("nop");
         return USB_STATUS_OK;

@@ -15,6 +15,16 @@
 #define PRODUCT_ID  0x0001
 #endif
 
+enum usbthing_module_e {
+    USBTHING_MODULE_BASE = 1,
+    USBTHING_MODULE_GPIO = 2,
+    USBTHING_MODULE_SPI = 3,
+    USBTHING_MODULE_I2C = 4,
+    USBTHING_MODULE_PWM = 5,
+    USBTHING_MODULE_ADC = 6,
+    USBTHING_MODULE_DAC = 7
+};
+
 enum usb_thing_cmd_e {
     USBTHING_CMD_NOP = 0x80,
     USBTHING_CMD_SERIAL_GET = 0x81,
@@ -43,7 +53,7 @@ enum usb_thing_error_e {
     USBTHING_ERROR_USB_DISCONNECT = -1,
     USBTHING_ERROR_USB_TIMEOUT = -2,
     USBTHING_ERROR_PERIPHERAL_FAILED = -3,
-    USBTHING_ERROR_PERIPHERAL_TIMEOut = -4
+    USBTHING_ERROR_PERIPHERAL_TIMEOUT = -4
 };
 
 
@@ -58,7 +68,58 @@ enum usb_thing_error_e {
 #define USBTHING_CMD_FIRMWARE_GET_SIZE          USBTHING_FIRMWARE_MAX_SIZE
 #define USBTHING_CMD_LED_SET_SIZE               0
 
+
+/*****       Protocol Configuration         *****/
+enum base_cmd_e {
+    BASE_CMD_NOOP = 0,
+    BASE_CMD_SERIAL_GET = 1,
+    BASE_CMD_FIRMWARE_GET = 2,
+    BASE_CMD_LED_SET = 3,
+    BASE_CMD_RESET = 4
+};
+
+struct base_cmd_s {
+    union {
+        struct {
+            uint8_t serial[USBTHING_SERIAL_MAX_SIZE];
+        } serial_get;
+        struct {
+            uint8_t version[USBTHING_FIRMWARE_MAX_SIZE];
+        } firmware_get;
+    };
+} __attribute((packed));
+
 /*****       GPIO Configuration messages        *****/
+
+enum usbthing_gpio_cmd_e {
+    USBTHING_GPIO_CMD_CONFIG
+};
+
+enum usbthing_gpio_mode_e {
+    USBTHING_GPIO_MODE_INPUT,
+    USBTHING_GPIO_MODE_OUTPUT
+};
+
+enum usbthing_gpio_pull_e {
+    USBTHING_GPIO_PULL_NONE,
+    USBTHING_GPIO_PULL_LOW,
+    USBTHING_GPIO_PULL_HIGH
+};
+
+enum usbthing_gpio_int_e {
+    USBTHING_GPIO_INT_DISABLE,
+    USBTHING_GPIO_INT_RISING,
+    USBTHING_GPIO_INT_FALLING
+};
+
+struct usbthing_gpio_config_s {
+    uint8_t mode;
+    uint8_t pull;
+    uint8_t interrupt;
+} usbthing_gpio_config_s;
+
+#define GPIO_CONFIG_SIZE (sizeof(gpio_config_s))
+
 #define USBTHING_CMD_GPIO_CFG_SIZE              0
 //Mode field
 #define USBTHING_GPIO_CFG_MODE_SHIFT            (0)
@@ -94,10 +155,14 @@ struct usbthing_adc_config_s {
 
 } usbthing_adc_config_s;
 
+#define ADC_CONFIG_SIZE (sizeof(usbthing_adc_config_s))
+
 /*****      DAC Configuration messages          *****/
 struct usbthing_dac_config_s {
 
 } usbthing_dac_config_s;
+
+#define DAC_CONFIG_SIZE (sizeof(usbthing_dac_config_s))
 
 #define USBTHING_CMD_DAC_CFG_SIZE               0
 #define USBTHING_CMD_DAC_ENABLE_SIZE            0
@@ -162,5 +227,14 @@ struct usbthing_i2c_transfer_s {
     uint8_t num_write;                          //!< Number of bytes to write
     uint8_t num_read;                           //!< Number of bytes to read
 } usbthing_i2c_transfer_s;
+
+struct usbthing_ctrl_s {
+    uint8_t  size;
+    union {
+        uint8_t data[32];
+        struct base_cmd_s base_cmd;
+        struct usbthing_gpio_config_s gpio_config;
+    };
+} usbthing_ctrl_s;
 
 #endif
