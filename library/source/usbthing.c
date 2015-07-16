@@ -29,6 +29,8 @@
 static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
 
+
+
 int USBTHING_init()
 {
     int res;
@@ -102,27 +104,57 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
-int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char *version)
-{
+static int control_put(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
     int res;
 
-    unsigned char version_str[USBTHING_CMD_FIRMWARE_GET_SIZE];
+    int response_length;
+
+    res = libusb_control_transfer (usbthing->handle,
+                                   CONTROL_REQUEST_TYPE_OUT,
+                                   service,
+                                   operation,
+                                   0xFF,
+                                   data,
+                                   size,
+                                   USBTHING_TIMEOUT);
+
+    return res;
+}
+
+static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
+    int res;
+
     int response_length;
 
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_IN,
-                                   USBTHING_CMD_FIRMWARE_GET,
-                                   0x00,
-                                   0x00,
-                                   version_str,
-                                   USBTHING_CMD_FIRMWARE_GET_SIZE,
+                                   service,
+                                   operation,
+                                   0xFF,
+                                   data,
+                                   size,
                                    USBTHING_TIMEOUT);
+
+    return res;
+}
+
+int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char *version)
+{
+    int res;
+
+    struct usbthing_ctrl_s cmd;
+
+    res = control_get(usbthing, 
+        USBTHING_MODULE_BASE, 
+        BASE_CMD_FIRMWARE_GET,
+        USBTHING_CMD_FIRMWARE_GET_SIZE, 
+        cmd.data);
 
     if (res < 0) {
         perror("USBTHING get firmware version error");
     } else {
-        USBTHING_DEBUG_PRINT("firmware: %s\n", version_str);
-        strncpy(version, version_str, length);
+        USBTHING_DEBUG_PRINT("firmware: %s\n", cmd.base_cmd.firmware_get.version);
+        strncpy(version, cmd.base_cmd.firmware_get.version, length);
         version[length] = '\0';
     }
 
