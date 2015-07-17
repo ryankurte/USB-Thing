@@ -8,9 +8,7 @@ extern "C" {
 
 #include "em_usb.h"
 
-int gpio_cb_configure(const USB_Setup_TypeDef *setup);
-int gpio_cb_set(const USB_Setup_TypeDef *setup);
-int gpio_cb_get(const USB_Setup_TypeDef *setup);
+int gpio_handle_setup(const USB_Setup_TypeDef *setup);
 
 #ifdef __cplusplus
 }

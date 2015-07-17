@@ -12,6 +12,27 @@
 EFM32_ALIGN(4)
 static uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
 
+int gpio_handle_setup(const USB_Setup_TypeDef *setup)
+{
+    switch (setup->wValue) {
+    case BASE_CMD_NOOP:
+        __asm("nop");
+        break;
+    case BASE_CMD_SERIAL_GET:
+        //serial_get(setup);
+        break;
+    case BASE_CMD_FIRMWARE_GET:
+        firmware_get(setup);
+        break;
+    case BASE_CMD_LED_SET:
+        led_set(setup);
+        break;
+    case BASE_CMD_RESET:
+        NVIC_SystemReset();
+        break;
+    }
+}
+
 int gpio_cb_configure(const USB_Setup_TypeDef *setup)
 {
 	CHECK_SETUP_OUT(USBTHING_CMD_GPIO_CFG_SIZE);

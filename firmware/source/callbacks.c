@@ -149,14 +149,9 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         base_handle_service(setup);
         return USB_STATUS_OK;
 
-    case USBTHING_CMD_GPIO_CFG:
-        return gpio_cb_configure(setup);
-
-    case USBTHING_CMD_GPIO_SET:
-        return gpio_cb_set(setup);
-
-    case USBTHING_CMD_GPIO_GET:
-        return gpio_cb_get(setup);
+    case USBTHING_MODULE_GPIO:
+        gpio_handle_service(setup);
+        return USB_STATUS_OK;
 
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);

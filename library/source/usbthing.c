@@ -104,12 +104,12 @@ int USBTHING_disconnect(struct usbthing_s *usbthing)
     return 0;
 }
 
-static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
+static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
     int res;
 
     int response_length;
 
-    printf("Control send to service: 0x%x operation 0x%x data: ");
+    printf("Control send to service: 0x%x operation 0x%x data: ", service, operation);
     for (int i = 0; i < size; i++) {
         printf("%.2x ", data[i]);
     }
@@ -119,7 +119,7 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    CONTROL_REQUEST_TYPE_OUT,
                                    service,
                                    operation,
-                                   0xFF,        // Unused (as yet, maybe sequence number)
+                                   index,       // Service device index (default to zero)
                                    data,        // Data to be transferred
                                    size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
@@ -127,7 +127,7 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
     return res;
 }
 
-static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint8_t size, uint8_t* data) {
+static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
     int res;
 
     int response_length;
@@ -136,10 +136,16 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    CONTROL_REQUEST_TYPE_IN,
                                    service,
                                    operation,
-                                   0xFF,        // Unused (as yet, maybe sequence number)
+                                   index,       // Service device index (default to zero)
                                    data,        // Data to be transferred
                                    size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
+
+    printf("Control fetch from service: 0x%x operation 0x%x data: ", service, operation);
+    for (int i = 0; i < size; i++) {
+        printf("%.2x ", data[i]);
+    }
+    printf("\r\n");
 
     return res;
 }
@@ -153,14 +159,13 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char 
     res = control_get(usbthing,
                       USBTHING_MODULE_BASE,
                       BASE_CMD_FIRMWARE_GET,
+                      0,
                       USBTHING_CMD_FIRMWARE_GET_SIZE,
                       cmd.data);
 
-    if (res < 0) {
-        perror("USBTHING get firmware version error");
-    } else {
+    if (res >= 0) {
         USBTHING_DEBUG_PRINT("firmware: %s\n", cmd.base_cmd.firmware_get.version);
-        strncpy(version, cmd.base_cmd.firmware_get.version, length);
+        strncpy(version, (const char*)cmd.base_cmd.firmware_get.version, length);
         version[length] = '\0';
     }
 
@@ -179,39 +184,32 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, int enable)
     res = control_set(usbthing,
                       USBTHING_MODULE_BASE,
                       BASE_CMD_LED_SET,
+                      0,
                       USBTHING_CMD_LED_SET_SIZE,
                       cmd.data);
-
-    if (res < 0) {
-        perror("USBTHING led set error");
-    }
 
     return res;
 }
 
 int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, int pull_enabled, int pull_up)
 {
-    uint8_t mode;
     int res;
+    struct usbthing_ctrl_s cmd;
 
-    //TODO: Sanity check mode input
-    mode = 0;
-    mode |= (output != 0) ? USBTHING_GPIO_CFG_MODE_OUTPUT : USBTHING_GPIO_CFG_MODE_INPUT;
-    mode |= (pull_enabled != 0) ? USBTHING_GPIO_CFG_PULL_ENABLE : USBTHING_GPIO_CFG_PULL_DISABLE;
-    mode |= (pull_up != 0) ? USBTHING_GPIO_CFG_PULL_HIGH : USBTHING_GPIO_CFG_PULL_LOW;
-
-    res = libusb_control_transfer (usbthing->handle,
-                                   CONTROL_REQUEST_TYPE_OUT,
-                                   USBTHING_CMD_GPIO_CFG,
-                                   mode,
-                                   pin,
-                                   NULL,
-                                   USBTHING_CMD_GPIO_CFG_SIZE,
-                                   USBTHING_TIMEOUT);
-
-    if (res < 0) {
-        perror("USBTHING gpio configure error");
+    //TODO: Sanity check mode and pin inputs?
+    cmd.gpio_cmd.config.mode = output;
+    if (pull_enabled == 0) {
+        cmd.gpio_cmd.config.pull = 0;
+    } else {
+        cmd.gpio_cmd.config.pull = (pull_up == 0) ? USBTHING_GPIO_PULL_LOW : USBTHING_GPIO_PULL_HIGH;
     }
+
+    res = control_set(usbthing,
+                      USBTHING_MODULE_GPIO,
+                      USBTHING_GPIO_CMD_CONFIG,
+                      pin,
+                      USBTHING_CMD_GPIO_CFG_SIZE,
+                      cmd.data);
 
     return res;
 }
@@ -220,18 +218,17 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, in
 int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
 {
     int res;
-    res = libusb_control_transfer (usbthing->handle,
-                                   CONTROL_REQUEST_TYPE_OUT,
-                                   USBTHING_CMD_GPIO_SET,
-                                   value,
-                                   pin,
-                                   NULL,
-                                   USBTHING_CMD_GPIO_SET_SIZE,
-                                   USBTHING_TIMEOUT);
+    struct usbthing_ctrl_s cmd;
 
-    if (res < 0) {
-        perror("USBTHING gpio set error");
-    }
+    //TODO: Sanity check mode and pin inputs?
+    cmd.gpio_cmd.set.level = value;
+
+    res = control_set(usbthing,
+                      USBTHING_MODULE_GPIO,
+                      USBTHING_GPIO_CMD_SET,
+                      pin,
+                      USBTHING_CMD_GPIO_SET_SIZE,
+                      cmd.data);
 
     return res;
 }
@@ -239,21 +236,19 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
 int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
 {
     int res;
-    unsigned char result[USBTHING_CMD_GPIO_GET_SIZE];
+    struct usbthing_ctrl_s cmd;
 
-    res = libusb_control_transfer (usbthing->handle,
-                                   CONTROL_REQUEST_TYPE_IN,
-                                   USBTHING_CMD_GPIO_GET,
-                                   0,
-                                   pin,
-                                   result,
-                                   USBTHING_CMD_GPIO_GET_SIZE,
-                                   USBTHING_TIMEOUT);
+    //TODO: Sanity check mode and pin inputs?
 
-    if (res < 0) {
-        perror("USBTHING gpio get error");
-    } else {
-        (*value) = (result[0] == 0) ? 0 : 1;
+    res = control_set(usbthing,
+                      USBTHING_MODULE_GPIO,
+                      USBTHING_GPIO_CMD_GET,
+                      pin,
+                      USBTHING_CMD_GPIO_GET_SIZE,
+                      cmd.data);
+
+    if (res >= 0) {
+        (*value) = (cmd.gpio_cmd.set.level == 0) ? 0 : 1;
     }
 
     return res;
@@ -262,52 +257,52 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
 
 int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, int *value)
 {
-
+    return -1;
 }
 
 int USBTHING_pwm_configure(struct usbthing_s *usbthing, unsigned int frequency)
 {
-
+    return -1;
 }
 
 int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, int enable)
 {
-
+    return -1;
 }
 
 int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle)
 {
-
+    return -1;
 }
 
 int USBTHING_dac_configure(struct usbthing_s *usbthing)
 {
-
+    return -1;
 }
 
 int USBTHING_dac_enable(struct usbthing_s *usbthing, int enable)
 {
-
+    return -1;
 }
 
 int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value)
 {
-
+    return -1;
 }
 
 int USBTHING_adc_configure(struct usbthing_s *usbthing)
 {
-
+    return -1;
 }
 
 int USBTHING_adc_enable(struct usbthing_s *usbthing, int enable)
 {
-
+    return -1;
 }
 
 int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value)
 {
-
+    return -1;
 }
 
 

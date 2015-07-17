@@ -104,63 +104,58 @@ struct base_cmd_s {
 /*****       GPIO Configuration messages        *****/
 
 enum usbthing_gpio_cmd_e {
-    USBTHING_GPIO_CMD_CONFIG
+    USBTHING_GPIO_CMD_CONFIG = 1,
+    USBTHING_GPIO_CMD_GET = 2,
+    USBTHING_GPIO_CMD_SET = 3
 };
 
 enum usbthing_gpio_mode_e {
-    USBTHING_GPIO_MODE_INPUT,
-    USBTHING_GPIO_MODE_OUTPUT
+    USBTHING_GPIO_MODE_INPUT = 0,
+    USBTHING_GPIO_MODE_OUTPUT = 1
+};
+
+enum usbthing_gpio_level_e {
+    USBTHING_GPIO_LEVEL_LOW = 0,
+    USBTHING_GPIO_LEVEL_HIGH = 1,
 };
 
 enum usbthing_gpio_pull_e {
-    USBTHING_GPIO_PULL_NONE,
-    USBTHING_GPIO_PULL_LOW,
-    USBTHING_GPIO_PULL_HIGH
+    USBTHING_GPIO_PULL_NONE = 0,
+    USBTHING_GPIO_PULL_LOW = 1,
+    USBTHING_GPIO_PULL_HIGH = 2
 };
 
 enum usbthing_gpio_int_e {
-    USBTHING_GPIO_INT_DISABLE,
-    USBTHING_GPIO_INT_RISING,
-    USBTHING_GPIO_INT_FALLING
+    USBTHING_GPIO_INT_DISABLE = 0,
+    USBTHING_GPIO_INT_RISING = 1,
+    USBTHING_GPIO_INT_FALLING = 2
 };
 
-struct usbthing_gpio_config_s {
+struct gpio_config_s {
     uint8_t mode;
     uint8_t pull;
     uint8_t interrupt;
-} usbthing_gpio_config_s;
+} gpio_config_s;
 
-#define GPIO_CONFIG_SIZE (sizeof(gpio_config_s))
+struct gpio_set_s {
+    uint8_t level;
+} gpio_set_s;
 
-#define USBTHING_CMD_GPIO_CFG_SIZE              0
-//Mode field
-#define USBTHING_GPIO_CFG_MODE_SHIFT            (0)
-#define USBTHING_GPIO_CFG_MODE_MASK             (1 << USBTHING_GPIO_CFG_MODE_SHIFT)
-#define USBTHING_GPIO_CFG_MODE_INPUT            (0 << USBTHING_GPIO_CFG_MODE_SHIFT)
-#define USBTHING_GPIO_CFG_MODE_OUTPUT           (1 << USBTHING_GPIO_CFG_MODE_SHIFT)
-//Pull enable field
-#define USBTHING_GPIO_CFG_PULL_ENABLE_SHIFT     (1)
-#define USBTHIGN_GPIO_CFG_PULL_ENABLE_MASK      (1 << USBTHING_GPIO_CFG_PULL_ENABLE_SHIFT)
-#define USBTHING_GPIO_CFG_PULL_ENABLE           (0 << USBTHING_GPIO_CFG_PULL_ENABLE_SHIFT)
-#define USBTHING_GPIO_CFG_PULL_DISABLE          (1 << USBTHING_GPIO_CFG_PULL_ENABLE_SHIFT)
-//Pull direction field
-#define USBTHING_GPIO_CFG_PULL_DIRECTION_SHIFT  (2)
-#define USBTHIGN_GPIO_CFG_PULL_DIRECTION_MASK   (1 << USBTHING_GPIO_CFG_PULL_DIRECTION_SHIFT)
-#define USBTHING_GPIO_CFG_PULL_LOW              (0 << USBTHING_GPIO_CFG_PULL_DIRECTION_SHIFT)
-#define USBTHING_GPIO_CFG_PULL_HIGH             (1 << USBTHING_GPIO_CFG_PULL_DIRECTION_SHIFT)
-//Interrupt enable field
-#define USBTHING_GPIO_CFG_INT_ENABLE_SHIFT      (3)
-#define USBTHIGN_GPIO_CFG_INT_ENABLE_MASK       (1 << USBTHING_GPIO_CFG_INT_ENABLE_SHIFT)
-#define USBTHING_GPIO_CFG_INT_ENABLE            (0 << USBTHING_GPIO_CFG_INT_ENABLE_SHIFT)
-#define USBTHING_GPIO_CFG_INT_DISABLE           (1 << USBTHING_GPIO_CFG_INT_ENABLE_SHIFT)
-//Interrupt direction field
-#define USBTHING_GPIO_CFG_INT_DIRECTION_SHIFT   (4)
-#define USBTHIGN_GPIO_CFG_INT_DIRECTION_MASK    (1 << USBTHING_GPIO_CFG_INT_DIRECTION_SHIFT)
-#define USBTHING_GPIO_CFG_INT_RISING            (0 << USBTHING_GPIO_CFG_INT_DIRECTION_SHIFT)
-#define USBTHING_GPIO_CFG_INT_FALLING           (1 << USBTHING_GPIO_CFG_INT_DIRECTION_SHIFT)
+struct gpio_get_s {
+    uint8_t level;
+} gpio_get_s;
 
-#define USBTHING_CMD_GPIO_SET_SIZE              0
-#define USBTHING_CMD_GPIO_GET_SIZE              1
+struct gpio_cmd_s {
+    union {
+        struct gpio_config_s config;
+        struct gpio_set_s set;
+        struct gpio_get_s get;
+    };
+} __attribute((packed));
+
+#define USBTHING_CMD_GPIO_CFG_SIZE              (sizeof(gpio_config_s))
+#define USBTHING_CMD_GPIO_GET_SIZE              (sizeof(gpio_get_s))
+#define USBTHING_CMD_GPIO_SET_SIZE              (sizeof(gpio_set_s))
 
 /*****      ADC Configuration messages          *****/
 struct usbthing_adc_config_s {
@@ -244,7 +239,7 @@ struct usbthing_ctrl_s {
     union {
         uint8_t data[32];
         struct base_cmd_s base_cmd;
-        struct usbthing_gpio_config_s gpio_config;
+        struct gpio_cmd_s gpio_cmd;
     };
 } usbthing_ctrl_s;
 
