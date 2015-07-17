@@ -118,19 +118,27 @@ int firmware_get(const USB_Setup_TypeDef *setup)
     return res;
 }
 
-int led_set(const USB_Setup_TypeDef *setup)
+int led_set_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-    int res = USB_STATUS_REQ_ERR;
-
-    CHECK_SETUP_OUT(USBTHING_CMD_LED_SET_SIZE);
-
-    res = USBD_Read(0, cmd_buffer, sizeof(cmd_buffer), NULL);
+    (void)xferred;
+    (void)remaining;
 
     struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
 
     GPIO_led_set(ctrl->base_cmd.led_set.pin, ctrl->base_cmd.led_set.enable);
 
     return USB_STATUS_OK;
+}
+
+int led_set(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    CHECK_SETUP_OUT(USBTHING_CMD_LED_SET_SIZE);
+
+    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_LED_SET_SIZE, led_set_callback);
+
+    return res;
 }
 
 

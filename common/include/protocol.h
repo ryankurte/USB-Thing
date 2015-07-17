@@ -99,7 +99,7 @@ struct base_cmd_s {
 #define USBTHING_CMD_NOP_SIZE                   0
 #define USBTHING_CMD_SERIAL_GET_SIZE            USBTHING_SERIAL_MAX_SIZE
 #define USBTHING_CMD_FIRMWARE_GET_SIZE          USBTHING_FIRMWARE_MAX_SIZE
-#define USBTHING_CMD_LED_SET_SIZE               2
+#define USBTHING_CMD_LED_SET_SIZE               (sizeof(struct led_set_s))
 
 /*****       GPIO Configuration messages        *****/
 
@@ -241,7 +241,6 @@ struct usbthing_i2c_transfer_s {
 } usbthing_i2c_transfer_s;
 
 struct usbthing_ctrl_s {
-    uint8_t  size;
     union {
         uint8_t data[32];
         struct base_cmd_s base_cmd;

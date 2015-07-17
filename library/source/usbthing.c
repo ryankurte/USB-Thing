@@ -109,6 +109,12 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
 
     int response_length;
 
+    printf("Control send to service: 0x%x operation 0x%x data: ");
+    for (int i = 0; i < size; i++) {
+        printf("%.2x ", data[i]);
+    }
+    printf("\r\n");
+
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_OUT,
                                    service,
@@ -144,11 +150,11 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char 
 
     struct usbthing_ctrl_s cmd;
 
-    res = control_get(usbthing, 
-        USBTHING_MODULE_BASE, 
-        BASE_CMD_FIRMWARE_GET,
-        USBTHING_CMD_FIRMWARE_GET_SIZE, 
-        cmd.data);
+    res = control_get(usbthing,
+                      USBTHING_MODULE_BASE,
+                      BASE_CMD_FIRMWARE_GET,
+                      USBTHING_CMD_FIRMWARE_GET_SIZE,
+                      cmd.data);
 
     if (res < 0) {
         perror("USBTHING get firmware version error");
@@ -161,7 +167,7 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char 
     return res;
 }
 
-int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool enable)
+int USBTHING_led_set(struct usbthing_s *usbthing, int led, int enable)
 {
     int res;
 
@@ -171,10 +177,10 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool enable)
     cmd.base_cmd.led_set.enable = enable;
 
     res = control_set(usbthing,
-        USBTHING_MODULE_BASE,
-        BASE_CMD_LED_SET,
-        USBTHING_CMD_LED_SET_SIZE,
-        cmd.data);
+                      USBTHING_MODULE_BASE,
+                      BASE_CMD_LED_SET,
+                      USBTHING_CMD_LED_SET_SIZE,
+                      cmd.data);
 
     if (res < 0) {
         perror("USBTHING led set error");
@@ -183,16 +189,16 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, bool enable)
     return res;
 }
 
-int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, bool pull_enabled, bool pull_up)
+int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, int pull_enabled, int pull_up)
 {
     uint8_t mode;
     int res;
 
     //TODO: Sanity check mode input
     mode = 0;
-    mode |= (output == true) ? USBTHING_GPIO_CFG_MODE_OUTPUT : USBTHING_GPIO_CFG_MODE_INPUT;
-    mode |= (pull_enabled == true) ? USBTHING_GPIO_CFG_PULL_ENABLE : USBTHING_GPIO_CFG_PULL_DISABLE;
-    mode |= (pull_up == true) ? USBTHING_GPIO_CFG_PULL_HIGH : USBTHING_GPIO_CFG_PULL_LOW;
+    mode |= (output != 0) ? USBTHING_GPIO_CFG_MODE_OUTPUT : USBTHING_GPIO_CFG_MODE_INPUT;
+    mode |= (pull_enabled != 0) ? USBTHING_GPIO_CFG_PULL_ENABLE : USBTHING_GPIO_CFG_PULL_DISABLE;
+    mode |= (pull_up != 0) ? USBTHING_GPIO_CFG_PULL_HIGH : USBTHING_GPIO_CFG_PULL_LOW;
 
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_OUT,
@@ -211,7 +217,7 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, bool output, b
 }
 
 
-int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value)
+int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
 {
     int res;
     res = libusb_control_transfer (usbthing->handle,
@@ -230,7 +236,7 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, bool value)
     return res;
 }
 
-int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
+int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
 {
     int res;
     unsigned char result[USBTHING_CMD_GPIO_GET_SIZE];
@@ -247,14 +253,14 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, bool *value)
     if (res < 0) {
         perror("USBTHING gpio get error");
     } else {
-        (*value) = (result[0] == 0) ? false : true;
+        (*value) = (result[0] == 0) ? 0 : 1;
     }
 
     return res;
 }
 
 
-int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, bool *value)
+int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, int *value)
 {
 
 }
@@ -264,7 +270,7 @@ int USBTHING_pwm_configure(struct usbthing_s *usbthing, unsigned int frequency)
 
 }
 
-int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, bool enable)
+int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, int enable)
 {
 
 }
@@ -279,7 +285,7 @@ int USBTHING_dac_configure(struct usbthing_s *usbthing)
 
 }
 
-int USBTHING_dac_enable(struct usbthing_s *usbthing, bool enable)
+int USBTHING_dac_enable(struct usbthing_s *usbthing, int enable)
 {
 
 }
@@ -294,7 +300,7 @@ int USBTHING_adc_configure(struct usbthing_s *usbthing)
 
 }
 
-int USBTHING_adc_enable(struct usbthing_s *usbthing, bool enable)
+int USBTHING_adc_enable(struct usbthing_s *usbthing, int enable)
 {
 
 }
@@ -574,7 +580,7 @@ static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_f
         }
 
         if (((vid_filter == 0) || (vid_filter == desc.idVendor))
-            && ((pid_filter == 0) || (pid_filter == desc.idVendor))) {
+                && ((pid_filter == 0) || (pid_filter == desc.idVendor))) {
 
             printf("%04x:%04x (bus %d, device %d)",
                    desc.idVendor, desc.idProduct,
