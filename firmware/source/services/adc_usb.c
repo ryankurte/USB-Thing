@@ -1,6 +1,6 @@
 //ADC USB protocol to peripheral mapping
 
-#include "mappings/adc_usb.h"
+#include "services/adc_svc.h"
 
 #include <stdint.h>
 

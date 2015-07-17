@@ -47,9 +47,10 @@
 #include "platform.h"
 #include "version.h"
 
-#include "mappings/gpio_usb.h"
-#include "mappings/spi_usb.h"
-#include "mappings/dac_usb.h"
+#include "services/base_svc.h"
+#include "services/gpio_svc.h"
+#include "services/spi_svc.h"
+#include "services/dac_svc.h"
 
 #include "peripherals/gpio.h"
 #include "peripherals/i2c.h"
@@ -64,7 +65,7 @@
 
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
 STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
-STATIC_UBUF(cmd_buffer, 32);
+
 
 /* Counter to increase when receiving a 'tick' message */
 int tickCounter = 0;
@@ -72,8 +73,6 @@ int tickCounter = 0;
 extern uint8_t button0message[];
 extern uint8_t button1message[];
 
-EFM32_ALIGN(4)
-uint8_t firmware_version[] = SOFTWARE_VERSION;
 
 /**********************************************************
  * Called by the USB stack when a state change happens.
@@ -107,39 +106,6 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
     }
 }
 
-int firmware_get(const USB_Setup_TypeDef *setup)
-{
-    int res = USB_STATUS_REQ_ERR;
-
-    CHECK_SETUP_IN(USBTHING_FIRMWARE_MAX_SIZE);
-
-    res = USBD_Write(0, firmware_version, sizeof(firmware_version), NULL);
-
-    return res;
-}
-
-int led_set_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
-{
-    (void)xferred;
-    (void)remaining;
-
-    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
-
-    GPIO_led_set(ctrl->base_cmd.led_set.pin, ctrl->base_cmd.led_set.enable);
-
-    return USB_STATUS_OK;
-}
-
-int led_set(const USB_Setup_TypeDef *setup)
-{
-    int res = USB_STATUS_REQ_ERR;
-
-    CHECK_SETUP_OUT(USBTHING_CMD_LED_SET_SIZE);
-
-    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_LED_SET_SIZE, led_set_callback);
-
-    return res;
-}
 
 
 static int i2c_configured = 0;
@@ -178,34 +144,13 @@ int i2c_configure(const USB_Setup_TypeDef *setup)
     return USB_STATUS_OK;
 }
 
-int service_base(const USB_Setup_TypeDef *setup)
-{
-    switch (setup->wValue) {
-    case BASE_CMD_NOOP:
-
-        break;
-    case BASE_CMD_SERIAL_GET:
-        //serial_get(setup);
-        break;
-    case BASE_CMD_FIRMWARE_GET:
-        firmware_get(setup);
-        break;
-    case BASE_CMD_LED_SET:
-        led_set(setup);
-        break;
-    case BASE_CMD_RESET:
-
-        break;
-    }
-}
-
 int setupCmd(const USB_Setup_TypeDef *setup)
 {
     //TODO: handle commands
 
     switch (setup->bRequest) {
     case USBTHING_MODULE_BASE:
-        service_base(setup);
+        base_handle_service(setup);
         return USB_STATUS_OK;
 
     case USBTHING_CMD_NOP:

@@ -1,6 +1,6 @@
 
-#ifndef GPIO_USB_H
-#define GPIO_USB_H
+#ifndef GPIO_SVC_H
+#define GPIO_SVC_H
 
 #ifdef __cplusplus
 extern "C" {

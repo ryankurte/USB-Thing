@@ -1,6 +1,6 @@
 
-#ifndef SPI_USB_H
-#define SPI_USB_H
+#ifndef SPI_SVC_H
+#define SPI_SVC_H
 
 #ifdef __cplusplus
 extern "C" {

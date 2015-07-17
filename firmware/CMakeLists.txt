@@ -52,9 +52,10 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 set(SOURCES
 	source/main.c
 	source/callbacks.c
-	source/mappings/dac_usb.c
-	source/mappings/gpio_usb.c
-	source/mappings/spi_usb.c
+	source/services/base_svc.c
+	source/services/dac_svc.c
+	source/services/gpio_svc.c
+	source/services/spi_svc.c
 	source/peripherals/gpio.c
 	source/peripherals/spi.c
 	source/peripherals/i2c.c

@@ -1,6 +1,6 @@
 //DAC USB protocol to peripheral mapping
 
-#include "mappings/dac_usb.h"
+#include "services/dac_svc.h"
 
 #include <stdint.h>
 

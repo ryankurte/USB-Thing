@@ -1,5 +1,5 @@
 
-#include "mappings/gpio_usb.h"
+#include "services/gpio_svc.h"
 
 #include <stdint.h>
 

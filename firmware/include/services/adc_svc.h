@@ -1,6 +1,6 @@
 
-#ifndef DAC_USB_H
-#define DAC_USB_H
+#ifndef ADC_SVC_H
+#define ADC_SVC_H
 
 #ifdef __cplusplus
 extern "C" {

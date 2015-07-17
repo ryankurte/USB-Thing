@@ -1,6 +1,6 @@
 //SPI USB protocol to peripheral mapping
 
-#include "mappings/spi_usb.h"
+#include "services/spi_svc.h"
 
 #include <stdint.h>
 
