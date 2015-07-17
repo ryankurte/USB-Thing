@@ -1,4 +1,10 @@
-//Base component to USB mapping
+/**
+ * Base service
+ * Provides base control and query operations
+ * 
+ * @author Ryan Kurte
+ * @date Fri Jul 17 18:40:08 2015
+ */
 
 #include "services/base_svc.h"
 

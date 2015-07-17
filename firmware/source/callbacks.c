@@ -100,11 +100,9 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
         GPIO_conn_led_set(true);
 
     } else if ( newState != USBD_STATE_SUSPENDED ) {
-        GPIO_conn_led_set(false);
+        //Todo: flash
     }
 }
-
-
 
 static int i2c_configured = 0;
 
