@@ -42,10 +42,8 @@
 #include "em_usart.h"
 
 #include "callbacks.h"
-
 #include "protocol.h"
 #include "platform.h"
-#include "version.h"
 
 #include "services/base_svc.h"
 #include "services/gpio_svc.h"
@@ -153,18 +151,6 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         base_handle_service(setup);
         return USB_STATUS_OK;
 
-    case USBTHING_CMD_NOP:
-        __asm("nop");
-        return USB_STATUS_OK;
-
-    case USBTHING_CMD_FIRMWARE_GET:
-        firmware_get(setup);
-        return USB_STATUS_OK;
-
-    case USBTHING_CMD_LED_SET:
-        led_set(setup);
-        return USB_STATUS_OK;
-
     case USBTHING_CMD_GPIO_CFG:
         return gpio_cb_configure(setup);
 
@@ -193,9 +179,6 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     //Signal command was not handled
     return USB_STATUS_REQ_UNHANDLED;
 }
-
-
-
 
 int i2c_data_sent_callback(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {

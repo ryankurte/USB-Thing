@@ -5,10 +5,11 @@
 #include <stdint.h>
 
 #include "em_usb.h"
-#include "em_nvic.h"
+#include "em_device.h"
 
 #include "callbacks.h"
 #include "protocol.h"
+#include "version.h"
 
 STATIC_UBUF(cmd_buffer, 32);
 
