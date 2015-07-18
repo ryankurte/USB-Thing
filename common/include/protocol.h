@@ -54,9 +54,6 @@ enum usb_thing_error_e {
 #define USBTHING_SPI_MAX_SIZE           64
 
 
-
-
-
 /*****       Protocol Configuration         *****/
 enum base_cmd_e {
     BASE_CMD_NOOP = 0,
@@ -95,9 +92,9 @@ struct base_cmd_s {
 /*****       GPIO Configuration messages        *****/
 
 enum usbthing_gpio_cmd_e {
-    USBTHING_GPIO_CMD_CONFIG = 1,
-    USBTHING_GPIO_CMD_GET = 2,
-    USBTHING_GPIO_CMD_SET = 3
+    USBTHING_GPIO_CMD_CONFIG = 0,
+    USBTHING_GPIO_CMD_GET = 1,
+    USBTHING_GPIO_CMD_SET = 2
 };
 
 enum usbthing_gpio_mode_e {
@@ -151,18 +148,48 @@ struct gpio_cmd_s {
 #define USBTHING_CMD_GPIO_SET_SIZE              (sizeof(struct gpio_set_s))
 
 /*****      ADC Configuration messages          *****/
-struct usbthing_adc_config_s {
 
+enum usbthing_adc_cmd_e {
+    USBTHING_ADC_CMD_CONFIG = 0,
+    USBTHING_ADC_CMD_ENABLE = 1,
+    USBTHING_ADC_CMD_GET = 2
+};
+
+enum usbthing_adc_ref_e {
+    USBTHING_ADC_REF_1V25 = 0,
+    USBTHING_ADC_REF_2V5 = 1,
+    USBTHING_ADC_REF_VDD = 2,
+    USBTHING_ADC_REF_5VDIFF = 3
+};
+
+struct adc_config_s {
+    uint8_t ref;
 } __attribute((packed));
 
-#define ADC_CONFIG_SIZE (sizeof(usbthing_adc_config_s))
+struct adc_enable_s {
+    uint8_t enable;
+} __attribute((packed));
+
+struct adc_get_s {
+    uint32_t value;
+} __attribute((packed));
+
+struct adc_cmd_s {
+    struct adc_config_s config;
+    struct adc_enable_s enable;
+    struct adc_get_s get;
+} __attribute((packed));
+
+#define USBTHING_CMD_ADC_CONFIG_SIZE     (sizeof(struct adc_config_s))
+#define USBTHING_CMD_ADC_ENABLE_SIZE     (sizeof(struct adc_enable_s))
+#define USBTHING_CMD_ADC_GET_SIZE        (sizeof(struct adc_get_s))
 
 /*****      DAC Configuration messages          *****/
 struct usbthing_dac_config_s {
 
 } __attribute((packed));
 
-#define DAC_CONFIG_SIZE (sizeof(usbthing_dac_config_s))
+#define DAC_CONFIG_SIZE (sizeof(struct usbthing_dac_config_s))
 
 #define USBTHING_CMD_DAC_CFG_SIZE               0
 #define USBTHING_CMD_DAC_ENABLE_SIZE            0
@@ -179,10 +206,10 @@ enum usbthing_spi_cmd_e {
 };
 
 enum usbthing_spi_speed_e {
-    USBTHING_SPI_SPEED_100KHZ = 0,              //!< Standard mode (100 kbps)
-    USBTHING_SPI_SPEED_400KHZ = 1,              //!< Full mode (400 kbps)
-    USBTHING_SPI_SPEED_1MHZ = 2,                //!< Fast mode (1 Mpbs)
-    USBTHING_SPI_SPEED_5MHZ = 3                 //!< High speed mode (3.2 Mbps)
+    USBTHING_SPI_SPEED_100KHZ = 100000,              //!< Standard mode (100 kbps)
+    USBTHING_SPI_SPEED_400KHZ = 400000,              //!< Full mode (400 kbps)
+    USBTHING_SPI_SPEED_1MHZ = 1000000,               //!< Fast mode (1 Mpbs)
+    USBTHING_SPI_SPEED_5MHZ = 5000000                //!< High speed mode (3.2 Mbps)
 };
 
 enum usbthing_spi_clock_mode_e {
@@ -242,6 +269,7 @@ struct usbthing_ctrl_s {
         struct base_cmd_s base_cmd;
         struct gpio_cmd_s gpio_cmd;
         struct spi_cmd_s spi_cmd;
+        struct adc_cmd_s adc_cmd;
     };
 } __attribute((packed));
 

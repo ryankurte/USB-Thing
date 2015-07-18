@@ -8,8 +8,7 @@ extern "C" {
 
 #include "em_usb.h"
 
-int adc_cb_configure(const USB_Setup_TypeDef *setup);
-int adc_cb_set(const USB_Setup_TypeDef *setup);
+int adc_handle_setup(const USB_Setup_TypeDef *setup);
 
 #ifdef __cplusplus
 }

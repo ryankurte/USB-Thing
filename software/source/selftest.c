@@ -16,19 +16,13 @@ int self_test(struct usbthing_s* usbthing)
 {
 	int res;
 
+#if 1
 	res = test_gpio(usbthing);
 	if (res < 0) {
 		printf("GPIO test failed: %d\r\n", res);
 		return -2;
 	} else {
 		printf("GPIO test OK\r\n");
-	}
-
-#if 0
-	res = test_dac_adc(usbthing);
-	if (res < 0) {
-		printf("DAC -> ADC test failed: %d\r\n", res);
-		return -1;
 	}
 #endif
 
@@ -47,6 +41,14 @@ int self_test(struct usbthing_s* usbthing)
 	} else {
 		printf("ADC test OK\r\n");
 	}
+
+	#if 0
+	res = test_dac_adc(usbthing);
+	if (res < 0) {
+		printf("DAC -> ADC test failed: %d\r\n", res);
+		return -1;
+	}
+	#endif
 
 	return 0;
 }
@@ -185,19 +187,21 @@ static int test_adc(struct usbthing_s* usbthing)
 	printf("Connect ADC port 0 to 3V3, ADC port 4 to GND, and press any key to continue\r\n");
 	getchar();
 
-	USBTHING_adc_configure(usbthing);
+	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
 
 	USBTHING_adc_get(usbthing, 0, &val);
-	if (val < (pow(2, 12) * 0.9)) {
-		printf("ADC read channel 0 error\r\n");
-		printf("Expected: %u actual: %u\r\n", (unsigned int)(pow(2, 12) * 0.9), val);
+	int expected_low = (unsigned int)(pow(2, 12) * 0.9);
+	if (val > expected_low) {
+		printf("ADC test read channel 0 error\r\n");
+		printf("Expected: < %u actual: %u\r\n", expected_low, val);
 		return -1;
 	}
 
 	USBTHING_adc_get(usbthing, 4, &val);
-	if (val > (pow(2, 12) * 0.1)) {
-		printf("ADC read channel 4 error\r\n");
-		printf("Expected: %u actual: %u\r\n", (unsigned int)(pow(2, 12) * 0.1), val);
+	int expected_high = (unsigned int)(pow(2, 12) * 0.1);
+	if (val < expected_high) {
+		printf("ADC test read channel 4 error\r\n");
+		printf("Expected: > %u actual: %u\r\n", expected_high, val);
 		return -2;
 	}
 

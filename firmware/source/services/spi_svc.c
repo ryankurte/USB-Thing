@@ -92,8 +92,12 @@ int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 
 	/* Check status to verify that the transfer has completed successfully */
 	if ( status == USB_STATUS_OK ) {
-		SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
-		USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_receive_cb);
+		if (spi_configured == 0) {
+			return USB_STATUS_DEVICE_UNCONFIGURED;
+		} else {
+			SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
+			USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_receive_cb);
+		}
 
 	} else {
 		//TODO: handle errors

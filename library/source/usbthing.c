@@ -293,19 +293,40 @@ int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value)
     return -1;
 }
 
-int USBTHING_adc_configure(struct usbthing_s *usbthing)
+int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference)
 {
-    return -1;
-}
+    int res;
 
-int USBTHING_adc_enable(struct usbthing_s *usbthing, int enable)
-{
-    return -1;
+    struct usbthing_ctrl_s ctrl;
+
+    ctrl.adc_cmd.config.ref = reference;
+
+    res = control_set(usbthing,
+                      USBTHING_MODULE_ADC,
+                      USBTHING_ADC_CMD_CONFIG,
+                      0,
+                      USBTHING_CMD_ADC_CONFIG_SIZE,
+                      ctrl.data);
+
+    return res;
 }
 
 int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value)
 {
-    return -1;
+    int res;
+
+    struct usbthing_ctrl_s ctrl;
+
+    res = control_get(usbthing,
+                      USBTHING_MODULE_ADC,
+                      USBTHING_ADC_CMD_GET,
+                      channel,
+                      USBTHING_CMD_ADC_GET_SIZE,
+                      ctrl.data);
+
+    *value = ctrl.adc_cmd.get.value;
+
+    return res;
 }
 
 
@@ -319,7 +340,7 @@ int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int 
     ctrl.spi_cmd.config.clk_mode = mode;
 
     res = control_set(usbthing,
-                      USBTHING_MODULE_GPIO,
+                      USBTHING_MODULE_SPI,
                       USBTHING_SPI_CMD_CONFIG,
                       0,
                       USBTHING_CMD_SPI_CONFIG_SIZE,

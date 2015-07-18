@@ -47,6 +47,7 @@
 
 #include "services/base_svc.h"
 #include "services/gpio_svc.h"
+#include "services/adc_svc.h"
 #include "services/spi_svc.h"
 #include "services/dac_svc.h"
 
@@ -155,11 +156,11 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     case USBTHING_MODULE_SPI:
         return spi_handle_setup(setup);
 
+    case USBTHING_MODULE_ADC:
+        return adc_handle_setup(setup);
+
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
-
-    case USBTHING_CMD_DAC_CFG:
-        return dac_cb_configure(setup);
 
     case USBTHING_CMD_DAC_EN:
         return dac_cb_enable(setup);

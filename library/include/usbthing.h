@@ -47,9 +47,7 @@ int USBTHING_dac_enable(struct usbthing_s *usbthing, int enable);
 
 int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value);
 
-int USBTHING_adc_configure(struct usbthing_s *usbthing);
-
-int USBTHING_adc_enable(struct usbthing_s *usbthing, int enable);
+int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference);
 
 int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value);
 

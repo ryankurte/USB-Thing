@@ -5,33 +5,86 @@
 #include <stdint.h>
 
 #include "em_usb.h"
+#include "em_adc.h"
 
 #include "callbacks.h"
 #include "protocol.h"
 #include "peripherals/adc.h"
 
-EFM32_ALIGN(4)
-static uint8_t adc_value[USBTHING_CMD_ADC_GET_SIZE];
+static int adc_config(const USB_Setup_TypeDef *setup);
+static int adc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int adc_get(const USB_Setup_TypeDef *setup);
 
-int adc_cb_configure(const USB_Setup_TypeDef *setup)
+extern uint8_t cmd_buffer[];
+static uint8_t adc_configured = 0;
+
+int adc_handle_setup(const USB_Setup_TypeDef *setup)
 {
-	CHECK_SETUP_OUT(USBTHING_CMD_ADC_CFG_SIZE);
+	switch (setup->wValue) {
+	case USBTHING_ADC_CMD_CONFIG:
+		return adc_config(setup);
+	case USBTHING_ADC_CMD_GET:
+		return adc_get(setup);
+	}
 
-	ADC_configure();
+	return USB_STATUS_REQ_UNHANDLED;
+}
+
+static int adc_config(const USB_Setup_TypeDef *setup)
+{
+	int res = USB_STATUS_REQ_ERR;
+
+	CHECK_SETUP_OUT(USBTHING_CMD_ADC_CONFIG_SIZE);
+
+	res = USBD_Read(0, cmd_buffer, USBTHING_CMD_ADC_CONFIG_SIZE, adc_config_cb);
+
+	return res;
+}
+
+static int adc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+	(void)xferred;
+	(void)remaining;
+
+	struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+	int ref;
+	switch (ctrl->adc_cmd.config.ref) {
+	case USBTHING_ADC_REF_1V25:
+		ref = adcRef1V25;
+		break;
+	case USBTHING_ADC_REF_2V5:
+		ref = adcRef2V5;
+		break;
+	case USBTHING_ADC_REF_VDD:
+		ref = adcRefVDD;
+		break;
+	case USBTHING_ADC_REF_5VDIFF:
+		ref = adcRef5VDIFF;
+		break;
+	}
+
+	//Initialize I2C
+	ADC_init(ref);
+
+	adc_configured = 1;
 
 	return USB_STATUS_OK;
 }
 
-int adc_cb_set(const USB_Setup_TypeDef *setup)
+static int adc_get(const USB_Setup_TypeDef *setup)
 {
-	int8_t res;
+	int res = USB_STATUS_REQ_ERR;
 
 	CHECK_SETUP_IN(USBTHING_CMD_ADC_GET_SIZE);
 
-	ADC_get((uint32_t)adc_value);
+	struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
 
-	//TODO: receive 32bit value (pretty sure direction is wrong here?)
-	res = USBD_Write(0, adc_value, USBTHING_CMD_ADC_SET_SIZE, NULL);
+	if (adc_configured == 0) {
+		return USB_STATUS_DEVICE_UNCONFIGURED;
+	}
 
+	ctrl->adc_cmd.get.value = ADC_get(setup->wIndex);
+	res = USBD_Write(0, cmd_buffer, USBTHING_CMD_ADC_GET_SIZE, NULL);
 	return res;
 }

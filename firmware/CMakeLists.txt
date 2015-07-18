@@ -53,6 +53,7 @@ set(SOURCES
 	source/main.c
 	source/callbacks.c
 	source/services/base_svc.c
+	source/services/adc_svc.c
 	source/services/dac_svc.c
 	source/services/gpio_svc.c
 	source/services/spi_svc.c

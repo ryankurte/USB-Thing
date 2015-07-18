@@ -8,7 +8,7 @@
 
 #include "platform.h"
 
-void ADC_init()
+void ADC_init(uint32_t reference)
 {
     ADC_Init_TypeDef adc_init = ADC_INIT_DEFAULT;
     ADC_InitSingle_TypeDef single_init = ADC_INITSINGLE_DEFAULT;
@@ -16,6 +16,7 @@ void ADC_init()
     CMU_ClockEnable(ADC_CLOCK, true);
 
     //Todo: fine tuned config here
+    single_init.reference = reference;
 
     ADC_Init(ADC_DEVICE, &adc_init);
     ADC_InitSingle(ADC_DEVICE, &single_init);
