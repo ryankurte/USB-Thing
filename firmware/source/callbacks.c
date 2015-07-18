@@ -96,7 +96,7 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
-        spi_cb_start();
+        spi_start();
         USBD_Read(EP2_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
         GPIO_conn_led_set(true);
 
@@ -152,11 +152,11 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     case USBTHING_MODULE_GPIO:
         return gpio_handle_setup(setup);
 
+    case USBTHING_MODULE_SPI:
+        return spi_handle_setup(setup);
+
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
-
-    case USBTHING_CMD_SPI_CFG:
-        return spi_cb_configure(setup);
 
     case USBTHING_CMD_DAC_CFG:
         return dac_cb_configure(setup);
@@ -203,16 +203,16 @@ int i2c_data_receive_callback(USB_Status_TypeDef status, uint32_t xferred, uint3
         //Call hardware function based on mode
         switch (config->mode) {
         case USBTHING_I2C_MODE_WRITE:
-            I2C_write(config->address, config->num_write, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s));
+            I2C_write(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s));
             //nb. dummy write back to USB (allows ordering/exclusion)
-            USBD_Write(EP2_IN, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s), config->num_write, i2c_data_sent_callback);
+            USBD_Write(EP2_IN, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_write, i2c_data_sent_callback);
             break;
         case USBTHING_I2C_MODE_READ:
             I2C_read(config->address, config->num_read, i2c_transmit_buffer);
             USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_data_sent_callback);
             break;
         case USBTHING_I2C_MODE_WRITE_READ:
-            I2C_write_read(config->address, config->num_write, i2c_receive_buffer + sizeof(usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
+            I2C_write_read(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
             USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_data_sent_callback);
             break;
         }

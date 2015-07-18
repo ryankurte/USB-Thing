@@ -312,18 +312,18 @@ int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *val
 int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int mode)
 {
     int res;
-    res = libusb_control_transfer (usbthing->handle,
-                                   LIBUSB_REQUEST_TYPE_VENDOR,
-                                   USBTHING_CMD_SPI_CFG,
-                                   speed,
-                                   mode,
-                                   NULL,
-                                   USBTHING_SPI_CFG_SIZE,
-                                   USBTHING_TIMEOUT);
 
-    if (res < 0) {
-        perror("USBTHING spi configuration error");
-    }
+    struct usbthing_ctrl_s ctrl;
+
+    ctrl.spi_cmd.config.freq_le = speed;
+    ctrl.spi_cmd.config.clk_mode = mode;
+
+    res = control_set(usbthing,
+                      USBTHING_MODULE_GPIO,
+                      USBTHING_SPI_CMD_CONFIG,
+                      0,
+                      USBTHING_CMD_SPI_CONFIG_SIZE,
+                      ctrl.data);
 
     return res;
 }

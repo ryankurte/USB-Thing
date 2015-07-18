@@ -13,75 +13,68 @@
 
 #define SPI_BUFF_SIZE 		256
 
+static int spi_config(const USB_Setup_TypeDef *setup);
+static int spi_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+
 //Aligned buffers for USB operations
 STATIC_UBUF(spi_receive_buffer, SPI_BUFF_SIZE);
 STATIC_UBUF(spi_transmit_buffer, SPI_BUFF_SIZE);
 
+extern uint8_t cmd_buffer[];
 static int spi_configured = 0;
 
-void spi_cb_start()
+int spi_handle_setup(const USB_Setup_TypeDef *setup)
 {
-	USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_cb_data_receive);
+	switch (setup->wValue) {
+	case USBTHING_SPI_CMD_CONFIG:
+		return spi_config(setup);
+	}
+
+	return USB_STATUS_REQ_UNHANDLED;
 }
 
-int spi_cb_configure(const USB_Setup_TypeDef *setup)
+static int spi_config(const USB_Setup_TypeDef *setup)
 {
 	int res = USB_STATUS_REQ_ERR;
 
-	CHECK_SETUP_OUT(USBTHING_SPI_CFG_SIZE);
+	CHECK_SETUP_OUT(USBTHING_CMD_SPI_CONFIG_SIZE);
 
-	uint8_t speed = setup->wValue;
-	uint8_t mode = setup->wIndex;
-	uint32_t baud, clock_mode;
+	res = USBD_Read(0, cmd_buffer, USBTHING_CMD_SPI_CONFIG_SIZE, spi_config_cb);
 
-	//Set baud rate based on speed
-	switch (speed) {
-	case USBTHING_SPI_SPEED_100KHZ:
-		baud = 100000;
-		break;
-	case USBTHING_SPI_SPEED_400KHZ:
-		baud = 400000;
-		break;
-	case USBTHING_SPI_SPEED_1MHZ:
-		baud = 1000000;
-		break;
-	case USBTHING_SPI_SPEED_5MHZ:
-		baud = 5000000;
-		break;
-	}
+	return res;
+}
 
-	//Set clock mode
-	switch (mode) {
-	case USBTHING_SPI_CLOCK_MODE0:
-		clock_mode = usartClockMode0;
-		break;
-	case USBTHING_SPI_CLOCK_MODE1:
-		clock_mode = usartClockMode1;
-		break;
-	case USBTHING_SPI_CLOCK_MODE2:
-		clock_mode = usartClockMode2;
-		break;
-	case USBTHING_SPI_CLOCK_MODE3:
-		clock_mode = usartClockMode3;
-		break;
-	}
+static int spi_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+	(void)xferred;
+	(void)remaining;
+
+	struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+	uint8_t freq_le = ctrl->spi_cmd.config.freq_le;
+	uint8_t clock_mode = ctrl->spi_cmd.config.clk_mode;
 
 	//Initialize I2C
-	SPI_init(baud, clock_mode);
+	SPI_init(freq_le, clock_mode);
 
 	spi_configured = 1;
 
 	return USB_STATUS_OK;
 }
 
-int spi_cb_data_sent(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+void spi_start()
+{
+	USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_data_receive_cb);
+}
+
+int spi_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
 	/* Remove warnings for unused variables */
 	(void)xferred;
 	(void)remaining;
 
 	//Restart EP_OUT
-	USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_cb_data_receive);
+	USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_data_receive_cb);
 
 	if ( status != USB_STATUS_OK ) {
 		/* Handle error */
@@ -89,7 +82,7 @@ int spi_cb_data_sent(USB_Status_TypeDef status, uint32_t xferred, uint32_t remai
 	return USB_STATUS_OK;
 }
 
-int spi_cb_data_receive(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
 	/* Remove warnings for unused variables */
 	(void)xferred;
@@ -100,13 +93,13 @@ int spi_cb_data_receive(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 	/* Check status to verify that the transfer has completed successfully */
 	if ( status == USB_STATUS_OK ) {
 		SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
-		USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_cb_data_sent);
+		USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_receive_cb);
 
 	} else {
 		//TODO: handle errors
 
 		//Restart EP_OUT
-		USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_cb_data_receive);
+		USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_data_receive_cb);
 	}
 
 	return USB_STATUS_OK;
