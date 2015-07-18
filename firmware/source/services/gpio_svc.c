@@ -20,13 +20,13 @@ extern uint8_t cmd_buffer[];
 int gpio_handle_setup(const USB_Setup_TypeDef *setup)
 {
 	switch (setup->wValue) {
-	case USBTHING_CMD_GPIO_CFG:
+	case USBTHING_GPIO_CMD_CONFIG:
 		return gpio_config(setup);
 
-	case USBTHING_CMD_GPIO_SET:
+	case USBTHING_GPIO_CMD_SET:
 		return gpio_set(setup);
 
-	case USBTHING_CMD_GPIO_GET:
+	case USBTHING_GPIO_CMD_GET:
 		return gpio_get(setup);
 	}
 	return USB_STATUS_REQ_UNHANDLED;
@@ -54,8 +54,6 @@ static int gpio_config_cb(const USB_Status_TypeDef status, uint32_t xferred, uin
 	bool output = (ctrl->gpio_cmd.config.mode == USBTHING_GPIO_MODE_INPUT) ? false : true;
 	bool pull_enabled = (ctrl->gpio_cmd.config.pull != 0) ? true : false;
 	bool pull_direction = (ctrl->gpio_cmd.config.pull != 0) ? true : false;
-
-    GPIO_led_set(ctrl->base_cmd.led_set.pin, ctrl->base_cmd.led_set.enable);
 
     GPIO_configure(pin, output, pull_enabled, pull_direction);
 

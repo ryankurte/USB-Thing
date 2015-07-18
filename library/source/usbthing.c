@@ -109,7 +109,7 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
 
     int response_length;
 
-    printf("Control send to service: 0x%x operation 0x%x data: ", service, operation);
+    printf("Control send to service: 0x%x operation 0x%x index: 0x%x data: ", service, operation, index);
     for (int i = 0; i < size; i++) {
         printf("%.2x ", data[i]);
     }
@@ -141,7 +141,7 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
 
-    printf("Control fetch from service: 0x%x operation 0x%x data: ", service, operation);
+    printf("Control fetch from service: 0x%x operation 0x%x index: 0x%x data: ", service, operation, index);
     for (int i = 0; i < size; i++) {
         printf("%.2x ", data[i]);
     }
@@ -204,6 +204,7 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, in
     } else {
         cmd.gpio_cmd.config.pull = (pull_up == 0) ? USBTHING_GPIO_PULL_LOW : USBTHING_GPIO_PULL_HIGH;
     }
+    cmd.gpio_cmd.config.interrupt = 0;
 
     res = control_set(usbthing,
                       USBTHING_MODULE_GPIO,

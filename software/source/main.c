@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "usbthing.h"
+#include "selftest.h"
 
 int main(int argc, char **argv)
 {

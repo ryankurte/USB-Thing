@@ -86,32 +86,32 @@ static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
 	//First pair, low
 	res = USBTHING_gpio_set(usbthing, out, 0);
 	if (res < 0) {
-		printf("GPIO %d set output low failed\r\n", in);
+		printf("GPIO pair (%d %d) set output low failed\r\n", in, out);
 		return -1;
 	}
 	res = USBTHING_gpio_get(usbthing, in, &value);
 	if (res < 0) {
-		printf("GPIO %d read low input failed\r\n", out);
+		printf("GPIO pair (%d %d) read low input failed\r\n", in, out);
 		return -2;
 	}
 	if (value != 0) {
-		printf("GPIO %d read low input incorrect\r\n", out);
+		printf("GPIO pair (%d %d) read low input incorrect\r\n", in, out);
 		return -3;
 	}
 
 	//First pair, high
-	res = USBTHING_gpio_set(usbthing, out, 0);
+	res = USBTHING_gpio_set(usbthing, out, 1);
 	if (res < 0) {
-		printf("GPIO %d set output high failed\r\n", in);
+		printf("GPIO pair (%d %d) set output high failed\r\n", in, out);
 		return -4;
 	}
 	res = USBTHING_gpio_get(usbthing, in, &value);
 	if (res < 0) {
-		printf("GPIO %d read high input failed\r\n", out);
+		printf("GPIO pair (%d %d) read high input failed\r\n", in, out);
 		return -5;
 	}
 	if (value == 0) {
-		printf("GPIO %d read high input incorrect\r\n", out);
+		printf("GPIO pair (%d %d) read high input incorrect\r\n", in, out);
 		return -6;
 	}
 
