@@ -162,6 +162,13 @@ enum usbthing_adc_ref_e {
     USBTHING_ADC_REF_5VDIFF = 3
 };
 
+enum usbthing_adc_channel_e {
+    USBTHING_ADC_CH0 = 0,
+    USBTHING_ADC_CH1 = 1,
+    USBTHING_ADC_CH2 = 2,
+    USBTHING_ADC_CH3 = 3
+};
+
 struct adc_config_s {
     uint8_t ref;
 } __attribute((packed));
@@ -175,9 +182,11 @@ struct adc_get_s {
 } __attribute((packed));
 
 struct adc_cmd_s {
-    struct adc_config_s config;
-    struct adc_enable_s enable;
-    struct adc_get_s get;
+    union {
+        struct adc_config_s config;
+        struct adc_enable_s enable;
+        struct adc_get_s get;
+    };
 } __attribute((packed));
 
 #define USBTHING_CMD_ADC_CONFIG_SIZE     (sizeof(struct adc_config_s))

@@ -59,9 +59,6 @@ static int adc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t r
 	case USBTHING_ADC_REF_VDD:
 		ref = adcRefVDD;
 		break;
-	case USBTHING_ADC_REF_5VDIFF:
-		ref = adcRef5VDIFF;
-		break;
 	}
 
 	//Initialize I2C
@@ -84,7 +81,24 @@ static int adc_get(const USB_Setup_TypeDef *setup)
 		return USB_STATUS_DEVICE_UNCONFIGURED;
 	}
 
-	ctrl->adc_cmd.get.value = ADC_get(setup->wIndex);
+	int channel;
+	//TODO: labels are backwards, this is a bit silly.
+	switch (setup->wIndex) {
+	case USBTHING_ADC_CH0:
+		channel = adcSingleInpCh3;
+		break;
+	case USBTHING_ADC_CH1:
+		channel = adcSingleInpCh2;
+		break;
+	case USBTHING_ADC_CH2:
+		channel = adcSingleInpCh1;
+		break;
+	case USBTHING_ADC_CH3:
+		channel = adcSingleInpCh0;
+		break;
+	}
+
+	ctrl->adc_cmd.get.value = ADC_get(channel);
 	res = USBD_Write(0, cmd_buffer, USBTHING_CMD_ADC_GET_SIZE, NULL);
 	return res;
 }
