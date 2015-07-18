@@ -61,6 +61,7 @@
 /* Buffer to receive incoming messages. Needs to be
  * WORD aligned and an integer number of WORDs large */
 
+STATIC_UBUF(cmd_buffer, 32);
 STATIC_UBUF(i2c_receive_buffer, BUFFERSIZE);
 STATIC_UBUF(i2c_transmit_buffer, BUFFERSIZE);
 
@@ -146,12 +147,10 @@ int setupCmd(const USB_Setup_TypeDef *setup)
 
     switch (setup->bRequest) {
     case USBTHING_MODULE_BASE:
-        base_handle_service(setup);
-        return USB_STATUS_OK;
+        return base_handle_service(setup);
 
     case USBTHING_MODULE_GPIO:
-        gpio_handle_service(setup);
-        return USB_STATUS_OK;
+        return gpio_handle_service(setup);
 
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);

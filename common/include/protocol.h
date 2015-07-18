@@ -132,12 +132,14 @@ enum usbthing_gpio_int_e {
 };
 
 struct gpio_config_s {
+    uint8_t pin;
     uint8_t mode;
     uint8_t pull;
     uint8_t interrupt;
 } gpio_config_s;
 
 struct gpio_set_s {
+    uint8_t pin;
     uint8_t level;
 } gpio_set_s;
 

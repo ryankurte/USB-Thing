@@ -9,65 +9,98 @@
 #include "protocol.h"
 #include "peripherals/gpio.h"
 
-EFM32_ALIGN(4)
-static uint8_t pin_value[USBTHING_CMD_GPIO_GET_SIZE];
+static int gpio_config(const USB_Setup_TypeDef *setup);
+static int gpio_config_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int gpio_set(const USB_Setup_TypeDef *setup);
+static int gpio_set_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int gpio_get(const USB_Setup_TypeDef *setup);
+
+extern uint8_t cmd_buffer[];
 
 int gpio_handle_setup(const USB_Setup_TypeDef *setup)
 {
-    switch (setup->wValue) {
-    case BASE_CMD_NOOP:
-        __asm("nop");
-        break;
-    case BASE_CMD_SERIAL_GET:
-        //serial_get(setup);
-        break;
-    case BASE_CMD_FIRMWARE_GET:
-        firmware_get(setup);
-        break;
-    case BASE_CMD_LED_SET:
-        led_set(setup);
-        break;
-    case BASE_CMD_RESET:
-        NVIC_SystemReset();
-        break;
-    }
-}
+	switch (setup->wValue) {
+	case USBTHING_CMD_GPIO_CFG:
+		return gpio_config(setup);
 
-int gpio_cb_configure(const USB_Setup_TypeDef *setup)
-{
-	CHECK_SETUP_OUT(USBTHING_CMD_GPIO_CFG_SIZE);
+	case USBTHING_CMD_GPIO_SET:
+		return gpio_set(setup);
 
-	uint8_t pin = setup->wIndex;
-	bool output = ((setup->wValue & USBTHING_GPIO_CFG_MODE_OUTPUT) != 0) ? true : false;
-	bool pull_enabled = ((setup->wValue & USBTHING_GPIO_CFG_PULL_ENABLE) != 0) ? true : false;
-	bool pull_direction = ((setup->wValue & USBTHING_GPIO_CFG_PULL_HIGH) != 0) ? true : false;
-
-	GPIO_configure(pin, output, pull_enabled, pull_direction);
-
-	return USB_STATUS_OK;
-}
-
-int gpio_cb_set(const USB_Setup_TypeDef *setup)
-{
-	CHECK_SETUP_OUT(USBTHING_CMD_GPIO_SET_SIZE);
-
-	GPIO_set(setup->wIndex, setup->wValue);
-
-	return USB_STATUS_OK;
-}
-
-int gpio_cb_get(const USB_Setup_TypeDef *setup)
-{
-	if ((setup->wLength != USBTHING_CMD_GPIO_GET_SIZE)
-	    || (setup->Direction != USB_SETUP_DIR_IN)
-	    || (setup->Recipient != USB_SETUP_RECIPIENT_DEVICE)) {
-		return USB_STATUS_REQ_ERR;
+	case USBTHING_CMD_GPIO_GET:
+		return gpio_get(setup);
 	}
-	//CHECK_SETUP_IN(USBTHING_CMD_GPIO_GET_SIZE);
+	return USB_STATUS_REQ_UNHANDLED;
+}
+
+static int gpio_config(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    CHECK_SETUP_OUT(USBTHING_CMD_GPIO_CFG_SIZE);
+
+    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_GPIO_CFG_SIZE, gpio_config_cb);
+
+    return res;
+}
+
+static int gpio_config_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+    (void)xferred;
+    (void)remaining;
+
+    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+    uint8_t pin = ctrl->gpio_cmd.config.pin;
+	bool output = (ctrl->gpio_cmd.config.mode == USBTHING_GPIO_MODE_INPUT) ? false : true;
+	bool pull_enabled = (ctrl->gpio_cmd.config.pull != 0) ? true : false;
+	bool pull_direction = (ctrl->gpio_cmd.config.pull != 0) ? true : false;
+
+    GPIO_led_set(ctrl->base_cmd.led_set.pin, ctrl->base_cmd.led_set.enable);
+
+    GPIO_configure(pin, output, pull_enabled, pull_direction);
+
+    return USB_STATUS_OK;
+}
+
+static int gpio_set(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    CHECK_SETUP_OUT(USBTHING_CMD_GPIO_SET_SIZE);
+
+    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_GPIO_SET_SIZE, gpio_set_cb);
+
+    return res;
+}
+
+static int gpio_set_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+    (void)xferred;
+    (void)remaining;
+
+    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+    uint8_t pin = ctrl->gpio_cmd.set.pin;
+	bool output = (ctrl->gpio_cmd.set.level == USBTHING_GPIO_LEVEL_LOW) ? false : true;
+
+    GPIO_set(pin, output);
+
+    return USB_STATUS_OK;
+}
+
+static int gpio_get(const USB_Setup_TypeDef *setup)
+{
+	CHECK_SETUP_IN(USBTHING_CMD_GPIO_GET_SIZE);
 
 	uint8_t pin = setup->wIndex;
-	pin_value[0] = GPIO_get(pin);
+
+	struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+	ctrl->gpio_cmd.get.level = GPIO_get(pin);
 
 	//TODO: respond
-	return USBD_Write(0, pin_value, USBTHING_CMD_GPIO_GET_SIZE, NULL);
+	return USBD_Write(0, cmd_buffer, USBTHING_CMD_GPIO_GET_SIZE, NULL);
 }
+
+
+

@@ -197,6 +197,7 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, in
     struct usbthing_ctrl_s cmd;
 
     //TODO: Sanity check mode and pin inputs?
+    cmd.gpio_cmd.config.pin = pin;
     cmd.gpio_cmd.config.mode = output;
     if (pull_enabled == 0) {
         cmd.gpio_cmd.config.pull = 0;
@@ -207,7 +208,7 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, in
     res = control_set(usbthing,
                       USBTHING_MODULE_GPIO,
                       USBTHING_GPIO_CMD_CONFIG,
-                      pin,
+                      0,
                       USBTHING_CMD_GPIO_CFG_SIZE,
                       cmd.data);
 
@@ -221,12 +222,13 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
     struct usbthing_ctrl_s cmd;
 
     //TODO: Sanity check mode and pin inputs?
+    cmd.gpio_cmd.set.pin = pin;
     cmd.gpio_cmd.set.level = value;
 
     res = control_set(usbthing,
                       USBTHING_MODULE_GPIO,
                       USBTHING_GPIO_CMD_SET,
-                      pin,
+                      0,
                       USBTHING_CMD_GPIO_SET_SIZE,
                       cmd.data);
 
@@ -240,7 +242,7 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
 
     //TODO: Sanity check mode and pin inputs?
 
-    res = control_set(usbthing,
+    res = control_get(usbthing,
                       USBTHING_MODULE_GPIO,
                       USBTHING_GPIO_CMD_GET,
                       pin,
@@ -248,7 +250,7 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
                       cmd.data);
 
     if (res >= 0) {
-        (*value) = (cmd.gpio_cmd.set.level == 0) ? 0 : 1;
+        (*value) = (cmd.gpio_cmd.get.level == 0) ? 0 : 1;
     }
 
     return res;

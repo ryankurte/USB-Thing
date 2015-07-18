@@ -1,7 +1,7 @@
 /**
  * Base service
  * Provides base control and query operations
- * 
+ *
  * @author Ryan Kurte
  * @date Fri Jul 17 18:40:08 2015
  */
@@ -17,34 +17,36 @@
 #include "protocol.h"
 #include "version.h"
 
-STATIC_UBUF(cmd_buffer, 32);
+#include "peripherals/gpio.h"
+
+extern uint8_t cmd_buffer[];
 
 EFM32_ALIGN(4)
 uint8_t firmware_version[] = SOFTWARE_VERSION;
-
-static int led_set_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int firmware_get(const USB_Setup_TypeDef *setup);
 static int led_set(const USB_Setup_TypeDef *setup);
+static int led_set_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+
+USB_XferCompleteCb_TypeDef test;
 
 int base_handle_setup(const USB_Setup_TypeDef *setup)
 {
     switch (setup->wValue) {
     case BASE_CMD_NOOP:
         __asm("nop");
-        break;
+        return USB_STATUS_OK;
     case BASE_CMD_SERIAL_GET:
-        //serial_get(setup);
-        break;
+    //serial_get(setup);
     case BASE_CMD_FIRMWARE_GET:
-        firmware_get(setup);
-        break;
+        return firmware_get(setup);
     case BASE_CMD_LED_SET:
-        led_set(setup);
-        break;
+        return led_set(setup);
     case BASE_CMD_RESET:
         NVIC_SystemReset();
-        break;
+        return USB_STATUS_OK;
     }
+
+    return USB_STATUS_REQ_UNHANDLED;
 }
 
 static int firmware_get(const USB_Setup_TypeDef *setup)
@@ -80,3 +82,4 @@ static int led_set_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t rema
 
     return USB_STATUS_OK;
 }
+
