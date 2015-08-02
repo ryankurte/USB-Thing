@@ -12,6 +12,7 @@ install:
     - export PATH=.env/gcc-arm-none-eabi/bin:$PATH
     - which arm-none-eabi-gcc
     - ls -al `which arm-none-eabi-gcc`
+    - arm-none-eabi-gcc --version
 
 script:
     - source armenv.sh; make
