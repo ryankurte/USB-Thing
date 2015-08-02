@@ -1,13 +1,12 @@
 language: c
 
 before_install:
-    - . armenv.sh
+    - source armenv.sh
 
 install:
 
 script:
-    - . armenv.sh
-    - make
+    - source armenv.sh; make
 
 notifications:
     email: false
