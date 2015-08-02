@@ -8,11 +8,8 @@ before_install:
     - git submodule update --init --recursive
 
 install:
+    - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
     - source armenv.sh
-    - export PATH=.env/gcc-arm-none-eabi/bin:$PATH
-    - which arm-none-eabi-gcc
-    - ls -al `which arm-none-eabi-gcc`
-    - arm-none-eabi-gcc --version
 
 script:
     - source armenv.sh; make
