@@ -1,9 +1,12 @@
 language: c
 
-before_install:
-    - source armenv.sh
+git:
+    submodules: false
 
-install:
+before_install:
+    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+    - git submodule update --init --recursive
+
 
 script:
     - source armenv.sh; make
