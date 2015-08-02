@@ -8,7 +8,7 @@ before_install:
     - git submodule update --init --recursive
 
 install:
-    - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
+    - sudo apt-get install -qq --force-yes ia32-libs
     - source armenv.sh
 
 script:
