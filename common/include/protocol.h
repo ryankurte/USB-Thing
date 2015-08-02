@@ -282,4 +282,79 @@ struct usbthing_ctrl_s {
     };
 } __attribute((packed));
 
+struct usbthing_data_msg_out_s {
+    uint8_t block_id;
+    uint8_t length;
+    uint8_t data[48];
+};
+
+struct usbthing_data_msg_in_s {
+    uint8_t block_id;
+    uint8_t length;
+    uint8_t data[48];
+};
+
+/*****      SPI data message                 *****/
+
+enum spi_data_msg_id_e {
+    SPI_DATA_MSG_ID_XFER_INIT = 1,
+    SPI_DATA_MSG_ID_OUT = 2,
+    SPI_DATA_MSG_ID_IN = 3,
+    SPI_DATA_MSG_ID_XFER_COMPLETE = 4
+};
+
+struct usbthing_spi_data_msg_xfer_init_s {
+    uint16_t bytes_out;
+    uint16_t bytes_in;
+};
+
+struct usbthing_spi_data_msg_s {
+    union {
+        struct usbthing_spi_data_msg_xfer_init_s init;
+        struct usbthing_data_msg_out_s out;
+        struct usbthing_data_msg_in_s in;
+    };
+};
+
+/*****      I2C data message                 *****/
+
+enum usbthing_data_id_i2c_e {
+    I2C_DATA_MSG_ID_TRANSFER_INIT = 1,
+    I2C_DATA_MSG_ID_OUT = 2,
+    I2C_DATA_MSG_ID_IN = 3,
+    I2C_DATA_MSG_ID_TRANSFER_COMPLETE = 4
+};
+
+enum usbthing_data_i2c_xfer_mode_e {
+    I2C_XFER_MODE_READ = 1,
+    I2C_XFER_MODE_WRITE = 2,
+    I2C_XFER_MODE_WRITEREAD = 3
+};
+
+struct usbthing_i2c_data_transfer_init_s {
+    uint8_t mode;
+    uint16_t bytes_out;
+    uint16_t bytes_in;
+};
+
+struct usbthing_i2c_data_msg_s {
+    union {
+        struct usbthing_i2c_data_transfer_init_s init;
+        struct usbthing_data_msg_out_s out;
+        struct usbthing_data_msg_in_s in;
+    };
+};
+
+/*****      Combined data message            *****/
+
+struct usbthing_data_msg_s {
+    uint8_t module;
+    uint8_t id;
+    union {
+        uint8_t data[32];
+        struct usbthing_spi_data_msg_s spi;
+        struct usbthing_i2c_data_msg_s i2c;
+    };
+} __attribute((packed));
+
 #endif
