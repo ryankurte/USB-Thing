@@ -3,13 +3,17 @@ language: c
 git:
     submodules: false
 
+cache:
+  directories:
+    .env/
+
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
     - git submodule update --init --recursive
 
 install:
-	- source armenv.sh
-	- export PATH=~.env/gcc-arm-none-eabi/bin;$PATH
+    - source armenv.sh
+    - export PATH=~.env/gcc-arm-none-eabi/bin;$PATH
 
 script:
     - source armenv.sh; make
