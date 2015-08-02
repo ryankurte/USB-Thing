@@ -97,9 +97,9 @@ fi
 # Setup environment
 
 if [ "$OS" == "OSX" ]; then
-    ln -s $TOOLDIR/$TOOLCHAIN_FILE $TOOLDIR/gcc-arm-none-eabo
+    ln -s $TOOLDIR/$TOOLCHAIN_FILE $TOOLDIR/gcc-arm-none-eabi
 elif [ "$OS" == "LINUX" ]; then
-    ln -s $TOOLDIR/$TOOLCHAIN_FILE $TOOLDIR/gcc-arm-none-eabo
+    ln -s $TOOLDIR/$TOOLCHAIN_FILE $TOOLDIR/gcc-arm-none-eabi
 elif [ "$OS" == "WIN" ]; then
     echo "Unimplemented"
     return -1;
