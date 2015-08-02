@@ -9,6 +9,7 @@ addons:
     - ia32-libs
     - ia32-libs-multiarch
     - libgd2-xpm
+    - libusb-1.0
 
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
