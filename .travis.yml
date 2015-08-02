@@ -10,7 +10,8 @@ before_install:
 install:
     - source armenv.sh
     - export PATH=.env/gcc-arm-none-eabi/bin:$PATH
-    - ls -al .env/gcc-arm-none-eabi/bin
+    - which arm-none-eabi-gcc
+    - ls -al `which arm-none-eabi-gcc`
 
 script:
     - source armenv.sh; make
