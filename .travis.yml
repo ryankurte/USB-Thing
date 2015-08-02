@@ -9,7 +9,6 @@ addons:
     - ia32-libs
     - ia32-libs-multiarch
     - libgd2-xpm
-    - libusb-dev
 
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
@@ -19,7 +18,7 @@ install:
     - source armenv.sh
 
 script:
-    - source armenv.sh; make
+    - source armenv.sh; make firmware
 
 notifications:
     email: false
