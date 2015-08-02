@@ -3,12 +3,16 @@ language: c
 git:
     submodules: false
 
+addons:
+  apt:
+    packages:
+    - ia32-libs
+
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
     - git submodule update --init --recursive
 
 install:
-    - sudo apt-get install -qq --force-yes ia32-libs
     - source armenv.sh
 
 script:
