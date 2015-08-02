@@ -7,6 +7,8 @@ addons:
   apt:
     packages:
     - ia32-libs
+    - ia32-libs-multiarch
+    - libgd2-xpm
 
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
