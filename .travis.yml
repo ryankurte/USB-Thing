@@ -14,7 +14,7 @@ before_install:
 install:
     - source armenv.sh
     - export PATH=.env/gcc-arm-none-eabi/bin:$PATH
-    - ls -al .env
+    - ls -al .env/gcc-arm-none-eabi/bin
 
 script:
     - source armenv.sh; make
