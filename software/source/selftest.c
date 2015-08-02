@@ -10,6 +10,7 @@ static int test_adc(struct usbthing_s* usbthing);
 static int test_dac_adc(struct usbthing_s* usbthing);
 static int test_gpio(struct usbthing_s* usbthing);
 static int test_spi(struct usbthing_s* usbthing);
+static int test_spi_bulk(struct usbthing_s* usbthing);
 static int test_i2c(struct usbthing_s* usbthing);
 
 int self_test(struct usbthing_s* usbthing)
@@ -25,7 +26,7 @@ int self_test(struct usbthing_s* usbthing)
 		printf("GPIO test OK\r\n");
 	}
 #endif
-
+#if 0
 	res = test_spi(usbthing);
 	if (res < 0) {
 		printf("SPI test failed: %d\r\n", res);
@@ -33,6 +34,15 @@ int self_test(struct usbthing_s* usbthing)
 	} else {
 		printf("SPI test OK\r\n");
 	}
+#endif
+	res = test_spi_bulk(usbthing);
+	if (res < 0) {
+		printf("SPI bulk test failed: %d\r\n", res);
+		return -2;
+	} else {
+		printf("SPI test OK\r\n");
+	}
+
 
 	res = test_adc(usbthing);
 	if (res < 0) {
@@ -152,12 +162,8 @@ static int test_gpio(struct usbthing_s* usbthing)
 
 static int test_spi(struct usbthing_s* usbthing)
 {
-	uint8_t data_out[128];
+	uint8_t data_out[] = "tick";
 	uint8_t data_in[sizeof(data_out)];
-
-	for(int i=0; i<128; i++) {
-		data_out[i] = i;
-	}
 
 	printf("SPI test\r\n");
 	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
@@ -165,11 +171,47 @@ static int test_spi(struct usbthing_s* usbthing)
 
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
-	USBTHING_spi_transfer(usbthing, data_out, data_in, 32);
+	USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
 
 	//TODO: compare sent and response values
 
 	if (strncmp((const char*)data_out, (const char*)data_in, sizeof(data_out)) != 0) {
+		printf("SPI test data mismatch\r\n");
+		printf("out: %s\r\n", data_out);
+		printf("in: %s\r\n", data_out);
+		return -1;
+	}
+
+
+	//TODO: check CS
+
+	//TODO: check CLK
+
+	return 0;
+}
+
+#define SPI_BULK_TEST_SIZE		64
+
+static int test_spi_bulk(struct usbthing_s* usbthing)
+{
+	uint8_t data_out[SPI_BULK_TEST_SIZE];
+	uint8_t data_in[SPI_BULK_TEST_SIZE];
+
+	for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
+		data_out[i] = i;
+	}
+
+	printf("SPI bulk test\r\n");
+	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
+	getchar();
+
+	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
+
+	USBTHING_spi_transfer(usbthing, data_out, data_in, SPI_BULK_TEST_SIZE);
+
+	//TODO: compare sent and response values
+
+	if (strncmp((const char*)data_out, (const char*)data_in,SPI_BULK_TEST_SIZE) != 0) {
 		printf("SPI test data mismatch\r\n");
 		printf("out: %s\r\n", data_out);
 		printf("in: %s\r\n", data_out);
