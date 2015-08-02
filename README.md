@@ -5,6 +5,8 @@ Generic USB interface device for driver development and hardware testing
 ## Status
 Very early alpha. Firmware working, library has restricted functionality.
 
+[![Build Status](https://api.travis-ci.org/ryankurte/USB-Thing.svg)](https://travis-ci.org/ryankurte/USB-Thing)
+
 | Module | Status                   |
 |--------|--------------------------|
 |GPIO    |Working - no interrupts   |
