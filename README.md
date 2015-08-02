@@ -29,11 +29,13 @@ Very early alpha. Firmware working, library has restricted functionality.
 ## Getting Started
 
 First, initialize the project with the following:
+
 1. Checkout this repository
 2. Initialize submodules with `git submodule update --init --recursive`
 3. Build all components with `make all`
 
 ### Library installation
+
 1. Switch to the `firmware/library` directory
 2. Install with `make install`
 
