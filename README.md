@@ -52,7 +52,6 @@ First, initialize the project with the following:
 
 ## Folders
 
-* hardware - device hardware design files
 * firmware - device firmware sources and build tools
 * library - usbthing shared library, this includes all libusb calls
 * common - common protocol definitions shared between the firmware and library modules
