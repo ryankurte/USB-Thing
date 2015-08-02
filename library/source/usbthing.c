@@ -111,11 +111,11 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
 
     int response_length;
 
-    printf("Control send to service: 0x%x operation 0x%x index: 0x%x data: ", service, operation, index);
+    USBTHING_DEBUG_PRINT("Control send to service: 0x%x operation 0x%x index: 0x%x data: ", service, operation, index);
     for (int i = 0; i < size; i++) {
-        printf("%.2x ", data[i]);
+        USBTHING_DEBUG_PRINT("%.2x ", data[i]);
     }
-    printf("\r\n");
+    USBTHING_DEBUG_PRINT("\r\n");
 
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_OUT,
@@ -126,7 +126,7 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
 
-    printf("Control send complete\r\n");
+    USBTHING_DEBUG_PRINT("Control send complete\r\n");
 
     return res;
 }
@@ -136,7 +136,7 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
 
     int response_length;
 
-    printf("Started control fetch from service: 0x%x\r\n", service);
+    USBTHING_DEBUG_PRINT("Started control fetch from service: 0x%x\r\n", service);
 
     res = libusb_control_transfer (usbthing->handle,
                                    CONTROL_REQUEST_TYPE_IN,
@@ -147,11 +147,11 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
                                    size,        // Size of data to be transferred
                                    USBTHING_TIMEOUT);
 
-    printf("Control fetch from service: 0x%x operation 0x%x index: 0x%x complete, data: ", service, operation, index);
+    USBTHING_DEBUG_PRINT("Control fetch from service: 0x%x operation 0x%x index: 0x%x complete, data: ", service, operation, index);
     for (int i = 0; i < size; i++) {
-        printf("%.2x ", data[i]);
+        USBTHING_DEBUG_PRINT("%.2x ", data[i]);
     }
-    printf("\r\n");
+    USBTHING_DEBUG_PRINT("\r\n");
 
     return res;
 }
@@ -381,13 +381,13 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
 
     //Check if ZLP is required to signify end of transfer
     //(Required if length is multiple of endpoint size)
-    if(length % 64 == 0) {
+    if (length % 64 == 0) {
         res = libusb_bulk_transfer (usbthing->handle,
-                                0x01,
-                                NULL,
-                                0,
-                                &transferred,
-                                USBTHING_TIMEOUT);
+                                    0x01,
+                                    NULL,
+                                    0,
+                                    &transferred,
+                                    USBTHING_TIMEOUT);
     }
 
     USBTHING_DEBUG_PRINT("SPI write complete\r\n");
@@ -400,7 +400,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
                                 &transferred,
                                 USBTHING_TIMEOUT);
 
-    printf("Transferred: %d\r\n", transferred);
+    USBTHING_DEBUG_PRINT("Transferred: %d\r\n", transferred);
 
     //TODO: check for complete transfer
     if (res < 0) {
@@ -456,6 +456,9 @@ int USBTHING_i2c_write(struct usbthing_s *usbthing,
     memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
     output_buffer_length = length_out + sizeof(struct usbthing_i2c_transfer_s);
 
+    USBTHING_DEBUG_PRINT("I2C write: ");
+    print_buffer(length_out, data_out);
+
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x02,
                                 output_buffer,
@@ -469,8 +472,16 @@ int USBTHING_i2c_write(struct usbthing_s *usbthing,
         return -1;
     }
 
-    printf("I2C write: ");
-    print_buffer(length_out, data_out);
+    if (length_out % 64 == 0) {
+        res = libusb_bulk_transfer (usbthing->handle,
+                                    0x02,
+                                    NULL,
+                                    0,
+                                    &transferred,
+                                    USBTHING_TIMEOUT);
+    }
+
+    printf("I2C write complete\r\n");
 
     //Stub for write function response (written data)
     res = libusb_bulk_transfer (usbthing->handle,
@@ -520,6 +531,16 @@ int USBTHING_i2c_read(struct usbthing_s *usbthing,
         perror("USBTHING i2c read outgoing error");
         return -1;
     }
+
+    if (output_buffer_length % 64 == 0) {
+        res = libusb_bulk_transfer (usbthing->handle,
+                                    0x02,
+                                    NULL,
+                                    0,
+                                    &transferred,
+                                    USBTHING_TIMEOUT);
+    }
+
 
     res = libusb_bulk_transfer (usbthing->handle,
                                 0x82,
@@ -576,6 +597,16 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
         return -1;
     }
 
+    if (length_out % 64 == 0) {
+        res = libusb_bulk_transfer (usbthing->handle,
+                                    0x02,
+                                    NULL,
+                                    0,
+                                    &transferred,
+                                    USBTHING_TIMEOUT);
+    }
+
+
     USBTHING_DEBUG_PRINT("I2C write: ");
     print_buffer(length_out, data_out);
 
@@ -612,30 +643,30 @@ static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_f
     int i = 0, j = 0;
     uint8_t path[8];
 
-    printf("Devices:\n");
+    USBTHING_DEBUG_PRINT("Devices:\n");
 
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
         int r = libusb_get_device_descriptor(dev, &desc);
         if (r < 0) {
-            fprintf(stderr, "failed to get device descriptor");
+            perror("failed to get device descriptor");
             return;
         }
 
         if (((vid_filter == 0) || (vid_filter == desc.idVendor))
                 && ((pid_filter == 0) || (pid_filter == desc.idVendor))) {
 
-            printf("%04x:%04x (bus %d, device %d)",
-                   desc.idVendor, desc.idProduct,
-                   libusb_get_bus_number(dev), libusb_get_device_address(dev));
+            USBTHING_DEBUG_PRINT("%04x:%04x (bus %d, device %d)",
+                                 desc.idVendor, desc.idProduct,
+                                 libusb_get_bus_number(dev), libusb_get_device_address(dev));
 
             r = libusb_get_port_numbers(dev, path, sizeof(path));
             if (r > 0) {
-                printf(" path: %d", path[0]);
+                USBTHING_DEBUG_PRINT(" path: %d", path[0]);
                 for (j = 1; j < r; j++)
-                    printf(".%d", path[j]);
+                    USBTHING_DEBUG_PRINT(".%d", path[j]);
             }
-            printf("\n");
+            USBTHING_DEBUG_PRINT("\n");
 
         }
     }

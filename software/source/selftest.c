@@ -6,6 +6,8 @@
 
 #include "usbthing.h"
 
+#define SPI_BULK_TEST_SIZE		128
+
 static int test_adc(struct usbthing_s* usbthing);
 static int test_dac_adc(struct usbthing_s* usbthing);
 static int test_gpio(struct usbthing_s* usbthing);
@@ -17,37 +19,30 @@ int self_test(struct usbthing_s* usbthing)
 {
 	int res;
 
-#if 0
 	res = test_gpio(usbthing);
 	if (res < 0) {
 		printf("GPIO test failed: %d\r\n", res);
-		return -2;
 	} else {
 		printf("GPIO test OK\r\n");
 	}
-#endif
-#if 0
+
 	res = test_spi(usbthing);
 	if (res < 0) {
 		printf("SPI test failed: %d\r\n", res);
-		return -2;
-	} else {
-		printf("SPI test OK\r\n");
-	}
-#endif
-	res = test_spi_bulk(usbthing);
-	if (res < 0) {
-		printf("SPI bulk test failed: %d\r\n", res);
-		return -2;
 	} else {
 		printf("SPI test OK\r\n");
 	}
 
+	res = test_spi_bulk(usbthing);
+	if (res < 0) {
+		printf("SPI bulk test failed: %d\r\n", res);
+	} else {
+		printf("SPI test OK\r\n");
+	}
 
 	res = test_adc(usbthing);
 	if (res < 0) {
 		printf("ADC test failed: %d\r\n", res);
-		return -2;
 	} else {
 		printf("ADC test OK\r\n");
 	}
@@ -189,8 +184,6 @@ static int test_spi(struct usbthing_s* usbthing)
 
 	return 0;
 }
-
-#define SPI_BULK_TEST_SIZE		64
 
 static int test_spi_bulk(struct usbthing_s* usbthing)
 {

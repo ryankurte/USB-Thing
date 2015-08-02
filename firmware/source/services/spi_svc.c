@@ -11,7 +11,7 @@
 #include "peripherals/spi.h"
 #include "em_usart.h"
 
-#define SPI_BUFF_SIZE 		256
+#define SPI_BUFF_SIZE 		512
 
 static int spi_config(const USB_Setup_TypeDef *setup);
 static int spi_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
@@ -96,8 +96,6 @@ int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 	(void)xferred;
 	(void)remaining;
 
-	//TODO: what if SPI is not initialized?
-
 	/* Check status to verify that the transfer has completed successfully */
 	if ( status != USB_STATUS_OK ) {
 		//TODO: handle errors
@@ -106,18 +104,23 @@ int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 		USBD_Read(EP1_OUT, spi_receive_buffer, SPI_BUFF_SIZE, spi_data_receive_cb);
 	}
 
+	//Ensure SPI is initialized
 	if (spi_configured == 0) {
 		return USB_STATUS_DEVICE_UNCONFIGURED;
-	} else {
-		if ((xferred % USB_MAX_EP_SIZE) == 0) {
-			zlp_required = 1;
-		} else {
-			zlp_required = 0;
-		}
-		SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
-		USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_sent_cb);
 	}
 
+	//Check whether a zero length termination packet is required
+	if ((xferred % USB_MAX_EP_SIZE) == 0) {
+		zlp_required = 1;
+	} else {
+		zlp_required = 0;
+	}
+
+	//Perform SPI transfer
+	SPI_transfer(xferred, spi_receive_buffer, spi_transmit_buffer);
+
+	//Write result back to host
+	USBD_Write(EP1_IN, spi_transmit_buffer, xferred, spi_data_sent_cb);
 
 	return USB_STATUS_OK;
 }
