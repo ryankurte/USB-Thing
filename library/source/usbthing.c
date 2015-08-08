@@ -20,7 +20,7 @@
 #define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
-#define DEBUG_USBTHING
+//#define DEBUG_USBTHING
 
 #ifdef DEBUG_USBTHING
 #define USBTHING_DEBUG_PRINT(...) printf(__VA_ARGS__)

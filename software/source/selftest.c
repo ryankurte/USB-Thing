@@ -144,15 +144,14 @@ static int test_gpio(struct usbthing_s* usbthing)
 		printf("GPIO test pair 1 failed\r\n");
 		return -2;
 	}
-//TODO: fix error here (pin conflict?)
-#if 0
-	res = test_gpio_pair(usbthing, 4, 5);
+	
+    res = test_gpio_pair(usbthing, 4, 5);
 	if (res < 0) {
 		printf("GPIO test pair 2 failed\r\n");
 		return -3;
 	}
-#endif
-	return 0;
+	
+    return 0;
 }
 
 static int test_spi(struct usbthing_s* usbthing)
@@ -206,8 +205,16 @@ static int test_spi_bulk(struct usbthing_s* usbthing)
 
 	if (strncmp((const char*)data_out, (const char*)data_in,SPI_BULK_TEST_SIZE) != 0) {
 		printf("SPI test data mismatch\r\n");
-		printf("out: %s\r\n", data_out);
-		printf("in: %s\r\n", data_out);
+		printf("out: ");
+        for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
+            printf("%x ", data_out[i]);
+        }
+        printf("\r\n");
+		printf("in: ");
+        for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
+            printf("%x ", data_in[i]);
+        }
+        printf("\r\n");
 		return -1;
 	}
 
