@@ -211,7 +211,8 @@ struct usbthing_pwm_config_s {
 
 /*****      SPI Configuration messages          *****/
 enum usbthing_spi_cmd_e {
-    USBTHING_SPI_CMD_CONFIG = 0
+    USBTHING_SPI_CMD_CONFIG = 0,
+    USBTHING_SPI_CMD_CLOSE = 1
 };
 
 enum usbthing_spi_speed_e {

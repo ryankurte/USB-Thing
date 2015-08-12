@@ -15,6 +15,7 @@
 
 static int spi_config(const USB_Setup_TypeDef *setup);
 static int spi_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int spi_close(const USB_Setup_TypeDef *setup);
 
 //Aligned buffers for USB operations
 STATIC_UBUF(spi_receive_buffer, SPI_BUFF_SIZE);
@@ -29,6 +30,8 @@ int spi_handle_setup(const USB_Setup_TypeDef *setup)
 	switch (setup->wValue) {
 	case USBTHING_SPI_CMD_CONFIG:
 		return spi_config(setup);
+	case USBTHING_SPI_CMD_CLOSE:
+		return spi_close(setup);
 	}
 
 	return USB_STATUS_REQ_UNHANDLED;
@@ -41,6 +44,15 @@ static int spi_config(const USB_Setup_TypeDef *setup)
 	CHECK_SETUP_OUT(USBTHING_CMD_SPI_CONFIG_SIZE);
 
 	res = USBD_Read(0, cmd_buffer, USBTHING_CMD_SPI_CONFIG_SIZE, spi_config_cb);
+
+	return res;
+}
+
+static int spi_close(const USB_Setup_TypeDef *setup)
+{
+	int res = USB_STATUS_OK;
+
+	SPI_close();
 
 	return res;
 }

@@ -46,6 +46,17 @@ int8_t SPI_init(uint32_t baud, uint8_t clock_mode)
     return 0;
 }
 
+int8_t SPI_close()
+{
+    GPIO_PinModeSet(SPI_MOSI_PORT,  SPI_MOSI_PIN,  gpioModeDisabled, 1);
+    GPIO_PinModeSet(SPI_MISO_PORT,  SPI_MISO_PIN,  gpioModeDisabled,    0);
+    GPIO_PinModeSet(SPI_CS_PORT,  SPI_CS_PIN,  gpioModeDisabled, 1);
+    GPIO_PinModeSet(SPI_CLK_PORT, SPI_CLK_PIN, gpioModeDisabled, 1);
+
+    CMU_ClockEnable(SPI_CLOCK, false);
+    CMU_ClockEnable(GPIO_CLOCK, false);
+}
+
 int8_t SPI_transfer(uint8_t length, uint8_t *data_out, uint8_t *data_in)
 {
     //Enable USART
