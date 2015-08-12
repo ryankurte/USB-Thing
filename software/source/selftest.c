@@ -47,13 +47,11 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 		printf("ADC test OK\r\n");
 	}
 
-#if 0
 	res = test_dac_adc(usbthing, interactive);
 	if (res < 0) {
 		printf("DAC -> ADC test failed: %d\r\n", res);
 		return -1;
 	}
-#endif
 
 	return 0;
 }
@@ -61,20 +59,27 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
 {
 	char c;
+	unsigned int val;
+	unsigned int out;
 
+	printf("DAC and ADC test\r\n");
 	if (interactive != 0) {
-		printf("DAC and ADC test\r\n");
-		printf("Connect DAC to ADC port 0 and press any key to continue\r\n");
+		printf("Connect DAC to ADC port 1 and press any key to continue\r\n");
 		getchar();
 	}
 
-	//USBTHING_dac_configure();
+	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
+	USBTHING_dac_configure(usbthing);
 
-	//USBTHING_adc_configure();
+	out = USBTHING_DAC_MAX;
+	USBTHING_dac_set(usbthing, 1, out);
+	USBTHING_adc_get(usbthing, 1, &val);
+	printf("set: %d get: %d\r\n", out, val);
 
-	//USBTHING_dac_write(0);
-
-	//USBTHING_adc_read(0);
+	out = 0x0000;
+	USBTHING_dac_set(usbthing, 1, out);
+	USBTHING_adc_get(usbthing, 1, &val);
+	printf("set: %d get: %d\r\n", out, val);
 
 	//TODO: compare values
 

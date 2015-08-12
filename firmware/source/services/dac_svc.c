@@ -10,38 +10,74 @@
 #include "protocol.h"
 #include "peripherals/dac.h"
 
+int dac_handle_setup(const USB_Setup_TypeDef *setup);
+static int dac_config(const USB_Setup_TypeDef *setup);
+static int dac_config_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int dac_set(const USB_Setup_TypeDef *setup);
+static int dac_set_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+
+
 EFM32_ALIGN(4)
-static uint8_t dac_value[USBTHING_CMD_DAC_SET_SIZE];
+extern uint8_t cmd_buffer[];
 
-int dac_cb_configure(const USB_Setup_TypeDef *setup)
+int dac_handle_setup(const USB_Setup_TypeDef *setup)
 {
-	CHECK_SETUP_OUT(USBTHING_CMD_DAC_CFG_SIZE);
+	switch (setup->wValue) {
+	case USBTHING_CMD_DAC_CFG:
+		return dac_config(setup);
 
-	DAC_configure();
-
-	return USB_STATUS_OK;
+	case USBTHING_CMD_DAC_SET:
+		return dac_set(setup);
+	}
+	return USB_STATUS_REQ_UNHANDLED;
 }
 
-int dac_cb_enable(const USB_Setup_TypeDef *setup)
+static int dac_config(const USB_Setup_TypeDef *setup)
 {
-	CHECK_SETUP_OUT(USBTHING_CMD_DAC_ENABLE_SIZE);
+    int res = USB_STATUS_REQ_ERR;
 
-	DAC_enable(setup->wValue);
+    CHECK_SETUP_OUT(USBTHING_CMD_DAC_CFG_SIZE);
 
-	return USB_STATUS_OK;
+    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_DAC_CFG_SIZE, dac_config_cb);
+
+    return res;
 }
 
-int dac_cb_set(const USB_Setup_TypeDef *setup)
+static int dac_config_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-	int8_t res;
+    (void)xferred;
+    (void)remaining;
 
-	CHECK_SETUP_IN(USBTHING_CMD_DAC_SET_SIZE);
+    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
 
-	//TODO: receive 32bit value (pretty sure direction is wrong here?)
-	res = USBD_Read(0, dac_value, USBTHING_CMD_DAC_SET_SIZE, NULL);
+    DAC_configure();
 
-	//TODO: cast between types? (perhaps HTON function would work here)
-	DAC_set((uint32_t)dac_value);
+    return USB_STATUS_OK;
+}
 
-	return USB_STATUS_OK;
+static int dac_set(const USB_Setup_TypeDef *setup)
+{
+    int res = USB_STATUS_REQ_ERR;
+
+    CHECK_SETUP_OUT(USBTHING_CMD_DAC_SET_SIZE);
+
+    res = USBD_Read(0, cmd_buffer, USBTHING_CMD_DAC_SET_SIZE, dac_set_cb);
+
+    return res;
+}
+
+static int dac_set_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+{
+    (void)xferred;
+    (void)remaining;
+
+    struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
+
+    uint8_t enable = ctrl->dac_cmd.set.enable;
+    uint16_t value = ctrl->dac_cmd.set.value;
+
+    DAC_set(value);
+    DAC_enable(enable);
+
+    return USB_STATUS_OK;
 }

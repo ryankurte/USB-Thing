@@ -10,6 +10,8 @@
 
 #include "protocol.h"
 
+#define USBTHING_DAC_MAX		4096
+
 struct usbthing_s {
 	libusb_device_handle *handle;
 };
@@ -43,9 +45,7 @@ int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle);
 
 int USBTHING_dac_configure(struct usbthing_s *usbthing);
 
-int USBTHING_dac_enable(struct usbthing_s *usbthing, int enable);
-
-int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int value);
+int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, unsigned int value);
 
 int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference);
 

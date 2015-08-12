@@ -159,14 +159,11 @@ int setupCmd(const USB_Setup_TypeDef *setup)
     case USBTHING_MODULE_ADC:
         return adc_handle_setup(setup);
 
+    case USBTHING_MODULE_DAC:
+        return dac_handle_setup(setup);
+
     case USBTHING_CMD_I2C_CFG:
         return i2c_configure(setup);
-
-    case USBTHING_CMD_DAC_EN:
-        return dac_cb_enable(setup);
-
-    case USBTHING_CMD_DAC_SET:
-        return dac_cb_set(setup);
     }
 
     //Signal command was not handled

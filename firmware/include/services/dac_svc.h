@@ -8,9 +8,7 @@ extern "C" {
 
 #include "em_usb.h"
 
-int dac_cb_configure(const USB_Setup_TypeDef *setup);
-int dac_cb_enable(const USB_Setup_TypeDef *setup);
-int dac_cb_set(const USB_Setup_TypeDef *setup);
+int dac_handle_setup(const USB_Setup_TypeDef *setup);
 
 #ifdef __cplusplus
 }

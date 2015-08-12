@@ -34,7 +34,6 @@ enum usb_thing_cmd_e {
     USBTHING_CMD_ADC_CFG = 0xD1,
     USBTHING_CMD_ADC_GET = 0xD2,
     USBTHING_CMD_DAC_CFG = 0xE1,
-    USBTHING_CMD_DAC_EN = 0xE2,
     USBTHING_CMD_DAC_SET = 0xE3,
     USBTHING_CMD_UART_CFG = 0xF1
 };
@@ -195,15 +194,24 @@ struct adc_cmd_s {
 #define USBTHING_CMD_ADC_GET_SIZE        (sizeof(struct adc_get_s))
 
 /*****      DAC Configuration messages          *****/
-struct usbthing_dac_config_s {
-
+struct dac_config_s {
+    uint8_t mock;
 } __attribute((packed));
 
-#define DAC_CONFIG_SIZE (sizeof(struct usbthing_dac_config_s))
+struct dac_set_s {
+    uint8_t enable;
+    uint16_t value;
+} __attribute((packed));
 
-#define USBTHING_CMD_DAC_CFG_SIZE               0
-#define USBTHING_CMD_DAC_ENABLE_SIZE            0
-#define USBTHING_CMD_DAC_SET_SIZE               4
+struct dac_cmd_s {
+    union {
+        struct dac_config_s config;
+        struct dac_set_s set;
+    };
+} __attribute((packed));
+
+#define USBTHING_CMD_DAC_CFG_SIZE (sizeof(struct dac_config_s))
+#define USBTHING_CMD_DAC_SET_SIZE (sizeof(struct dac_set_s))
 
 /*****      PWM Configuration messages          *****/
 struct usbthing_pwm_config_s {
@@ -282,6 +290,7 @@ struct usbthing_ctrl_s {
         struct gpio_cmd_s gpio_cmd;
         struct spi_cmd_s spi_cmd;
         struct adc_cmd_s adc_cmd;
+        struct dac_cmd_s dac_cmd;
     };
 } __attribute((packed));
 

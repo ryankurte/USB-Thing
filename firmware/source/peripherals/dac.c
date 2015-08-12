@@ -16,6 +16,7 @@ void DAC_configure()
     CMU_ClockEnable(DAC_CLOCK, true);
 
     //Todo: fine tuned config here
+    dac_init.reference = dacRefVDD;
 
     DAC_Init(DAC_DEVICE, &dac_init);
     DAC_InitChannel(DAC_DEVICE, &channel_init, DAC_CHANNEL);
