@@ -10,6 +10,9 @@
 #include "selftest.h"
 #include "version.h"
 
+#define DEFAULT_VID     0x0001
+#define DEFAULT_PID     0x0001
+
 enum mode_e {
     MODE_UNRECOGNIZED = 0,
     MODE_LIST = 1,
@@ -19,12 +22,14 @@ enum mode_e {
 
 struct config_s {
     int mode;
+    int device;
     uint32_t vid;
     uint32_t pid;
 };
 
 int mode_selftest(struct usbthing_s* usbthing, struct config_s *config);
 int mode_version(struct usbthing_s* usbthing, struct config_s *config);
+int mode_list(struct usbthing_s* usbthing, struct config_s *config);
 
 void parse(int argc, char** argv, struct config_s* config);
 void print_help();
@@ -42,8 +47,7 @@ int main(int argc, char **argv)
 
     switch (config.mode) {
     case MODE_LIST:
-        printf("Listing devices: \r\n");
-        res = USBTHING_list_devices(config.vid, config.pid);
+        mode_list(&usbthing, &config);
         break;
 
     case MODE_SELFTEST:
@@ -62,6 +66,16 @@ int main(int argc, char **argv)
     USBTHING_close();
 
     return 0;
+}
+
+int mode_list(struct usbthing_s* usbthing, struct config_s *config)
+{
+    int res;
+
+    printf("Listing devices: \r\n");
+    res = USBTHING_list_devices(config->vid, config->pid);
+
+    return res;
 }
 
 int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
@@ -84,7 +98,6 @@ int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
         return -2;
     }
 
-    printf("Disconnected\n");
     return 0;
 }
 
@@ -109,7 +122,6 @@ int mode_version(struct usbthing_s* usbthing, struct config_s *config)
         return -2;
     }
 
-    printf("Disconnected\n");
     return 0;
 }
 
@@ -123,11 +135,12 @@ void parse(int argc, char** argv, struct config_s* config) {
         {"mode", required_argument,    0, 'm'},
         {"vid",  required_argument,    0, 'v'},
         {"pid",  required_argument,    0, 'p'},
+        {"device",  required_argument, 0, 'd'},
         {0, 0, 0, 0}
     };
 
-    config->vid = 0x0001;
-    config->pid = 0x0001;
+    config->vid = DEFAULT_VID;
+    config->pid = DEFAULT_PID;
 
     while (1) {
         c = getopt_long (argc, argv, "h",
@@ -163,6 +176,14 @@ void parse(int argc, char** argv, struct config_s* config) {
 
         case 'p':
             config->pid = atoi(optarg);
+            break;
+
+        case 'd':
+            config->device = atoi(optarg);
+            break;
+
+        case 's':
+            //TODO: parse serial
             break;
 
         default:

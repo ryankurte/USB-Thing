@@ -88,6 +88,7 @@ struct base_cmd_s {
 #define USBTHING_CMD_SERIAL_GET_SIZE            USBTHING_SERIAL_MAX_SIZE
 #define USBTHING_CMD_FIRMWARE_GET_SIZE          USBTHING_FIRMWARE_MAX_SIZE
 #define USBTHING_CMD_LED_SET_SIZE               (sizeof(struct led_set_s))
+#define USBTHING_CMD_RESET_SIZE                 0
 
 /*****       GPIO Configuration messages        *****/
 

@@ -197,6 +197,20 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, int enable)
     return res;
 }
 
+int USBTHING_reset(struct usbthing_s *usbthing)
+{
+    int res;
+
+    res = control_set(usbthing,
+                      USBTHING_MODULE_BASE,
+                      BASE_CMD_RESET,
+                      0,
+                      USBTHING_CMD_RESET_SIZE,
+                      NULL);
+
+    return res;
+}
+
 int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, int pull_enabled, int pull_up)
 {
     int res;
