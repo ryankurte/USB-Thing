@@ -27,4 +27,4 @@ include_directories(${CMAKE_BINARY_DIR})
 # Generate executable and link
 add_executable(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET} ${LIBS})
-
+add_dependencies(${TARGET} version)

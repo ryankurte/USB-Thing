@@ -163,8 +163,8 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 	uint8_t data_out[] = "tick";
 	uint8_t data_in[sizeof(data_out)];
 
+	printf("SPI test\r\n");
 	if (interactive != 0) {
-		printf("SPI test\r\n");
 		printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
 		getchar();
 	}
@@ -201,8 +201,8 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 		data_out[i] = i;
 	}
 
+	printf("SPI bulk test\r\n");
 	if (interactive != 0) {
-		printf("SPI bulk test\r\n");
 		printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
 		getchar();
 	}
@@ -214,7 +214,7 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 	//TODO: compare sent and response values
 
 	if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
-		printf("SPI test data mismatch\r\n");
+		printf("SPI bulk test data mismatch\r\n");
 		printf("out: ");
 		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
 			printf("%.2x ", data_out[i]);
@@ -242,8 +242,8 @@ static int test_adc(struct usbthing_s* usbthing, int interactive)
 {
 	uint32_t val;
 
+	printf("ADC test\r\n");
 	if (interactive != 0) {
-		printf("ADC test\r\n");
 		printf("Connect ADC port 0 to 3V3, ADC port 3 to GND, and press any key to continue\r\n");
 		getchar();
 	}
