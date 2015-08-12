@@ -55,6 +55,8 @@ int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int 
 
 int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length);
 
+int USBTHING_spi_close(struct usbthing_s *usbthing);
+
 int USBTHING_i2c_configure(struct usbthing_s *usbthing, int mode);
 
 int USBTHING_i2c_write(struct usbthing_s *usbthing,

@@ -415,6 +415,25 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
     return 0;
 }
 
+int USBTHING_spi_close(struct usbthing_s *usbthing)
+{
+    int res;
+    res = libusb_control_transfer (usbthing->handle,
+                                   LIBUSB_REQUEST_TYPE_VENDOR,
+                                   USBTHING_SPI_CMD_CLOSE,
+                                   0,
+                                   0,
+                                   NULL,
+                                   USBTHING_CMD_SPI_CLOSE_SIZE,
+                                   USBTHING_TIMEOUT);
+
+    if (res < 0) {
+        perror("USBTHING spi configuration error");
+    }
+
+    return res;
+}
+
 int USBTHING_i2c_configure(struct usbthing_s *usbthing, int speed)
 {
     int res;

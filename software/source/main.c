@@ -25,30 +25,18 @@ setup:
 
     /* TODO: actual things */
     printf("Connected\n");
-#if 0
+
     USBTHING_get_firmware_version(&usbthing, sizeof(version), version);
 
     printf("Firmware version: %s\r\n", version);
 
-    USBTHING_led_set(&usbthing, 0, 1);
-
-    usleep(100000);
-
-    USBTHING_led_set(&usbthing, 0, 0);
-
-    usleep(100000);
-
-    USBTHING_led_set(&usbthing, 1, 1);
-
-    usleep(100000);
-
-    USBTHING_led_set(&usbthing, 1, 0);
-#endif
     //USBTHING_i2c_configure(&usbthing, USBTHING_I2C_SPEED_STANDARD);
 
     //USBTHING_i2c_write_read(&usbthing, 0x00, sizeof(data_out), data_out, sizeof(data_in), data_in);
 
-    self_test(&usbthing);
+    printf("Running self tests\r\n");
+
+    self_test(&usbthing, 0);
 
 teardown:
 

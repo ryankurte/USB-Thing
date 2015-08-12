@@ -136,3 +136,4 @@ int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 
 	return USB_STATUS_OK;
 }
+

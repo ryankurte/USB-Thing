@@ -8,63 +8,65 @@
 
 #define SPI_BULK_TEST_SIZE		128
 
-static int test_adc(struct usbthing_s* usbthing);
-static int test_dac_adc(struct usbthing_s* usbthing);
-static int test_gpio(struct usbthing_s* usbthing);
-static int test_spi(struct usbthing_s* usbthing);
-static int test_spi_bulk(struct usbthing_s* usbthing);
-static int test_i2c(struct usbthing_s* usbthing);
+static int test_adc(struct usbthing_s* usbthing, int interactive);
+static int test_dac_adc(struct usbthing_s* usbthing, int interactive);
+static int test_gpio(struct usbthing_s* usbthing, int interactive);
+static int test_spi(struct usbthing_s* usbthing, int interactive);
+static int test_spi_bulk(struct usbthing_s* usbthing, int interactive);
+static int test_i2c(struct usbthing_s* usbthing, int interactive);
 
-int self_test(struct usbthing_s* usbthing)
+int self_test(struct usbthing_s* usbthing, int interactive)
 {
 	int res;
 
-	res = test_gpio(usbthing);
+	res = test_gpio(usbthing, interactive);
 	if (res < 0) {
 		printf("GPIO test failed: %d\r\n", res);
 	} else {
 		printf("GPIO test OK\r\n");
 	}
 
-	res = test_spi(usbthing);
+	res = test_spi(usbthing, interactive);
 	if (res < 0) {
 		printf("SPI test failed: %d\r\n", res);
 	} else {
 		printf("SPI test OK\r\n");
 	}
 
-	res = test_spi_bulk(usbthing);
+	res = test_spi_bulk(usbthing, interactive);
 	if (res < 0) {
 		printf("SPI bulk test failed: %d\r\n", res);
 	} else {
 		printf("SPI test OK\r\n");
 	}
 
-	res = test_adc(usbthing);
+	res = test_adc(usbthing, interactive);
 	if (res < 0) {
 		printf("ADC test failed: %d\r\n", res);
 	} else {
 		printf("ADC test OK\r\n");
 	}
 
-	#if 0
-	res = test_dac_adc(usbthing);
+#if 0
+	res = test_dac_adc(usbthing, interactive);
 	if (res < 0) {
 		printf("DAC -> ADC test failed: %d\r\n", res);
 		return -1;
 	}
-	#endif
+#endif
 
 	return 0;
 }
 
-static int test_dac_adc(struct usbthing_s* usbthing)
+static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
 {
 	char c;
 
-	printf("DAC and ADC test\r\n");
-	printf("Connect DAC to ADC port 0 and press any key to continue\r\n");
-	getchar();
+	if (interactive != 0) {
+		printf("DAC and ADC test\r\n");
+		printf("Connect DAC to ADC port 0 and press any key to continue\r\n");
+		getchar();
+	}
 
 	//USBTHING_dac_configure();
 
@@ -125,13 +127,15 @@ static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
 	return 0;
 }
 
-static int test_gpio(struct usbthing_s* usbthing)
+static int test_gpio(struct usbthing_s* usbthing, int interactive)
 {
 	int res;
 
-	printf("GPIO test\r\n");
-	printf("Connect pins GPIO0 to GPIO1, GPIO2 to GPIO3 and GPIO4 to GPIO5 and press any key to continue\r\n");
-	getchar();
+	if (interactive != 0) {
+		printf("GPIO test\r\n");
+		printf("Connect pins GPIO0 to GPIO1, GPIO2 to GPIO3 and GPIO4 to GPIO5 and press any key to continue\r\n");
+		getchar();
+	}
 
 	res = test_gpio_pair(usbthing, 0, 1);
 	if (res < 0) {
@@ -144,24 +148,26 @@ static int test_gpio(struct usbthing_s* usbthing)
 		printf("GPIO test pair 1 failed\r\n");
 		return -2;
 	}
-	
-    res = test_gpio_pair(usbthing, 4, 5);
+
+	res = test_gpio_pair(usbthing, 4, 5);
 	if (res < 0) {
 		printf("GPIO test pair 2 failed\r\n");
 		return -3;
 	}
-	
-    return 0;
+
+	return 0;
 }
 
-static int test_spi(struct usbthing_s* usbthing)
+static int test_spi(struct usbthing_s* usbthing, int interactive)
 {
 	uint8_t data_out[] = "tick";
 	uint8_t data_in[sizeof(data_out)];
 
-	printf("SPI test\r\n");
-	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
-	getchar();
+	if (interactive != 0) {
+		printf("SPI test\r\n");
+		printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
+		getchar();
+	}
 
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
@@ -181,21 +187,25 @@ static int test_spi(struct usbthing_s* usbthing)
 
 	//TODO: check CLK
 
+	USBTHING_spi_close(usbthing);
+
 	return 0;
 }
 
-static int test_spi_bulk(struct usbthing_s* usbthing)
+static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 {
 	uint8_t data_out[SPI_BULK_TEST_SIZE];
 	uint8_t data_in[SPI_BULK_TEST_SIZE];
 
-	for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
+	for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
 		data_out[i] = i;
 	}
 
-	printf("SPI bulk test\r\n");
-	printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
-	getchar();
+	if (interactive != 0) {
+		printf("SPI bulk test\r\n");
+		printf("Connect SPI MISO and MOSI pins and press any key to continue\r\n");
+		getchar();
+	}
 
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
@@ -203,18 +213,18 @@ static int test_spi_bulk(struct usbthing_s* usbthing)
 
 	//TODO: compare sent and response values
 
-	if (strncmp((const char*)data_out, (const char*)data_in,SPI_BULK_TEST_SIZE) != 0) {
+	if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
 		printf("SPI test data mismatch\r\n");
 		printf("out: ");
-        for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
-            printf("%x ", data_out[i]);
-        }
-        printf("\r\n");
+		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
+			printf("%.2x ", data_out[i]);
+		}
+		printf("\r\n");
 		printf("in: ");
-        for(int i=0; i<SPI_BULK_TEST_SIZE; i++) {
-            printf("%x ", data_in[i]);
-        }
-        printf("\r\n");
+		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
+			printf("%.2x ", data_in[i]);
+		}
+		printf("\r\n");
 		return -1;
 	}
 
@@ -223,37 +233,41 @@ static int test_spi_bulk(struct usbthing_s* usbthing)
 
 	//TODO: check CLK
 
+	USBTHING_spi_close(usbthing);
+
 	return 0;
 }
 
-static int test_adc(struct usbthing_s* usbthing)
+static int test_adc(struct usbthing_s* usbthing, int interactive)
 {
 	uint32_t val;
 
-	printf("ADC test\r\n");
-	printf("Connect ADC port 0 to 3V3, ADC port 3 to GND, and press any key to continue\r\n");
-	getchar();
+	if (interactive != 0) {
+		printf("ADC test\r\n");
+		printf("Connect ADC port 0 to 3V3, ADC port 3 to GND, and press any key to continue\r\n");
+		getchar();
+	}
 
 	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
 
 	USBTHING_adc_get(usbthing, 0, &val);
 	int expected_low = (unsigned int)(pow(2, 12) * 0.005);
-	if(val > expected_low) {
+	if (val > expected_low) {
 		printf("Error: channel 0 expected: < %u actual: %u\r\n", expected_low, val);
 		return -1;
 	}
-	
+
 	USBTHING_adc_get(usbthing, 3, &val);
 	int expected_high = (unsigned int)(pow(2, 12) * 0.995);
-	if(val < expected_high) {
+	if (val < expected_high) {
 		printf("Channel 3 expected: > %u actual: %u\r\n", expected_high, val);
 		return -1;
 	}
-	
+
 	return 0;
 }
 
-static int test_i2c(struct usbthing_s* usbthing)
+static int test_i2c(struct usbthing_s* usbthing, int interactive)
 {
 
 	//I don't even know how to start this

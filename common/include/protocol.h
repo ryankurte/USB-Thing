@@ -241,6 +241,7 @@ struct spi_cmd_s {
 };
 
 #define USBTHING_CMD_SPI_CONFIG_SIZE            (sizeof(struct spi_config_s))
+#define USBTHING_CMD_SPI_CLOSE_SIZE             0
 
 /*****      I2C Configuration messages          *****/
 #define USBTHING_I2C_CFG_SPEED_SHIFT            (0)
