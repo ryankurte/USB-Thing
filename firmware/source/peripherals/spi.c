@@ -59,7 +59,7 @@ int8_t SPI_close()
     return 0;
 }
 
-int8_t SPI_transfer(uint8_t length, uint8_t *data_out, uint8_t *data_in)
+int8_t SPI_transfer(uint16_t length, uint8_t *data_out, uint8_t *data_in)
 {
     //Enable USART
     USART_Enable(SPI_DEVICE, usartEnable);
@@ -68,7 +68,7 @@ int8_t SPI_transfer(uint8_t length, uint8_t *data_out, uint8_t *data_in)
     GPIO_PinOutClear(SPI_CS_PORT, SPI_CS_PIN);
 
     //Transfer data
-    for (uint8_t i = 0; i < length; i++) {
+    for (uint16_t i = 0; i < length; i++) {
         data_in[i] = USART_SpiTransfer(SPI_DEVICE, data_out[i]);
     }
 

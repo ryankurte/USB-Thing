@@ -97,7 +97,7 @@ void stateChange(USBD_State_TypeDef oldState, USBD_State_TypeDef newState)
 
     } else if (newState == USBD_STATE_CONFIGURED) {
         /* Start waiting for the 'tick' messages */
-        spi_start();
+        spi_svc_start();
         USBD_Read(EP2_OUT, i2c_receive_buffer, BUFFERSIZE, i2c_data_receive_callback);
         GPIO_conn_led_set(true);
 
@@ -154,7 +154,7 @@ int setupCmd(const USB_Setup_TypeDef *setup)
         return gpio_handle_setup(setup);
 
     case USBTHING_MODULE_SPI:
-        return spi_handle_setup(setup);
+        return spi_svc_handle_setup(setup);
 
     case USBTHING_MODULE_ADC:
         return adc_handle_setup(setup);

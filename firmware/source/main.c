@@ -45,6 +45,7 @@
 #include "descriptors.h"
 #include "platform.h"
 #include "peripherals/gpio.h"
+#include "services/spi_svc.h"
 
 #define DEBUG_USB
 
@@ -76,13 +77,13 @@ int main(void)
 
     /* Start USB stack. Callback routines in callbacks.c will be called
      * when connected to a host.  */
-    USBD_Init(&initstruct);;
+    USBD_Init(&initstruct);
 
     /*
      * When using a debugger it is practical to uncomment the following three
      * lines to force host to re-enumerate the device.
      */
-#ifdef DEBUG_USB
+#ifdef DEBUG
     USBD_Disconnect();
     USBTIMER_DelayMs( 1000 );
     USBD_Connect();

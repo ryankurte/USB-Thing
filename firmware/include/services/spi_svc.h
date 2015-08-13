@@ -1,6 +1,6 @@
 
-#ifndef SPI_SVC_H
-#define SPI_SVC_H
+#ifndef spi_svc_SVC_H
+#define spi_svc_SVC_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,10 +8,8 @@ extern "C" {
 
 #include "em_usb.h"
 
-void spi_start();
-int spi_handle_setup(const USB_Setup_TypeDef *setup);
-int spi_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
-int spi_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+void spi_svc_start();
+int spi_svc_handle_setup(const USB_Setup_TypeDef *setup);
 
 #ifdef __cplusplus
 }
