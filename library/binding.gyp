@@ -1,9 +1,9 @@
 {
   "targets": [
     {
-      "target_name": "binding",
-      "include_dirs": [ "include", "../common/include", "<!(node -e \"require('nan')\")" ],
-      "sources": [ "source/usbthing.cpp", "source/usbthing.c"  ]
+      "target_name": "usbthing",
+      "include_dirs": [ "include", "../common/include", "node_modules/nan" ],
+      "sources": [ "source/addon.cpp", "source/bindings.cpp", "source/usbthing.c"  ]
     }
   ]
 }
