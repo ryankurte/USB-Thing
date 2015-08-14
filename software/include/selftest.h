@@ -3,6 +3,8 @@
 #ifndef SELFTEST_H
 #define SELFTEST_H
 
-int self_test(struct usbthing_s* usbthing, int interactive);
+#include "usbthing.h"
+
+int self_test(usbthing_t usbthing, int interactive);
 
 #endif

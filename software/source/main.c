@@ -28,16 +28,16 @@ struct config_s {
     uint32_t pid;
 };
 
-int mode_selftest(struct usbthing_s* usbthing, struct config_s *config);
-int mode_version(struct usbthing_s* usbthing, struct config_s *config);
-int mode_list(struct usbthing_s* usbthing, struct config_s *config);
+int mode_selftest(usbthing_t usbthing, struct config_s *config);
+int mode_version(usbthing_t usbthing, struct config_s *config);
+int mode_list(usbthing_t usbthing, struct config_s *config);
 
 void parse(int argc, char** argv, struct config_s* config);
 void print_help();
 
 int main(int argc, char **argv)
 {
-    struct usbthing_s usbthing;
+    usbthing_t usbthing;
     struct config_s config;
 
     int res;
@@ -48,15 +48,15 @@ int main(int argc, char **argv)
 
     switch (config.mode) {
     case MODE_LIST:
-        mode_list(&usbthing, &config);
+        mode_list(usbthing, &config);
         break;
 
     case MODE_SELFTEST:
-        mode_selftest(&usbthing, &config);
+        mode_selftest(usbthing, &config);
         break;
 
     case MODE_VERSION:
-        mode_version(&usbthing, &config);
+        mode_version(usbthing, &config);
         break;
 
     case MODE_UNRECOGNIZED:
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-int mode_list(struct usbthing_s* usbthing, struct config_s *config)
+int mode_list(usbthing_t usbthing, struct config_s *config)
 {
     int res;
 
@@ -79,11 +79,11 @@ int mode_list(struct usbthing_s* usbthing, struct config_s *config)
     return res;
 }
 
-int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
+int mode_selftest(usbthing_t usbthing, struct config_s *config)
 {
     int res;
 
-    res = USBTHING_connect(usbthing, config->vid, config->pid);
+    res = USBTHING_connect(&usbthing, config->vid, config->pid);
     if (res < 0) {
         printf("Error opening USB thing\n");
         return -1;
@@ -94,7 +94,7 @@ int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
     int interactive = (config->quiet == 0)? 1 : 0;
     self_test(usbthing, interactive);
 
-    res = USBTHING_disconnect(usbthing);
+    res = USBTHING_disconnect(&usbthing);
     if (res < 0) {
         printf("Error closing USB thing\n");
         return -2;
@@ -103,12 +103,12 @@ int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
     return 0;
 }
 
-int mode_version(struct usbthing_s* usbthing, struct config_s *config)
+int mode_version(usbthing_t usbthing, struct config_s *config)
 {
     int res;
     char version[32];
 
-    res = USBTHING_connect(usbthing, config->vid, config->pid);
+    res = USBTHING_connect(&usbthing, config->vid, config->pid);
     if (res < 0) {
         printf("Error opening USB thing\n");
         return -1;
@@ -118,7 +118,7 @@ int mode_version(struct usbthing_s* usbthing, struct config_s *config)
 
     printf("Firmware version: %s\r\n", version);
 
-    res = USBTHING_disconnect(usbthing);
+    res = USBTHING_disconnect(&usbthing);
     if (res < 0) {
         printf("Error closing USB thing\n");
         return -2;

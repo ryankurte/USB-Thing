@@ -1,21 +1,26 @@
 
+#include "selftest.h"
+
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "usbthing.h"
+#include "protocol.h"
 
 #define SPI_BULK_TEST_SIZE		128
 
-static int test_adc(struct usbthing_s* usbthing, int interactive);
-static int test_dac_adc(struct usbthing_s* usbthing, int interactive);
-static int test_gpio(struct usbthing_s* usbthing, int interactive);
-static int test_spi(struct usbthing_s* usbthing, int interactive);
-static int test_spi_bulk(struct usbthing_s* usbthing, int interactive);
-static int test_i2c(struct usbthing_s* usbthing, int interactive);
+static int test_adc(usbthing_t usbthing, int interactive);
+static int test_dac_adc(usbthing_t usbthing, int interactive);
+static int test_gpio(usbthing_t usbthing, int interactive);
+static int test_spi(usbthing_t usbthing, int interactive);
+static int test_spi_bulk(usbthing_t usbthing, int interactive);
+static int test_i2c(usbthing_t usbthing, int interactive);
 
-int self_test(struct usbthing_s* usbthing, int interactive)
+int self_test(usbthing_t usbthing, int interactive)
 {
 	int res;
 
@@ -56,7 +61,7 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
+static int test_gpio_pair(usbthing_t usbthing, int in, int out)
 {
 	int value;
 	int res;
@@ -100,7 +105,7 @@ static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
 	return 0;
 }
 
-static int test_gpio(struct usbthing_s* usbthing, int interactive)
+static int test_gpio(usbthing_t usbthing, int interactive)
 {
 	int res;
 
@@ -133,7 +138,7 @@ static int test_gpio(struct usbthing_s* usbthing, int interactive)
 
 #define TEST_DATA_SIZE	32
 
-static int test_spi(struct usbthing_s* usbthing, int interactive)
+static int test_spi(usbthing_t usbthing, int interactive)
 {
 	uint8_t data_out[TEST_DATA_SIZE];
 	uint8_t data_in[TEST_DATA_SIZE];
@@ -153,7 +158,7 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 			data_out[j] = rand();
 		}
 
-		USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
+		USBTHING_spi_transfer(usbthing, TEST_DATA_SIZE, data_out, data_in);
 
 		//TODO: compare sent and response values
 
@@ -178,7 +183,7 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
+static int test_spi_bulk(usbthing_t usbthing, int interactive)
 {
 	uint8_t data_out[SPI_BULK_TEST_SIZE];
 	uint8_t data_in[SPI_BULK_TEST_SIZE];
@@ -200,7 +205,7 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 			data_out[j] = rand();
 		}
 
-		USBTHING_spi_transfer(usbthing, data_out, data_in, SPI_BULK_TEST_SIZE);
+		USBTHING_spi_transfer(usbthing, SPI_BULK_TEST_SIZE, data_out, data_in);
 
 		//Compare sent and received values
 		if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
@@ -231,7 +236,7 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_adc(struct usbthing_s* usbthing, int interactive)
+static int test_adc(usbthing_t usbthing, int interactive)
 {
 	float val;
 
@@ -261,7 +266,7 @@ static int test_adc(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
+static int test_dac_adc(usbthing_t usbthing, int interactive)
 {
 	char c;
 	float val;
@@ -297,7 +302,7 @@ static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_i2c(struct usbthing_s* usbthing, int interactive)
+static int test_i2c(usbthing_t usbthing, int interactive)
 {
 
 	//I don't even know how to start this

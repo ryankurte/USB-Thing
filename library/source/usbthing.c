@@ -8,6 +8,7 @@
 #include "usbthing.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -27,6 +28,11 @@
 #else
 #define USBTHING_DEBUG_PRINT(...)
 #endif
+
+//USBThing storage structure
+struct usbthing_s {
+  libusb_device_handle *handle;
+};
 
 static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
@@ -60,23 +66,28 @@ int USBTHING_list_devices(uint16_t vid_filter, uint16_t pid_filter)
   return (int)cnt;
 }
 
-int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t pid_filter)
+int USBTHING_connect(usbthing_t *usbthing, uint16_t vid_filter, uint16_t pid_filter)
 {
   int res;
 
-  //Connect to device
-  usbthing->handle = libusb_open_device_with_vid_pid(NULL, vid_filter, pid_filter);
-
-  if (usbthing->handle == NULL) {
-    //Device not found (or error)
+  (*usbthing) = malloc(sizeof(struct usbthing_s));
+  if(*usbthing == NULL) {
     return -1;
   }
 
+  //Connect to device
+  (*usbthing)->handle = libusb_open_device_with_vid_pid(NULL, vid_filter, pid_filter);
+
+  if ((*usbthing)->handle == NULL) {
+    //Device not found (or error)
+    return -2;
+  }
+
   //Claim appropriate interface
-  res = libusb_claim_interface(usbthing->handle, 0);
+  res = libusb_claim_interface((*usbthing)->handle, 0);
   if (res != 0) {
     //Could not claim interface
-    return -2;
+    return -3;
   }
 
   USBTHING_DEBUG_PRINT("Connected to device: %.4x:%.4x\r\n", vid_filter, pid_filter);
@@ -85,21 +96,23 @@ int USBTHING_connect(struct usbthing_s *usbthing, uint16_t vid_filter, uint16_t 
   return 0;
 }
 
-int USBTHING_disconnect(struct usbthing_s *usbthing)
+int USBTHING_disconnect(usbthing_t *usbthing)
 {
   //Check device is open
-  if (usbthing->handle == NULL) {
+  if ((*usbthing)->handle == NULL) {
     return -1;
   }
 
-  libusb_close(usbthing->handle);
+  libusb_close((*usbthing)->handle);
 
-  usbthing->handle = NULL;
+  (*usbthing)->handle = NULL;
+
+  free(*usbthing);
 
   return 0;
 }
 
-static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
+static int control_set(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
   int res;
 
   int response_length;
@@ -124,7 +137,7 @@ static int control_set(struct usbthing_s *usbthing, uint32_t service, uint32_t o
   return res;
 }
 
-static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
+static int control_get(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
   int res;
 
   int response_length;
@@ -149,7 +162,7 @@ static int control_get(struct usbthing_s *usbthing, uint32_t service, uint32_t o
   return res;
 }
 
-int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char *version)
+int USBTHING_get_firmware_version(usbthing_t usbthing, int length, char *version)
 {
   int res;
 
@@ -171,7 +184,7 @@ int USBTHING_get_firmware_version(struct usbthing_s *usbthing, int length, char 
   return res;
 }
 
-int USBTHING_led_set(struct usbthing_s *usbthing, int led, int enable)
+int USBTHING_led_set(usbthing_t usbthing, int led, int enable)
 {
   int res;
 
@@ -190,7 +203,7 @@ int USBTHING_led_set(struct usbthing_s *usbthing, int led, int enable)
   return res;
 }
 
-int USBTHING_reset(struct usbthing_s *usbthing)
+int USBTHING_reset(usbthing_t usbthing)
 {
   int res;
 
@@ -204,7 +217,7 @@ int USBTHING_reset(struct usbthing_s *usbthing)
   return res;
 }
 
-int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, int pull_enabled, int pull_up)
+int USBTHING_gpio_configure(usbthing_t usbthing, int pin, int output, int pull_enabled, int pull_up)
 {
   int res;
   struct usbthing_ctrl_s cmd;
@@ -230,7 +243,7 @@ int USBTHING_gpio_configure(struct usbthing_s *usbthing, int pin, int output, in
 }
 
 
-int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
+int USBTHING_gpio_set(usbthing_t usbthing, int pin, int value)
 {
   int res;
   struct usbthing_ctrl_s cmd;
@@ -249,7 +262,7 @@ int USBTHING_gpio_set(struct usbthing_s *usbthing, int pin, int value)
   return res;
 }
 
-int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
+int USBTHING_gpio_get(usbthing_t usbthing, int pin, int *value)
 {
   int res;
   struct usbthing_ctrl_s cmd;
@@ -271,27 +284,27 @@ int USBTHING_gpio_get(struct usbthing_s *usbthing, int pin, int *value)
 }
 
 
-int USBTHING_gpio_get_int(struct usbthing_s *usbthing, int pin, int *value)
+int USBTHING_gpio_get_int(usbthing_t usbthing, int pin, int *value)
 {
   return -1;
 }
 
-int USBTHING_pwm_configure(struct usbthing_s *usbthing, unsigned int frequency)
+int USBTHING_pwm_configure(usbthing_t usbthing, unsigned int frequency)
 {
   return -1;
 }
 
-int USBTHING_pwm_enable(struct usbthing_s *usbthing, int channel, int enable)
+int USBTHING_pwm_enable(usbthing_t usbthing, int channel, int enable)
 {
   return -1;
 }
 
-int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle)
+int USBTHING_pwm_set(usbthing_t usbthing, int channel, int duty_cycle)
 {
   return -1;
 }
 
-int USBTHING_dac_configure(struct usbthing_s *usbthing)
+int USBTHING_dac_configure(usbthing_t usbthing)
 {
   int res;
   struct usbthing_ctrl_s cmd;
@@ -306,7 +319,7 @@ int USBTHING_dac_configure(struct usbthing_s *usbthing)
   return res;
 }
 
-int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, float value)
+int USBTHING_dac_set(usbthing_t usbthing, unsigned int enable, float value)
 {
   int res;
   struct usbthing_ctrl_s cmd;
@@ -325,7 +338,7 @@ int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, float val
   return res;
 }
 
-int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference)
+int USBTHING_adc_configure(usbthing_t usbthing, unsigned int reference)
 {
   int res;
 
@@ -343,7 +356,7 @@ int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference)
   return res;
 }
 
-int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, float *value)
+int USBTHING_adc_get(usbthing_t usbthing, int channel, float *value)
 {
   int res;
 
@@ -362,7 +375,7 @@ int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, float *value)
 }
 
 
-int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int mode)
+int USBTHING_spi_configure(usbthing_t usbthing, unsigned int speed, int mode)
 {
   int res;
 
@@ -381,7 +394,7 @@ int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int 
   return res;
 }
 
-int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, unsigned char *data_in, int length)
+int USBTHING_spi_transfer(usbthing_t usbthing, int length, unsigned char *data_out, unsigned char *data_in)
 {
   int res;
   int transferred;
@@ -429,7 +442,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
   return 0;
 }
 
-int USBTHING_spi_close(struct usbthing_s *usbthing)
+int USBTHING_spi_close(usbthing_t usbthing)
 {
   int res;
   res = libusb_control_transfer (usbthing->handle,
@@ -448,7 +461,7 @@ int USBTHING_spi_close(struct usbthing_s *usbthing)
   return res;
 }
 
-int USBTHING_i2c_configure(struct usbthing_s *usbthing, int speed)
+int USBTHING_i2c_configure(usbthing_t usbthing, int speed)
 {
   int res;
   res = libusb_control_transfer (usbthing->handle,
@@ -467,7 +480,7 @@ int USBTHING_i2c_configure(struct usbthing_s *usbthing, int speed)
   return res;
 }
 
-int USBTHING_i2c_write(struct usbthing_s *usbthing,
+int USBTHING_i2c_write(usbthing_t usbthing,
                        int address,
                        int length_out, unsigned char *data_out)
 {
@@ -533,7 +546,7 @@ int USBTHING_i2c_write(struct usbthing_s *usbthing,
   return 0;
 }
 
-int USBTHING_i2c_read(struct usbthing_s *usbthing,
+int USBTHING_i2c_read(usbthing_t usbthing,
                       int address,
                       int length_in, unsigned char *data_in)
 {
@@ -594,7 +607,7 @@ int USBTHING_i2c_read(struct usbthing_s *usbthing,
   return 0;
 }
 
-int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
+int USBTHING_i2c_write_read(usbthing_t usbthing,
                             int address,
                             int length_out, unsigned char *data_out,
                             int length_in, unsigned char *data_in)
