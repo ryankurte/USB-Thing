@@ -1,6 +1,3 @@
-[submodule "firmware/efm32-base"]
-	path = firmware/efm32-base
-	url = git@github.com:ryankurte/efm32-base.git
-[submodule "bootloader/efm32-base"]
-	path = bootloader/efm32-base
+[submodule "efm32-base"]
+	path = efm32-base
 	url = git@github.com:ryankurte/efm32-base.git
