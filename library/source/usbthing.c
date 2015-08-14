@@ -31,18 +31,11 @@
 static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
 
-
-
 int USBTHING_init()
 {
   int res;
 
-  res = libusb_init(NULL);
-  if (res < 0) {
-    return res;
-  }
-
-  return 0;
+  return libusb_init(NULL);
 }
 
 void USBTHING_close()
@@ -424,7 +417,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
     return -2;
   }
 
-  if(transferred != length) {
+  if (transferred != length) {
     printf("SPI read error: expected %d bytes, received %d bytes\r\n", length, transferred);
     return -3;
   }
@@ -440,13 +433,13 @@ int USBTHING_spi_close(struct usbthing_s *usbthing)
 {
   int res;
   res = libusb_control_transfer (usbthing->handle,
-        LIBUSB_REQUEST_TYPE_VENDOR,
-        USBTHING_SPI_CMD_CLOSE,
-        0,
-        0,
-        NULL,
-        USBTHING_CMD_SPI_CLOSE_SIZE,
-        USBTHING_TIMEOUT);
+                                 LIBUSB_REQUEST_TYPE_VENDOR,
+                                 USBTHING_SPI_CMD_CLOSE,
+                                 0,
+                                 0,
+                                 NULL,
+                                 USBTHING_CMD_SPI_CLOSE_SIZE,
+                                 USBTHING_TIMEOUT);
 
   if (res < 0) {
     perror("USBTHING spi configuration error");

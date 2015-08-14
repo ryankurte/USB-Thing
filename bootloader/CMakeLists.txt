@@ -10,15 +10,10 @@
 # Set minimum CMake version
 cmake_minimum_required(VERSION 2.8.4)
 
-# Check which directory we are running in so we can find our toolchains etc
-get_filename_component(BASE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} NAME)
-if(NOT ${BASE_DIRECTORY} STREQUAL "efm32-base")
-	set(PROJECT_PREFIX "efm32-base")
-endif()
-message("Project prefix: " ${PROJECT_PREFIX})
+set(BASE_LOC ${CMAKE_CURRENT_LIST_DIR}/../efm32-base)
 
 # Set the toolchain/languages/support files etc
-include(${CMAKE_CURRENT_LIST_DIR}/${PROJECT_PREFIX}/toolchain/arm-gcc.cmake)
+include(${BASE_LOC}/toolchain/arm-gcc.cmake)
 
 ##### Project Setup #####
 
@@ -43,8 +38,8 @@ set(CMAKE_BUILD_TYPE RELEASE)
 # Libraries should add themselves to the LIBS variable
 
 # Add base libs (emlib, CMSIS, device files)
-include(${PROJECT_SOURCE_DIR}/efm32-base/drivers/usb/usb.cmake)
-include(${PROJECT_SOURCE_DIR}/${PROJECT_PREFIX}/toolchain/efm32-base.cmake)
+include(${BASE_LOC}/drivers/usb/usb.cmake)
+include(${BASE_LOC}/toolchain/efm32-base.cmake)
 
 ##### Files #####
 
@@ -87,10 +82,10 @@ target_link_libraries(shim ${LIBS})
 ##### Post build #####
 
 # Add post build commands
-include(${CMAKE_CURRENT_LIST_DIR}/${PROJECT_PREFIX}/toolchain/post-build.cmake)
+include(${BASE_LOC}/toolchain/post-build.cmake)
 
 # Add JLink commands
-include(${CMAKE_CURRENT_LIST_DIR}/${PROJECT_PREFIX}/toolchain/jlink.cmake)
+include(${BASE_LOC}/toolchain/jlink.cmake)
 
 # Include conversion of shim (non default target)
 add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJCOPY} -O binary shim shim.bin)

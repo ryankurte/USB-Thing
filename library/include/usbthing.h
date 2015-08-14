@@ -12,6 +12,10 @@
 
 #define USBTHING_DAC_MAX		4096
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct usbthing_s {
 	libusb_device_handle *handle;
 };
@@ -71,5 +75,9 @@ int USBTHING_i2c_write_read(struct usbthing_s *usbthing,
                             int address,
                             int length_out, unsigned char *data_out,
                             int length_in, unsigned char *data_in);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
