@@ -23,6 +23,7 @@ enum mode_e {
 struct config_s {
     int mode;
     int device;
+    int quiet;
     uint32_t vid;
     uint32_t pid;
 };
@@ -90,7 +91,8 @@ int mode_selftest(struct usbthing_s* usbthing, struct config_s *config)
 
     printf("Running self tests\r\n");
 
-    self_test(usbthing, 0);
+    int interactive = (config->quiet == 0)? 1 : 0;
+    self_test(usbthing, interactive);
 
     res = USBTHING_disconnect(usbthing);
     if (res < 0) {
@@ -136,6 +138,7 @@ void parse(int argc, char** argv, struct config_s* config) {
         {"vid",  required_argument,    0, 'v'},
         {"pid",  required_argument,    0, 'p'},
         {"device",  required_argument, 0, 'd'},
+        {"quiet", no_argument,         0, 'q'},
         {0, 0, 0, 0}
     };
 
@@ -186,6 +189,10 @@ void parse(int argc, char** argv, struct config_s* config) {
             //TODO: parse serial
             break;
 
+        case 'q':
+            config->quiet = 1;
+            break;
+
         default:
             printf("Unrecognized option %s\r\n", long_options[option_index].name);
             break;
@@ -194,14 +201,15 @@ void parse(int argc, char** argv, struct config_s* config) {
 }
 
 void print_help() {
-    printf("USBThing Utility\r\n");
-    printf("Version: %s\r\n", SOFTWARE_VERSION);
+    printf("\r\nUSBThing Utility (Version: %s)\r\n", SOFTWARE_VERSION);
     printf("\r\n");
+    printf("Arguments:\r\n");
     printf("--mode [mode], required\r\n");
     printf("\tversion - fetch the connected device version\r\n");
     printf("\tselftest - run self test mode\r\n");
     printf("\tlist - list attached devices\r\n");
     printf("--vid [VID], device Vendor ID\r\n");
     printf("--pid [PID], device Product ID\r\n");
+    printf("--quiet, removes prompts where possible\r\n");
     printf("\r\n");
 }

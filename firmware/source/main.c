@@ -72,8 +72,6 @@ int main(void)
 
     CMU_ClockEnable(cmuClock_HFPER, true);
 
-    DAC_configure();
-
     printf("\nStarting USB Device...\n");
 
     /* Set up GPIO interrupts */

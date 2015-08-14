@@ -56,42 +56,6 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
-static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
-{
-	char c;
-	float val;
-	float out;
-
-	printf("DAC to ADC test\r\n");
-	if (interactive != 0) {
-		printf("Connect DAC to ADC ch 2 and press any key to continue\r\n");
-		getchar();
-	}
-
-	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
-	USBTHING_dac_configure(usbthing);
-
-	USBTHING_dac_set(usbthing, 1, 3.3);
-	usleep(500);
-	USBTHING_adc_get(usbthing, 1, &val);
-	if (val < (3.3 * 0.995)) {
-		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 3.3, val);
-		return -1;
-	}
-
-	USBTHING_dac_set(usbthing, 1, 0.0);
-	usleep(500);
-	USBTHING_adc_get(usbthing, 1, &val);
-	if (val > (3.3 * 0.005)) {
-		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 0.0, val);
-		return -1;
-	}
-
-	printf("DAC to ADC test complete\r\n");
-
-	return 0;
-}
-
 static int test_gpio_pair(struct usbthing_s* usbthing, int in, int out)
 {
 	int value;
@@ -183,7 +147,7 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
 	//Repeat test N times
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 10; i++) {
 
 		for (int j = 0; j < TEST_DATA_SIZE; j++) {
 			data_out[j] = rand();
@@ -229,7 +193,7 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 10; i++) {
 
 		//Data set one
 		for (int j = 0; j < SPI_BULK_TEST_SIZE; j++) {
@@ -273,7 +237,8 @@ static int test_adc(struct usbthing_s* usbthing, int interactive)
 
 	printf("ADC test\r\n");
 	if (interactive != 0) {
-		printf("Connect ADC port 0 to 3V3, ADC port 3 to GND, and press any key to continue\r\n");
+		printf("Connect ADC ch 0 to 3V3, ADC ch 3 to GND, and press any key to continue\r\n");
+		printf("Note that the ADC GND and 3V3 are incorrectly labeled on the v0.2.0 board\r\n");
 		getchar();
 	}
 
@@ -292,6 +257,42 @@ static int test_adc(struct usbthing_s* usbthing, int interactive)
 		printf("Channel 3 expected: > %.1f actual: %.1f\r\n", expected_high, val);
 		return -1;
 	}
+
+	return 0;
+}
+
+static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
+{
+	char c;
+	float val;
+	float out;
+
+	printf("DAC to ADC test\r\n");
+	if (interactive != 0) {
+		printf("Connect DAC to ADC ch 2 and press any key to continue\r\n");
+		getchar();
+	}
+
+	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
+	USBTHING_dac_configure(usbthing);
+
+	USBTHING_dac_set(usbthing, 1, 3.3);
+	usleep(1000);
+	USBTHING_adc_get(usbthing, 1, &val);
+	if (val < (3.3 * 0.990)) {
+		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 3.3, val);
+		return -1;
+	}
+
+	USBTHING_dac_set(usbthing, 1, 0.0);
+	usleep(1000);
+	USBTHING_adc_get(usbthing, 1, &val);
+	if (val > (3.3 * 0.010)) {
+		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 0.0, val);
+		return -1;
+	}
+
+	printf("DAC to ADC test complete\r\n");
 
 	return 0;
 }

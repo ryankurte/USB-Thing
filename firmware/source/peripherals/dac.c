@@ -28,8 +28,6 @@ void DAC_configure()
     OPAMP_Init_TypeDef configuration0 =  OPA_INIT_DIFF_RECEIVER_OPA0 ;
     OPAMP_Enable(DAC0, OPA0, &configuration0);
     DAC0->OPACTRL &= ~DAC_OPACTRL_OPA0EN;
-
-    DAC_set(0xffff);
 }
 
 void DAC_close()
