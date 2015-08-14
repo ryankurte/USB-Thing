@@ -45,3 +45,5 @@ build/
 *.dSYM/
 usb-thing
 usb-thing.bin
+.env/
+node_modules/
