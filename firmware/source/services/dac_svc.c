@@ -22,14 +22,14 @@ extern uint8_t cmd_buffer[];
 
 int dac_handle_setup(const USB_Setup_TypeDef *setup)
 {
-	switch (setup->wValue) {
-	case USBTHING_CMD_DAC_CFG:
-		return dac_config(setup);
+    switch (setup->wValue) {
+    case USBTHING_CMD_DAC_CFG:
+        return dac_config(setup);
 
-	case USBTHING_CMD_DAC_SET:
-		return dac_set(setup);
-	}
-	return USB_STATUS_REQ_UNHANDLED;
+    case USBTHING_CMD_DAC_SET:
+        return dac_set(setup);
+    }
+    return USB_STATUS_REQ_UNHANDLED;
 }
 
 static int dac_config(const USB_Setup_TypeDef *setup)
@@ -77,7 +77,6 @@ static int dac_set_cb(const USB_Status_TypeDef status, uint32_t xferred, uint32_
     uint16_t value = ctrl->dac_cmd.set.value;
 
     DAC_set(value);
-    DAC_enable(enable);
 
     return USB_STATUS_OK;
 }

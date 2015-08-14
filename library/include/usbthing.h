@@ -49,11 +49,11 @@ int USBTHING_pwm_set(struct usbthing_s *usbthing, int channel, int duty_cycle);
 
 int USBTHING_dac_configure(struct usbthing_s *usbthing);
 
-int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, unsigned int value);
+int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, float value);
 
 int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference);
 
-int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value);
+int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, float *value);
 
 int USBTHING_spi_configure(struct usbthing_s *usbthing, unsigned int speed, int mode);
 

@@ -18,14 +18,14 @@ static int test_i2c(struct usbthing_s* usbthing, int interactive);
 int self_test(struct usbthing_s* usbthing, int interactive)
 {
 	int res;
-#if 0
+
 	res = test_gpio(usbthing, interactive);
 	if (res < 0) {
 		printf("GPIO test failed: %d\r\n", res);
 	} else {
 		printf("GPIO test OK\r\n");
 	}
-#endif
+
 	res = test_spi(usbthing, interactive);
 	if (res < 0) {
 		printf("SPI test failed: %d\r\n", res);
@@ -39,7 +39,7 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 	} else {
 		printf("SPI test OK\r\n");
 	}
-#if 0
+
 	res = test_adc(usbthing, interactive);
 	if (res < 0) {
 		printf("ADC test failed: %d\r\n", res);
@@ -52,38 +52,42 @@ int self_test(struct usbthing_s* usbthing, int interactive)
 		printf("DAC -> ADC test failed: %d\r\n", res);
 		return -1;
 	}
-#endif
+
 	return 0;
 }
 
 static int test_dac_adc(struct usbthing_s* usbthing, int interactive)
 {
 	char c;
-	unsigned int val;
-	unsigned int out;
+	float val;
+	float out;
 
-	printf("DAC and ADC test\r\n");
+	printf("DAC to ADC test\r\n");
 	if (interactive != 0) {
-		printf("Connect DAC to ADC port 1 and press any key to continue\r\n");
+		printf("Connect DAC to ADC ch 2 and press any key to continue\r\n");
 		getchar();
 	}
 
 	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
 	USBTHING_dac_configure(usbthing);
 
-	out = USBTHING_DAC_MAX;
-	USBTHING_dac_set(usbthing, 1, out);
+	USBTHING_dac_set(usbthing, 1, 3.3);
+	usleep(500);
 	USBTHING_adc_get(usbthing, 1, &val);
-	printf("set: %d get: %d\r\n", out, val);
+	if (val < (3.3 * 0.995)) {
+		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 3.3, val);
+		return -1;
+	}
 
-	out = 0x0000;
-	USBTHING_dac_set(usbthing, 1, out);
+	USBTHING_dac_set(usbthing, 1, 0.0);
+	usleep(500);
 	USBTHING_adc_get(usbthing, 1, &val);
-	printf("set: %d get: %d\r\n", out, val);
+	if (val > (3.3 * 0.005)) {
+		printf("DAC->ADC test error, expected: %.4f got: %.4f\r\n", 0.0, val);
+		return -1;
+	}
 
-	//TODO: compare values
-
-	//TODO: repeat
+	printf("DAC to ADC test complete\r\n");
 
 	return 0;
 }
@@ -265,7 +269,7 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 
 static int test_adc(struct usbthing_s* usbthing, int interactive)
 {
-	uint32_t val;
+	float val;
 
 	printf("ADC test\r\n");
 	if (interactive != 0) {
@@ -276,16 +280,16 @@ static int test_adc(struct usbthing_s* usbthing, int interactive)
 	USBTHING_adc_configure(usbthing, USBTHING_ADC_REF_VDD);
 
 	USBTHING_adc_get(usbthing, 0, &val);
-	int expected_low = (unsigned int)(pow(2, 12) * 0.005);
+	float expected_low = (3.3 * 0.005);
 	if (val > expected_low) {
-		printf("Error: channel 0 expected: < %u actual: %u\r\n", expected_low, val);
+		printf("Error: channel 0 expected: < %.1f actual: %.1f\r\n", expected_low, val);
 		return -1;
 	}
 
 	USBTHING_adc_get(usbthing, 3, &val);
-	int expected_high = (unsigned int)(pow(2, 12) * 0.995);
+	float expected_high = (3.3 * 0.995);
 	if (val < expected_high) {
-		printf("Channel 3 expected: > %u actual: %u\r\n", expected_high, val);
+		printf("Channel 3 expected: > %.1f actual: %.1f\r\n", expected_high, val);
 		return -1;
 	}
 

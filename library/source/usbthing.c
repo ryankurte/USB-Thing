@@ -306,14 +306,14 @@ int USBTHING_dac_configure(struct usbthing_s *usbthing)
   return res;
 }
 
-int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, unsigned int value)
+int USBTHING_dac_set(struct usbthing_s *usbthing, unsigned int enable, float value)
 {
   int res;
   struct usbthing_ctrl_s cmd;
 
   //TODO: Sanity check mode and pin inputs?
   cmd.dac_cmd.set.enable = (uint8_t)enable;
-  cmd.dac_cmd.set.value = (uint16_t)value;
+  cmd.dac_cmd.set.value = (uint16_t)(value * 4096 / 3.3);
 
   res = control_set(usbthing,
                     USBTHING_MODULE_DAC,
@@ -343,7 +343,7 @@ int USBTHING_adc_configure(struct usbthing_s *usbthing, unsigned int reference)
   return res;
 }
 
-int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *value)
+int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, float *value)
 {
   int res;
 
@@ -356,7 +356,7 @@ int USBTHING_adc_get(struct usbthing_s *usbthing, int channel, unsigned int *val
                     USBTHING_CMD_ADC_GET_SIZE,
                     ctrl.data);
 
-  *value = ctrl.adc_cmd.get.value;
+  *value = (float)ctrl.adc_cmd.get.value / 4096 * 3.3;
 
   return res;
 }

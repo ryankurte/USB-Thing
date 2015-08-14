@@ -5,6 +5,7 @@
 
 #include "em_cmu.h"
 #include "em_dac.h"
+#include "em_opamp.h"
 
 #include "platform.h"
 
@@ -17,9 +18,18 @@ void DAC_configure()
 
     //Todo: fine tuned config here
     dac_init.reference = dacRefVDD;
+    dac_init.prescale = DAC_PrescaleCalc(500000, 0);
 
+    //Initialize the DAC
     DAC_Init(DAC_DEVICE, &dac_init);
     DAC_InitChannel(DAC_DEVICE, &channel_init, DAC_CHANNEL);
+
+    //Setup opamp (DAC->OPAMP->PIN)
+    OPAMP_Init_TypeDef configuration0 =  OPA_INIT_DIFF_RECEIVER_OPA0 ;
+    OPAMP_Enable(DAC0, OPA0, &configuration0);
+    DAC0->OPACTRL &= ~DAC_OPACTRL_OPA0EN;
+
+    DAC_set(0xffff);
 }
 
 void DAC_close()
