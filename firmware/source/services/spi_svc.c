@@ -28,6 +28,8 @@ STATIC_UBUF(spi_svc_transmit_buffer, SPI_BUFF_SIZE);
 
 
 extern uint8_t cmd_buffer[];
+extern int usbthing_busy;
+
 static int spi_svc_configured = 0;
 static int zlp_required = 0;
 
@@ -100,11 +102,12 @@ static int spi_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uin
 	}
 
 	if (zlp_required != 0) {
-		//Send zero lenght packet to signify completion
+		//Send zero length packet to signify completion
 		USBD_Write(EP1_IN, spi_svc_transmit_buffer, 0, spi_svc_data_sent_cb);
 		zlp_required = 0;
 	} else {
 		//Restart EP_OUT
+		usbthing_busy = 0;
 		USBD_Read(EP1_OUT, spi_svc_receive_buffer, SPI_BUFF_SIZE, spi_svc_data_receive_cb);
 	}
 
@@ -127,6 +130,8 @@ static int spi_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, 
 	if (spi_svc_configured == 0) {
 		return USB_STATUS_DEVICE_UNCONFIGURED;
 	}
+
+	usbthing_busy = 1;
 
 	//Check whether a zero length termination packet is required
 	if ((xferred % USB_MAX_EP_SIZE) == 0) {

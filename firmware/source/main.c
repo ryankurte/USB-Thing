@@ -59,6 +59,8 @@ uint8_t button0message[] = "PB0 pressed!";
 EFM32_ALIGN(4)
 uint8_t button1message[] = "PB1 pressed!";
 
+int usbthing_busy = 0;
+
 int main(void)
 {
     /* Chip errata */
@@ -90,6 +92,11 @@ int main(void)
 #endif
 
     while (1) {
+        if(usbthing_busy > 0) {
+            GPIO_act_led_set(true);
+        } else{
+            GPIO_act_led_set(false);
+        }
 #if 0
         if ( USBD_SafeToEnterEM2() ) {
             /* Enter EM2 when in suspend or disconnected */

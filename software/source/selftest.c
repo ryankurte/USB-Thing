@@ -6,7 +6,7 @@
 
 #include "usbthing.h"
 
-#define SPI_BULK_TEST_SIZE		32
+#define SPI_BULK_TEST_SIZE		128
 
 static int test_adc(struct usbthing_s* usbthing, int interactive);
 static int test_dac_adc(struct usbthing_s* usbthing, int interactive);
@@ -163,10 +163,12 @@ static int test_gpio(struct usbthing_s* usbthing, int interactive)
 	return 0;
 }
 
+#define TEST_DATA_SIZE	32
+
 static int test_spi(struct usbthing_s* usbthing, int interactive)
 {
-	uint8_t data_out[] = "tick";
-	uint8_t data_in[sizeof(data_out)];
+	uint8_t data_out[TEST_DATA_SIZE];
+	uint8_t data_in[TEST_DATA_SIZE];
 
 	printf("SPI test\r\n");
 	if (interactive != 0) {
@@ -176,31 +178,28 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
-	USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
+	//Repeat test N times
+	for (int i = 0; i < 100; i++) {
 
-	//TODO: compare sent and response values
+		for(int j=0; j<TEST_DATA_SIZE; j++) {
+			data_out[j] = rand();
+		}
 
-	if (strncmp((const char*)data_out, (const char*)data_in, sizeof(data_out)) != 0) {
-		printf("SPI test transfer one data mismatch\r\n");
-		printf("out: %s\r\n", data_out);
-		printf("in: %s\r\n", data_out);
-		return -1;
+		USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
+
+		//TODO: compare sent and response values
+
+		if (strncmp((const char*)data_out, (const char*)data_in, sizeof(data_out)) != 0) {
+			printf("SPI test transfer %d data mismatch\r\n", i);
+			printf("out: %s\r\n", data_out);
+			printf("in: %s\r\n", data_out);
+			return -1;
+		}
+
+		usleep(1000);
 	}
 
-	printf("SPI test transfer one complete\r\n");
-
-	USBTHING_spi_transfer(usbthing, data_out, data_in, sizeof(data_out));
-
-	//TODO: compare sent and response values
-
-	if (strncmp((const char*)data_out, (const char*)data_in, sizeof(data_out)) != 0) {
-		printf("SPI test transfer two data mismatch\r\n");
-		printf("out: %s\r\n", data_out);
-		printf("in: %s\r\n", data_out);
-		return -1;
-	}
-
-	printf("SPI test transfer two complete\r\n");
+	printf("SPI test transfers complete\r\n");
 
 	//TODO: check CS
 

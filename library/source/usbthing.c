@@ -20,7 +20,7 @@
 #define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
-//#define DEBUG_USBTHING
+#define DEBUG_USBTHING
 
 #ifdef DEBUG_USBTHING
 #define USBTHING_DEBUG_PRINT(...) printf(__VA_ARGS__)
@@ -393,10 +393,8 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
   int res;
   int transferred;
 
-  libusb_clear_halt(usbthing->handle, 0x01);
-
   USBTHING_DEBUG_PRINT("SPI write: ");
-  print_buffer(length, data_out);
+  //print_buffer(length, data_out);
   USBTHING_DEBUG_PRINT("\r\n");
 
   res = libusb_bulk_transfer (usbthing->handle,
@@ -433,7 +431,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
                               &transferred,
                               USBTHING_TIMEOUT);
 
-  USBTHING_DEBUG_PRINT("Transferred: %d\r\n", transferred);
+  //USBTHING_DEBUG_PRINT("Transferred: %d\r\n", transferred);
 
   //TODO: check for complete transfer
   if (res < 0) {
@@ -442,7 +440,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
   }
 
   USBTHING_DEBUG_PRINT("SPI read complete: ");
-  print_buffer(length, data_in);
+  //print_buffer(length, data_in);
   USBTHING_DEBUG_PRINT("\r\n");
 
   return 0;

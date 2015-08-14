@@ -11,16 +11,18 @@
 #include "peripherals/i2c.h"
 #include "em_usart.h"
 
-#define i2c_BUFF_SIZE 		256
+#define I2C_BUFF_SIZE 		256
 
 static int i2c_config(const USB_Setup_TypeDef *setup);
 static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 
 //Aligned buffers for USB operations
-STATIC_UBUF(i2c_receive_buffer, i2c_BUFF_SIZE);
-STATIC_UBUF(i2c_transmit_buffer, i2c_BUFF_SIZE);
+STATIC_UBUF(i2c_receive_buffer, I2C_BUFF_SIZE);
+STATIC_UBUF(i2c_transmit_buffer, I2C_BUFF_SIZE);
 
 extern uint8_t cmd_buffer[];
+extern int usbthing_busy = 0;
+
 static int i2c_configured = 0;
 
 int i2c_handle_setup(const USB_Setup_TypeDef *setup)
@@ -64,7 +66,7 @@ static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t r
 
 void i2c_start()
 {
-	USBD_Read(EP1_OUT, i2c_receive_buffer, i2c_BUFF_SIZE, i2c_data_receive_cb);
+	USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_data_receive_cb);
 }
 
 int i2c_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
@@ -74,7 +76,7 @@ int i2c_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remai
 	(void)remaining;
 
 	//Restart EP_OUT
-	USBD_Read(EP1_OUT, i2c_receive_buffer, i2c_BUFF_SIZE, i2c_data_receive_cb);
+	USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_data_receive_cb);
 
 	if ( status != USB_STATUS_OK ) {
 		/* Handle error */
@@ -88,23 +90,11 @@ int i2c_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 	(void)xferred;
 	(void)remaining;
 
-	//TODO: what if i2c is not initialized?
-
-	/* Check status to verify that the transfer has completed successfully */
-	if ( status == USB_STATUS_OK ) {
-		if (i2c_configured == 0) {
-			return USB_STATUS_DEVICE_UNCONFIGURED;
-		} else {
-			i2c_transfer(xferred, i2c_receive_buffer, i2c_transmit_buffer);
-			USBD_Write(EP1_IN, i2c_transmit_buffer, xferred, i2c_data_receive_cb);
-		}
-
-	} else {
-		//TODO: handle errors
-
-		//Restart EP_OUT
-		USBD_Read(EP1_OUT, i2c_receive_buffer, i2c_BUFF_SIZE, i2c_data_receive_cb);
+	for(uint32_t i=0; i<xferred; i++) {
+		i2c_transmit_buffer[i] = i2c_receive_buffer[i];
 	}
+
+	USBD_Write(EP2_IN, i2c_transmit_buffer, xferred, i2c_data_receive_cb);
 
 	return USB_STATUS_OK;
 }
