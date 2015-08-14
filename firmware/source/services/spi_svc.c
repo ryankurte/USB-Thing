@@ -92,6 +92,8 @@ static int spi_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32
 
 static int spi_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
+	int res;
+
 	/* Remove warnings for unused variables */
 	(void)xferred;
 	(void)remaining;
@@ -101,21 +103,21 @@ static int spi_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uin
 		return status;
 	}
 
-	if (zlp_required != 0) {
-		//Send zero length packet to signify completion
-		USBD_Write(EP1_IN, spi_svc_transmit_buffer, 0, spi_svc_data_sent_cb);
-		zlp_required = 0;
-	} else {
-		//Restart EP_OUT
-		usbthing_busy = 0;
-		USBD_Read(EP1_OUT, spi_svc_receive_buffer, SPI_BUFF_SIZE, spi_svc_data_receive_cb);
-	}
+	//if ((xferred != 0) && (xferred % USB_MAX_EP_SIZE == 0)) {
+	//	//Send zero length packet to signify completion
+	//	res = USBD_Write(EP1_IN, NULL, 0, spi_svc_data_sent_cb);
+	//}
 
-	return USB_STATUS_OK;
+	//Restart EP_OUT
+	res = USBD_Read(EP1_OUT, spi_svc_receive_buffer, SPI_BUFF_SIZE, spi_svc_data_receive_cb);
+
+	return res;
 }
 
 static int spi_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
+	int res;
+
 	/* Remove warnings for unused variables */
 	(void)xferred;
 	(void)remaining;
@@ -134,18 +136,16 @@ static int spi_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, 
 	usbthing_busy = 1;
 
 	//Check whether a zero length termination packet is required
-	if ((xferred % USB_MAX_EP_SIZE) == 0) {
-		zlp_required = 1;
-	} else {
-		zlp_required = 0;
-	}
+	//if ((xferred != 0) && (xferred % USB_MAX_EP_SIZE == 0)) {
+	//	res = USBD_Read(EP1_OUT, NULL, 0, NULL);
+	//}
 
 	//Perform SPI transfer
 	SPI_transfer(xferred, spi_svc_receive_buffer, spi_svc_transmit_buffer);
 
 	//Write result back to host
-	USBD_Write(EP1_IN, spi_svc_transmit_buffer, xferred, spi_svc_data_sent_cb);
+	res = USBD_Write(EP1_IN, spi_svc_transmit_buffer, xferred, spi_svc_data_sent_cb);
 
-	return USB_STATUS_OK;
+	return res;
 }
 

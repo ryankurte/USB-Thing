@@ -181,7 +181,7 @@ static int test_spi(struct usbthing_s* usbthing, int interactive)
 	//Repeat test N times
 	for (int i = 0; i < 100; i++) {
 
-		for(int j=0; j<TEST_DATA_SIZE; j++) {
+		for (int j = 0; j < TEST_DATA_SIZE; j++) {
 			data_out[j] = rand();
 		}
 
@@ -224,55 +224,35 @@ static int test_spi_bulk(struct usbthing_s* usbthing, int interactive)
 	//Configure SPI device
 	USBTHING_spi_configure(usbthing, USBTHING_SPI_SPEED_100KHZ, USBTHING_SPI_CLOCK_MODE0);
 
-	//Data set one
-	for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-		data_out[i] = i;
+
+	for (int i = 0; i < 100; i++) {
+
+		//Data set one
+		for (int j = 0; j < SPI_BULK_TEST_SIZE; j++) {
+			data_out[j] = rand();
+		}
+
+		USBTHING_spi_transfer(usbthing, data_out, data_in, SPI_BULK_TEST_SIZE);
+
+		//Compare sent and received values
+		if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
+			printf("SPI bulk test transfer one data mismatch\r\n");
+			printf("out: ");
+			for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
+				printf("%.2x ", data_out[i]);
+			}
+			printf("\r\n");
+			printf("in: ");
+			for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
+				printf("%.2x ", data_in[i]);
+			}
+			printf("\r\n");
+			return -1;
+		}
+
 	}
 
-	USBTHING_spi_transfer(usbthing, data_out, data_in, SPI_BULK_TEST_SIZE);
-
-	//Compare sent and received values
-	if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
-		printf("SPI bulk test transfer one data mismatch\r\n");
-		printf("out: ");
-		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-			printf("%.2x ", data_out[i]);
-		}
-		printf("\r\n");
-		printf("in: ");
-		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-			printf("%.2x ", data_in[i]);
-		}
-		printf("\r\n");
-		return -1;
-	}
-
-	printf("SPI bulk transfer one complete\r\n");
-
-	//Data set two
-	for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-		data_out[i] = 0xaa;
-	}
-
-	USBTHING_spi_transfer(usbthing, data_out, data_in, SPI_BULK_TEST_SIZE);
-
-	//Compare sent and received values
-	if (strncmp((const char*)data_out, (const char*)data_in, SPI_BULK_TEST_SIZE) != 0) {
-		printf("SPI bulk test transfer two data mismatch\r\n");
-		printf("out: ");
-		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-			printf("%.2x ", data_out[i]);
-		}
-		printf("\r\n");
-		printf("in: ");
-		for (int i = 0; i < SPI_BULK_TEST_SIZE; i++) {
-			printf("%.2x ", data_in[i]);
-		}
-		printf("\r\n");
-		return -1;
-	}
-
-	printf("SPI bulk transfer two complete\r\n");
+	printf("SPI bulk transfers complete\r\n");
 
 	//TODO: check CS
 

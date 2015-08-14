@@ -20,7 +20,7 @@
 #define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
-#define DEBUG_USBTHING
+//#define DEBUG_USBTHING
 
 #ifdef DEBUG_USBTHING
 #define USBTHING_DEBUG_PRINT(...) printf(__VA_ARGS__)
@@ -397,12 +397,7 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
   //print_buffer(length, data_out);
   USBTHING_DEBUG_PRINT("\r\n");
 
-  res = libusb_bulk_transfer (usbthing->handle,
-                              0x01,
-                              data_out,
-                              length,
-                              &transferred,
-                              USBTHING_TIMEOUT);
+  res = libusb_bulk_transfer (usbthing->handle, 0x01, data_out, length, &transferred, USBTHING_TIMEOUT);
 
   //TODO: check for complete transfer
   if (res < 0) {
@@ -412,31 +407,26 @@ int USBTHING_spi_transfer(struct usbthing_s *usbthing, unsigned char *data_out, 
 
   //Check if ZLP is required to signify end of transfer
   //(Required if length is multiple of endpoint size)
-  if (length % 64 == 0) {
-    res = libusb_bulk_transfer (usbthing->handle,
-                                0x01,
-                                NULL,
-                                0,
-                                &transferred,
-                                USBTHING_TIMEOUT);
+  if ((length > 0) && (length % 64 == 0)) {
+    res = libusb_bulk_transfer (usbthing->handle, 0x01, NULL, 0, &transferred, USBTHING_TIMEOUT);
   }
 
   USBTHING_DEBUG_PRINT("SPI write complete\r\n");
   USBTHING_DEBUG_PRINT("SPI read\r\n");
 
-  res = libusb_bulk_transfer (usbthing->handle,
-                              0x81,
-                              data_in,
-                              length,
-                              &transferred,
-                              USBTHING_TIMEOUT);
+  res = libusb_bulk_transfer (usbthing->handle, 0x81, data_in, length, &transferred, USBTHING_TIMEOUT);
 
   //USBTHING_DEBUG_PRINT("Transferred: %d\r\n", transferred);
 
-  //TODO: check for complete transfer
+  //TODO: check for incomplete transfer
   if (res < 0) {
     perror("USBTHING spi transfer incoming error");
     return -2;
+  }
+
+  if(transferred != length) {
+    printf("SPI read error: expected %d bytes, received %d bytes\r\n", length, transferred);
+    return -3;
   }
 
   USBTHING_DEBUG_PRINT("SPI read complete: ");
@@ -450,13 +440,13 @@ int USBTHING_spi_close(struct usbthing_s *usbthing)
 {
   int res;
   res = libusb_control_transfer (usbthing->handle,
-                                 LIBUSB_REQUEST_TYPE_VENDOR,
-                                 USBTHING_SPI_CMD_CLOSE,
-                                 0,
-                                 0,
-                                 NULL,
-                                 USBTHING_CMD_SPI_CLOSE_SIZE,
-                                 USBTHING_TIMEOUT);
+        LIBUSB_REQUEST_TYPE_VENDOR,
+        USBTHING_SPI_CMD_CLOSE,
+        0,
+        0,
+        NULL,
+        USBTHING_CMD_SPI_CLOSE_SIZE,
+        USBTHING_TIMEOUT);
 
   if (res < 0) {
     perror("USBTHING spi configuration error");
