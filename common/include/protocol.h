@@ -281,6 +281,45 @@ struct usbthing_i2c_transfer_s {
     uint8_t num_read;                           //!< Number of bytes to read
 } __attribute((packed));
 
+/*****      PWM Configuration messages          *****/
+
+enum usbthing_pwm_mode_e {
+    PWM_MODE_OUTPUT = 0,
+    PWM_MODE_CAPTURE = 1
+};
+
+struct pwm_cfg_cap_s {
+    uint32_t timeout_ms;
+    uint32_t num_waves;
+};
+
+struct pwm_cfg_out_s {
+    uint32_t freq;
+};
+
+struct pwm_cfg_s {
+    uint8_t mode;
+    union {
+        struct pwm_cfg_out_s output;
+        struct pwm_cfg_cap_s capture;
+    };
+};
+
+struct pwm_set_s {
+    uint16_t duty_cycle;
+};
+
+struct pwm_get_s {
+    uint32_t frequency;
+    uint32_t duty_cycle;
+};
+
+struct pwm_cmd_s {
+    union {
+        struct pwm_cfg_s pwm_cfg;
+    };
+};
+
 /*****      Combined control message            *****/
 
 struct usbthing_ctrl_s {
