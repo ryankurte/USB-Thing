@@ -1,3 +1,7 @@
+/**
+ * USB-Thing Platform Definitions
+ * Defines available peripherals and mappings on the usb-thing board
+ */
 
 #ifndef PLATFORM_H
 #define PLATFORM_H
@@ -13,6 +17,10 @@
 #define LED0_PORT 		  	gpioPortD
 #define LED1_PIN  		  	5
 #define LED1_PORT 		  	gpioPortD
+
+/***			Button(s)				***/
+#define BUTTON0_PIN			8
+#define BUTTON0_PORT		gpioPortE
 
 /*** 			GPIO Pins 				***/
 #define GPIO0_PIN 			9

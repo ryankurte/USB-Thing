@@ -39,11 +39,11 @@
 /* Packet storage. Double buffered version. */
 #if defined (__ICCARM__)
 #pragma data_alignment=4
-uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet),4)];
+uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet), 4)];
 #elif defined (__CC_ARM)
-uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet),4)] __attribute__ ((aligned(4)));
+uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet), 4)] __attribute__ ((aligned(4)));
 #elif defined (__GNUC__)
-uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet),4)] __attribute__ ((aligned(4)));
+uint8_t rawPacket[2][ALIGNMENT(sizeof(XMODEM_packet), 4)] __attribute__ ((aligned(4)));
 #else
 #error Undefined toolkit, need to define alignment
 #endif
@@ -71,7 +71,7 @@ static int VerifyPacketChecksum(XMODEM_packet *pkt, int sequenceNumber)
     return -1;
   }
 
-  calculatedCRC = CRC_calc((uint8_t *) pkt->data, (uint8_t *) &(pkt->crcHigh));
+  calculatedCRC = CRC_calc((uint8_t *) pkt->data, (uint8_t *) & (pkt->crcHigh));
   packetCRC     = pkt->crcHigh << 8 | pkt->crcLow;
 
   /* Check the CRC value */
@@ -143,47 +143,22 @@ int XMODEM_download(uint32_t baseAddress, uint32_t endAddress)
    * Note: There is a fairly long delay between retransmissions (~6 s).
    */
 
-  pkt = (XMODEM_packet*)rawPacket[ sequenceNumber ];
+  pkt = (XMODEM_packet*)rawPacket[sequenceNumber];
 
-  while (1)
-  {
+  while (1) {
     BOOTLDIO_txByte(XMODEM_NCG);
 
-    if ( BOOTLDIO_usbMode() )
-    {
-      if ( BOOTLDIO_getPacket( pkt, 6000 ) )
-      {
-        goto usb_loop_entry;
-      }
-    }
-    else
-    {
-      for (i = 0; i < 20000000; i++)
-      {
-        if (BOOTLOADER_USART->STATUS & USART_STATUS_RXDATAV)
-        {
-          goto xmodem_transfer;
-        }
-      }
+    if (BOOTLDIO_getPacket(pkt, 6000)) {
+      goto usb_loop_entry;
     }
   }
 
 xmodem_transfer:
-  while (1)
-  {
+  while (1) {
     /* Swap buffer for packet buffer */
     pkt = (XMODEM_packet*)rawPacket[ sequenceNumber & 1 ];
 
-    if ( BOOTLDIO_usbMode() )
-    {
-      BOOTLDIO_getPacket( pkt, 0 );
-    }
-    else
-    {
-      /* Fetch the first byte of the packet explicitly, as it defines the
-       * rest of the packet */
-      pkt->header = BOOTLDIO_rxByte();
-    }
+    BOOTLDIO_getPacket( pkt, 0 );
 
 usb_loop_entry:
     /* Check for end of transfer */
@@ -196,19 +171,8 @@ usb_loop_entry:
 
     /* If the header is not a start of header (SOH), then cancel
      * the transfer. */
-    if (pkt->header != XMODEM_SOH)
-    {
+    if (pkt->header != XMODEM_SOH) {
       return -1;
-    }
-
-    if ( !BOOTLDIO_usbMode() )
-    {
-      /* Fill the remaining bytes packet */
-      /* Byte 0 is padding, byte 1 is header */
-      for ( i = 2; i < sizeof(XMODEM_packet); i++ )
-      {
-        *(((uint8_t *) pkt) + i) = BOOTLDIO_rxByte();
-      }
     }
 
     if ( VerifyPacketChecksum( pkt, sequenceNumber ) != 0 )
@@ -232,9 +196,9 @@ usb_loop_entry:
   }
 
   /* Wait for previous DMA transfer completion */
-  while (DMA->CHENS & DMA_CHENS_CH0ENS){}
+  while (DMA->CHENS & DMA_CHENS_CH0ENS) {}
   /* Wait for last flash programming operation from previous transfer */
-  while ((MSC->STATUS & MSC_STATUS_BUSY)){}
+  while ((MSC->STATUS & MSC_STATUS_BUSY)) {}
 
   return 0;
 }

@@ -31,16 +31,7 @@
 
 /* DMA Control block. We only need 1 block for transfers. */
 /* This control block needs to be aligned to 256 byte boundaries. */
-#if defined (__ICCARM__)
-#pragma data_alignment=256
-DMA_DESCRIPTOR_TypeDef descr;
-#elif defined (__CC_ARM)
 DMA_DESCRIPTOR_TypeDef descr __attribute__ ((aligned(256)));
-#elif defined (__GNUC__)
-DMA_DESCRIPTOR_TypeDef descr __attribute__ ((aligned(256)));
-#else
-#error Undefined toolkit
-#endif
 
 uint32_t flashSize, flashPageSize;
 

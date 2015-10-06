@@ -34,8 +34,6 @@ int     BOOTLDIO_txByte(        uint8_t data          );
 uint8_t BOOTLDIO_rxByte(        void                  );
 void    BOOTLDIO_printString(   const uint8_t *string );
 void    BOOTLDIO_usartInit(     uint32_t clkdiv       );
-void    BOOTLDIO_setMode(       bool usb              );
-bool    BOOTLDIO_usbMode(       void                  );
 bool    BOOTLDIO_getPacket(     XMODEM_packet *p, int timeout );
 
 #endif

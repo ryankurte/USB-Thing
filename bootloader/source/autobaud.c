@@ -99,9 +99,6 @@ void AUTOBAUD_start( void )
 {
   USB_PUTS( "Starting autobaud.\r\n" );
 
-  /* Setup pins for USART */
-  CONFIG_UsartGpioSetup();
-
   /* Set a high top value to avoid overflow */
   AUTOBAUD_TIMER->TOP = UINT32_MAX;
 
@@ -162,9 +159,6 @@ bool AUTOBAUD_completed( void )
   clkdiv /= 16 * baudRate;
   clkdiv -= 4;
   clkdiv *= 64;
-
-  /* Initialize the USART */
-  BOOTLDIO_usartInit( clkdiv );
 
   USB_PUTS(   "Autobaud complete.\r\n" );
   USB_PRINTF( "Measured baudrate is %d\r\n", baudRate );

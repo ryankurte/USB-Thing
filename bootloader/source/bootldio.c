@@ -61,30 +61,6 @@ static int UsbDataXferred( USB_Status_TypeDef status,
 
 /***************************************************************************//**
  * @brief
- *   Set I/O in correct mode.
- *
- * @param[in] usbMode
- *   True if USB shall be used, USART otherwise.
- ******************************************************************************/
-void BOOTLDIO_setMode( bool usb )
-{
-  useUsb = usb;
-}
-
-/***************************************************************************//**
- * @brief
- *   Get current I/O mode.
- *
- * @return
- *   True if USB is current I/O mode, false if USART.
- ******************************************************************************/
-bool BOOTLDIO_usbMode( void )
-{
-  return useUsb;
-}
-
-/***************************************************************************//**
- * @brief
  *   Prints an int in hex.
  *
  * @param integer
@@ -131,18 +107,10 @@ uint8_t BOOTLDIO_rxByte( void )
   uint8_t  retVal;
   uint32_t timer = 2000000;
 
-  if ( useUsb )
-  {
-    usbXferDone = false;
-    USBD_Read( EP_DATA_OUT, usbBuffer, USB_BUF_SIZ, UsbDataXferred );
-    while ( !usbXferDone ){}
-    retVal = usbXferStatus == USB_STATUS_OK ? usbBuffer[0] : 0;
-  }
-  else
-  {
-    while (!(BOOTLOADER_USART->STATUS & USART_STATUS_RXDATAV) && --timer ){}
-    retVal = timer > 0 ? (uint8_t)BOOTLOADER_USART->RXDATA : 0;
-  }
+  usbXferDone = false;
+  USBD_Read( EP_DATA_OUT, usbBuffer, USB_BUF_SIZ, UsbDataXferred );
+  while ( !usbXferDone ) {}
+  retVal = usbXferStatus == USB_STATUS_OK ? usbBuffer[0] : 0;
 
   return retVal;
 }
@@ -179,7 +147,7 @@ bool BOOTLDIO_getPacket( XMODEM_packet *p, int timeout )
   }
   else
   {
-    while ( !usbXferDone ){}
+    while ( !usbXferDone ) {}
   }
 
   /*
@@ -195,20 +163,11 @@ bool BOOTLDIO_getPacket( XMODEM_packet *p, int timeout )
  *****************************************************************************/
 int BOOTLDIO_txByte( uint8_t data )
 {
-  if ( useUsb )
-  {
-    usbBuffer[ 0 ] = data;
-    usbXferDone = false;
-    USBD_Write( EP_DATA_IN, usbBuffer, 1, UsbDataXferred );
-    while ( !usbXferDone ){}
-    return usbXferStatus == USB_STATUS_OK ? (int)data : 0;
-  }
-  else
-  {
-    /* Check that transmit buffer is empty */
-    while (!(BOOTLOADER_USART->STATUS & USART_STATUS_TXBL)){}
-    BOOTLOADER_USART->TXDATA = (uint32_t) data;
-  }
+  usbBuffer[ 0 ] = data;
+  usbXferDone = false;
+  USBD_Write( EP_DATA_IN, usbBuffer, 1, UsbDataXferred );
+  while ( !usbXferDone ) {}
+  return usbXferStatus == USB_STATUS_OK ? (int)data : 0;
 
   return (int)data;
 }
@@ -220,46 +179,9 @@ void BOOTLDIO_printString( const uint8_t *string )
 {
   int len;
 
-  if ( useUsb )
-  {
-    len = strlen( (char*)string );
-    memcpy( usbBuffer, string, len );
-    usbXferDone = false;
-    USBD_Write( EP_DATA_IN, usbBuffer, len, UsbDataXferred );
-    while ( !usbXferDone ){}
-  }
-  else
-  {
-    while (*string != 0)
-    {
-      BOOTLDIO_txByte(*string++);
-    }
-  }
-}
-
-/**************************************************************************//**
- * @brief Intializes BOOTLOADER_USART
- *
- * @param clkdiv
- *   The clock divisor to use.
- *****************************************************************************/
-void BOOTLDIO_usartInit( uint32_t clkdiv )
-{
-  /* Configure BOOTLOADER_USART */
-  /* USART default to 1 stop bit, no parity, 8 data bits, so not
-   * explicitly set */
-
-  /* Set the clock division */
-  BOOTLOADER_USART->CLKDIV = clkdiv;
-
-
-  /* Enable RX and TX pins and set location 0 */
-  BOOTLOADER_USART->ROUTE = BOOTLOADER_USART_LOCATION |
-                 USART_ROUTE_RXPEN | USART_ROUTE_TXPEN;
-
-  /* Clear RX/TX buffers */
-  BOOTLOADER_USART->CMD = USART_CMD_CLEARRX | USART_CMD_CLEARTX;
-
-  /* Enable RX/TX */
-  BOOTLOADER_USART->CMD = USART_CMD_RXEN | USART_CMD_TXEN;
+  len = strlen( (char*)string );
+  memcpy( usbBuffer, string, len );
+  usbXferDone = false;
+  USBD_Write( EP_DATA_IN, usbBuffer, len, UsbDataXferred );
+  while ( !usbXferDone ) {}
 }

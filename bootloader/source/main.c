@@ -29,6 +29,7 @@
 #include "em_cmu.h"
 #include "em_emu.h"
 #include "em_usb.h"
+#include "em_gpio.h"
 #include "cdc.h"
 #include "crc.h"
 #include "flash.h"
@@ -45,6 +46,9 @@
 
 /** Version string, used when the user connects */
 #define BOOTLOADER_VERSION_STRING "BOOTLOADER version 1.01, Chip ID "
+
+#define BUTTON0_PIN      8
+#define BUTTON0_PORT    gpioPortE
 
 #define USER_PAGE_START 0x0FE00000
 #define USER_PAGE_END   0x0FE00200
@@ -65,11 +69,7 @@ static void StartRTC( void );
 
 /*** Variables ***/
 
-uint32_t bootloaderCRC;
-
-/**************************************************************************//**
- * Strings.
- *****************************************************************************/
+/*** Strings ***/
 static const uint8_t crcString[]     = "\r\nCRC: ";
 static const uint8_t newLineString[] = "\r\n";
 static const uint8_t readyString[]   = "\r\nReady\r\n";
@@ -84,9 +84,6 @@ int main(void)
 {
   int msElapsed, i;
 
-  /* Set new vector table pointer */
-  SCB->VTOR = 0x20000000;
-
   /* Enable peripheral clocks. */
   CMU->HFPERCLKDIV = CMU_HFPERCLKDIV_HFPERCLKEN;
   CMU->HFPERCLKEN0 = CMU_HFPERCLKEN0_GPIO | BOOTLOADER_USART_CLOCK |
@@ -95,79 +92,47 @@ int main(void)
   /* Enable DMA interface */
   CMU->HFCORECLKEN0 = CMU_HFCORECLKEN0_DMA;
 
-#if defined( BL_DEBUG )
-  RETARGET_SerialInit();        /* Setup debug serialport etc. */
-  USB_PUTS( "EFM32 USB/USART0 bootloader\r\n" );
-#endif
-
-  /* Calculate CRC16 for the bootloader itself and the Device Information page. */
-  /* This is used for production testing and can safely be omitted in */
-  /* your own code. */
-  bootloaderCRC  = CRC_calc((void *) 0x0, (void *) BOOTLOADER_SIZE);
-  bootloaderCRC |= CRC_calc((void *) 0x0FE081B2, (void *) 0x0FE08200) << 16;
-
   StartRTC();
 
-#define SIMULATE_SWDCLK_PIN_HI
-#if !defined( SIMULATE_SWDCLK_PIN_HI )
-  while ( SWDCLK_PIN_IS_LO() ) {
-    USB_PUTS( "SWDCLK is low\r\n" );
+  GPIO_PinModeSet(BUTTON0_PORT, BUTTON0_PIN, gpioModeInputPull, 1);
 
-    if ( BOOT_checkFirmwareIsValid() ) {
-      USB_PUTS( "Booting application\r\n  " );
-      BOOT_boot();
-    } else {
-      USB_PUTS( "No valid application, resetting EFM32... \r\n" );
+  int pin = GPIO_PinInGet(BUTTON0_PORT, BUTTON0_PIN);
 
-      while (1);
-      /* Go to EM2 and wait for RTC wakeup. */
-      EMU_EnterEM2( false );
-    }
-  }
-#endif
-
-  NVIC_DisableIRQ( RTC_IRQn );
-
-  /* Try to start HFXO. */
-
-  CMU_OscillatorEnable( cmuOsc_HFXO, true, false );
-
-  /* Wait approx. 1 second to see if HFXO starts. */
-  i = 1500000;
-  while ( i && !( CMU->STATUS & CMU_STATUS_HFXORDY ) ) {
-    i--;
+  //Skip bootloader unless button is pressed (low)
+  if (pin != 0) {
+    //TODO: Check application CRC
+    BOOT_boot();
   }
 
+
+  //Bootloader logic follows
+  NVIC_DisableIRQ(RTC_IRQn);
+  CMU_OscillatorEnable(cmuOsc_HFXO, true, true);
   USBTIMER_Init();
 
-  if ( i == 0 ) {
-    CMU_HFRCOBandSet( cmuHFRCOBand_28MHz );
-  } else {
-    CMU_ClockSelectSet( cmuClock_HF, cmuSelect_HFXO );
-    USBD_Init( &initstruct );       /* Start USB CDC functionality  */
-  }
+  SystemHFXOClockSet(48000000);
+  CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+  USBD_Init(&initstruct);
 
-  AUTOBAUD_start();                 /* Start autobaud               */
+  AUTOBAUD_start();
 
   /* Wait 30 seconds for USART or USB connection */
   msElapsed = 0;
-  while ( msElapsed < 30000 ) {
-    if ( AUTOBAUD_completed() )
+  while (msElapsed < 30000) {
+    if (AUTOBAUD_completed())
       break;
 
-    if ( CDC_Configured ) {
-      BOOTLDIO_setMode( CDC_Configured );
+    if (CDC_Configured) {
       break;
     }
 
-    USBTIMER_DelayMs( 100 );
+    USBTIMER_DelayMs(100);
     msElapsed += 100;
   }
   AUTOBAUD_stop();
 
-  if ( msElapsed >= 30000 ) {
-    USB_PUTS( "USART0/USB timeout, resetting EFM32...\r\n  " );
-    Disconnect( 0, 2000 );
+  if (msElapsed >= 30000) {
+    Disconnect(0, 2000);
     SCB->AIRCR = 0x05FA0004;        /* Reset EFM32. */
   }
 
@@ -336,21 +301,19 @@ static void verify(uint32_t start, uint32_t end)
  *****************************************************************************/
 static void Disconnect( int predelay, int postdelay )
 {
-  if ( BOOTLDIO_usbMode() ) {
-    if ( predelay ) {
-      /* Allow time to do a disconnect in a terminal program. */
-      USBTIMER_DelayMs( predelay );
-    }
+  if ( predelay ) {
+    /* Allow time to do a disconnect in a terminal program. */
+    USBTIMER_DelayMs( predelay );
+  }
 
-    USBD_Disconnect();
+  USBD_Disconnect();
 
-    if ( postdelay ) {
-      /*
-       * Stay disconnected long enough to let host OS tear down the
-       * USB CDC driver.
-       */
-      USBTIMER_DelayMs( postdelay );
-    }
+  if ( postdelay ) {
+    /*
+     * Stay disconnected long enough to let host OS tear down the
+     * USB CDC driver.
+     */
+    USBTIMER_DelayMs( postdelay );
   }
 }
 

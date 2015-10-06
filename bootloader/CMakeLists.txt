@@ -27,11 +27,11 @@ project(${TARGET} C CXX ASM)
 set(DEVICE EFM32GG332F1024)
 
 # Set flash start address
-#set(FLASH_START 0x2000000)
+set(FLASH_START 0x0000000)
 #set(USE_FLTO 1)
 
 # Set build
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE DEBUG)
 
 ##### Modules #####
 
@@ -76,9 +76,6 @@ add_executable(${TARGET} ${MAIN_SOURCES})
 target_link_libraries(${TARGET} ${LIBS})
 add_dependencies(${TARGET} version)
 
-add_executable(shim ${SHIM_SOURCES})
-target_link_libraries(shim ${LIBS})
-
 ##### Post build #####
 
 # Add post build commands
@@ -86,11 +83,6 @@ include(${BASE_LOC}/toolchain/post-build.cmake)
 
 # Add JLink commands
 include(${BASE_LOC}/toolchain/jlink.cmake)
-
-# Include conversion of shim (non default target)
-add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJCOPY} -O binary shim shim.bin)
-add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJCOPY} -O ihex shim shim.hex)
-add_custom_command(TARGET shim POST_BUILD COMMAND ${OBJDUMP} -d -S shim > shim.dmp)
 
 # TODO: combine binaries
 

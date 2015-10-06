@@ -31,36 +31,7 @@
 #include "boot.h"
 #include "em_usb.h"
 
-/**************************************************************************//**
- * @brief Checks to see if the reset vector of the application is valid
- * @return false if the firmware is not valid, true if it is.
- *****************************************************************************/
-bool BOOT_checkFirmwareIsValid(void)
-{
-  uint32_t pc;
 
-  pc = *((uint32_t *) BOOTLOADER_SIZE + 1);
-
-  if (pc < MAX_SIZE_OF_FLASH)
-    return true;
-
-  return false;
-}
-
-/**************************************************************************//**
- * @brief This function sets up the Cortex M-3 with a new SP and PC.
- *****************************************************************************/
-#if defined ( __CC_ARM   )
-__asm void BOOT_jump(uint32_t sp, uint32_t pc)
-{
-  /* Set new MSP, PSP based on SP (r0)*/
-  msr msp, r0
-  msr psp, r0
-
-  /* Jump to PC (r1)*/
-  mov pc, r1
-}
-#else
 void BOOT_jump(uint32_t sp, uint32_t pc)
 {
   (void) sp;
@@ -73,7 +44,7 @@ void BOOT_jump(uint32_t sp, uint32_t pc)
   /* Jump to PC (r1)*/
   __asm("mov pc, r1");
 }
-#endif
+
 
 /**************************************************************************//**
  * @brief Boots the application
