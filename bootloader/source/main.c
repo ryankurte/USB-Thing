@@ -39,6 +39,7 @@
 #include "bootldio.h"
 #include "retargetdebug.h"
 #include "ramfuncs.h"
+#include "persistence.h"
 
 /*** Typedef's and defines. ***/
 
@@ -101,6 +102,11 @@ int main(void)
   //Skip bootloader unless button is pressed (low)
   if (pin != 0) {
     //TODO: Check application CRC
+
+    //Fake to stop jumping to invalid apps until CRC is in place
+    while(1);
+
+    //Clean up and jump to application
     BOOT_boot();
   }
 

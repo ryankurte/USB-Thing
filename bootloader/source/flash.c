@@ -119,7 +119,7 @@ void FLASH_writeWord(uint32_t adr, uint32_t data)
  *
  * This function uses DMA channel 0 to program a buffer of words into
  * onboard flash. It will start the DMA transfer, but will not wait for
- * it's completion. If a DMA transfer is alreay in progress when this
+ * it's completion. If a DMA transfer is already in progress when this
  * function is called, the function will stall waiting for the previous
  * transfer to complete.
  *
