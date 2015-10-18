@@ -279,6 +279,7 @@ struct usbthing_i2c_transfer_s {
     uint8_t address;                            //!< I2C Device address
     uint8_t num_write;                          //!< Number of bytes to write
     uint8_t num_read;                           //!< Number of bytes to read
+    int8_t result;                              //!< Transaction result
 } __attribute((packed));
 
 /*****      PWM Configuration messages          *****/

@@ -54,10 +54,10 @@ static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t r
 	struct usbthing_ctrl_s *ctrl = (struct usbthing_ctrl_s*)&cmd_buffer;
 
 	uint8_t freq_le = ctrl->i2c_cmd.config.freq_le;
-	uint8_t clock_mode = ctrl->i2c_cmd.config.clk_mode;
+	//uint8_t clock_mode = ctrl->i2c_cmd.config.clk_mode;
 
 	//Initialize I2C
-	i2c_init(freq_le, clock_mode);
+	I2C_init(freq_le);
 
 	i2c_configured = 1;
 
@@ -90,6 +90,22 @@ int i2c_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 	(void)xferred;
 	(void)remaining;
 
+	struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) i2c_receive_buffer;
+
+	switch(config->mode) {
+		case USBTHING_I2C_MODE_WRITE:
+
+		break;
+		case USBTHING_I2C_MODE_READ:
+
+		break;
+		case USBTHING_I2C_MODE_WRITE_READ:
+
+		break;
+	}
+
+	I2C_write(i2c_receive_buffer[0], i2c_rec)
+
 	for(uint32_t i=0; i<xferred; i++) {
 		i2c_transmit_buffer[i] = i2c_receive_buffer[i];
 	}
@@ -98,3 +114,4 @@ int i2c_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t re
 
 	return USB_STATUS_OK;
 }
+
