@@ -490,8 +490,7 @@ int USBTHING_i2c_write(usbthing_t usbthing,
   int res;
   int transferred;
 
-  struct usbthing_i2c_transfer_s *config;
-  config = (struct usbthing_i2c_transfer_s *) output_buffer;
+  struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) output_buffer;
 
   //Configure transfer
   config->mode = USBTHING_I2C_MODE_WRITE;

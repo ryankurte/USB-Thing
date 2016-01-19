@@ -1,26 +1,20 @@
 language: c
-
 git:
-    submodules: false
-
+  submodules: false
 addons:
   apt:
     packages:
     - ia32-libs
     - ia32-libs-multiarch
     - libgd2-xpm
-
 before_install:
-    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-    - git submodule update --init --recursive
-
+- sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+- git submodule update --init --recursive
 install:
-    - source armenv.sh
-
+- source armenv.sh
 script:
-    - source armenv.sh; make firmware
-
+- source armenv.sh; make firmware
 notifications:
-    email: false
-
-
+  email: false
+  slack:
+    secure: MimJuERoVMl+OIqj3c2aM3GBZhZNkTsigtA7JdVduUHafHqPJOua+y98Pzv+FyNrjvYK7zHH9Pp8/mspeLaes8PxlMzXhhcsULsMC/Q1gKf9sRF+ImuZmkXIMf+gToHD4mvur5MRK3L50u2mI5b4zoZ4mzHRbBKQbBZKD9iXBHUwTX76ypVwM6d0HU1fZgiwdIqjjKqe5Pr9gjYWgfsE/F2SJBoJ4IRkWG/PVYV6f4MPYaXKCOJzN4BMcfeA/opzUoZ1fsKH6h+F0X6GxyWlPTBGfSZiB0D3drLSQ1SGmtH+RkD7972ubapOQxLfu1ocnnAat6HeOJrsreFXHS+VT+s3ro57Th1GsZKytSPT3Eif/PgFJCQLoyQf/asSf6Pxjuq3aF3VEOW2c/NjXuEapxj2udA1hK8LXnl7QoIsPCzJih2n2OnUzelubNL8rfgiIqqBOVltkfAfZc1t7L5B+4MXq5tQ2rTdW6Ku6c/UKVey2rFR5+w2jf6s3AtYCRVI0Op/GUWgn3Zg+icLF8UOJRUg207xdiBKbj3FN4njwGk2ZXrzQVwpp+aSBmYh/AKNChZ70vhTTc7VNu3KuBn6U9FHSjzuxplOvwrI5iSnm9od7r+h3mI9m4afptMe35WC6s0Ae2RTuxzNEvOOYGUKf5OsCNcFfm4uOzgvStYuRBE=
