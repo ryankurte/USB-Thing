@@ -1,8 +1,6 @@
 language: c
-
 git:
   submodules: false
-
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init --recursive
@@ -19,7 +17,6 @@ before_install:
   multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
 - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
 - sudo apt-get update
-
 install:
 - sudo apt-get install build-essential
 - sudo apt-get install gcc-multilib
@@ -27,13 +24,23 @@ install:
 - sudo apt-get install pcregrep libpcre3
 - sudo apt-get install qemu-system-x86 python3
 - sudo apt-get install g++-multilib
-
 script:
 - make firmware
 - make bootloader
 - make library
-
 notifications:
   email: false
   slack:
     secure: MimJuERoVMl+OIqj3c2aM3GBZhZNkTsigtA7JdVduUHafHqPJOua+y98Pzv+FyNrjvYK7zHH9Pp8/mspeLaes8PxlMzXhhcsULsMC/Q1gKf9sRF+ImuZmkXIMf+gToHD4mvur5MRK3L50u2mI5b4zoZ4mzHRbBKQbBZKD9iXBHUwTX76ypVwM6d0HU1fZgiwdIqjjKqe5Pr9gjYWgfsE/F2SJBoJ4IRkWG/PVYV6f4MPYaXKCOJzN4BMcfeA/opzUoZ1fsKH6h+F0X6GxyWlPTBGfSZiB0D3drLSQ1SGmtH+RkD7972ubapOQxLfu1ocnnAat6HeOJrsreFXHS+VT+s3ro57Th1GsZKytSPT3Eif/PgFJCQLoyQf/asSf6Pxjuq3aF3VEOW2c/NjXuEapxj2udA1hK8LXnl7QoIsPCzJih2n2OnUzelubNL8rfgiIqqBOVltkfAfZc1t7L5B+4MXq5tQ2rTdW6Ku6c/UKVey2rFR5+w2jf6s3AtYCRVI0Op/GUWgn3Zg+icLF8UOJRUg207xdiBKbj3FN4njwGk2ZXrzQVwpp+aSBmYh/AKNChZ70vhTTc7VNu3KuBn6U9FHSjzuxplOvwrI5iSnm9od7r+h3mI9m4afptMe35WC6s0Ae2RTuxzNEvOOYGUKf5OsCNcFfm4uOzgvStYuRBE=
+deploy:
+  provider: releases
+  api_key:
+    secure: mZG7dH+DaX5IiaTwv3GZwGmIWb+epCGnl/bYlnENgKkWB610TkaZ4lQ/6qxvMB4NmRTD1/GZKjtq1bAN3o3W5ZcyfrfXbtQn69R/bPevGga5BLKWxJj9OxxC0/dmVh4lhIhvKLr3s+m1DpXf8dQyL4ZnFWCD+EzGoqxm6cIk7awhbQeq7siXrIkgUjcWJmnYhRAHjZzbl30KMmJV7ACJIQ7S6BllnmAzAOcVfUGN5qUXnFUa0F5sEMLigQXf6cm5b1mM6lYDHrm3knSUG1nfVO0u2Eh5eoDZY2ALCU+KtDPmExadHWNoPmv0WXKWRmVHMz7S3cHbsLpTEfH1rnNqxatxdbsF8P9Qw1DazM3gSxI3cH/lFi2n9U1R1bgv07jegtxImU3XwmSjRUrdufxicaf7H5n/+Sy/MZxe5sp3auWQHmAexv3iXpuk56Lon4naQLGmIxbFoo5v7Fq6BbBatrHdbBgj9SkG9ecXIRvr1ga/SVx5PL0DgAD8k357d7Gzux2c693ne6eTRDsLfx8e4x1eEAuEwq7h49RJzpQMZ9lNzlre2R0KmTl3++MXP5syfrw+IUbuSDMvp1PnK8vOnSh6LYmd6SU26kSIgdp3qKIsQ2zMlphoDd0St1F097cKGyrAhOzfQ5UInz7lS8nOTlZdfzi1b/jCaF34ZtS4GNA=
+  file: 
+    - build/usb-thing
+    - build/libusbthing.a
+    - build/usb-thing.bin
+    - build/bootloader.bin
+  on:
+    repo: ryankurte/USB-Thing
+    tags: true
