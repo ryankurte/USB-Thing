@@ -67,7 +67,7 @@
 #define SWDCLK_PIN_IS_LO()        ( ( GPIO->P[5].DIN & 0x1 ) == 0x0 )
 
 /** The size of the bootloader flash image */
-#define BOOTLOADER_SIZE      (16*1024)            /* 16 KB */
+#define BOOTLOADER_SIZE      (32*1024)            /* 32 KB */
 
 /** The maximum flash size of any EFM32 part */
 #define MAX_SIZE_OF_FLASH         (1024*1024)     /* 1 MB */

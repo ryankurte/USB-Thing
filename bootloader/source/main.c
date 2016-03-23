@@ -39,7 +39,7 @@
 #include "bootldio.h"
 #include "retargetdebug.h"
 #include "ramfuncs.h"
-#include "persistence.h"
+#include "platform.h"
 
 /*** Typedef's and defines. ***/
 
@@ -83,80 +83,88 @@ static const uint8_t unknownString[] = "\r\n?\r\n";
  *****************************************************************************/
 int main(void)
 {
-  int msElapsed, i;
+    int msElapsed, i;
 
-  /* Enable peripheral clocks. */
-  CMU->HFPERCLKDIV = CMU_HFPERCLKDIV_HFPERCLKEN;
-  CMU->HFPERCLKEN0 = CMU_HFPERCLKEN0_GPIO | BOOTLOADER_USART_CLOCK |
-                     AUTOBAUD_TIMER_CLOCK ;
+    /* Enable peripheral clocks. */
+    CMU->HFPERCLKDIV = CMU_HFPERCLKDIV_HFPERCLKEN;
+    CMU->HFPERCLKEN0 = CMU_HFPERCLKEN0_GPIO | BOOTLOADER_USART_CLOCK |
+                       AUTOBAUD_TIMER_CLOCK ;
 
-  /* Enable DMA interface */
-  CMU->HFCORECLKEN0 = CMU_HFCORECLKEN0_DMA;
+    /* Enable DMA interface */
+    CMU->HFCORECLKEN0 = CMU_HFCORECLKEN0_DMA;
 
-  StartRTC();
+    StartRTC();
 
-  GPIO_PinModeSet(BUTTON0_PORT, BUTTON0_PIN, gpioModeInputPull, 1);
+    GPIO_PinModeSet(BUTTON0_PORT, BUTTON0_PIN, gpioModeInputPull, 1);
 
-  int pin = GPIO_PinInGet(BUTTON0_PORT, BUTTON0_PIN);
+    GPIO_PinModeSet(LED0_PORT, LED0_PIN, gpioModePushPull, 0);
+    GPIO_PinModeSet(LED1_PORT, LED1_PIN, gpioModePushPull, 0);
 
-  //Skip bootloader unless button is pressed (low)
-  if (pin != 0) {
-    //TODO: Check application CRC
+    int pin = GPIO_PinInGet(BUTTON0_PORT, BUTTON0_PIN);
 
-    //Fake to stop jumping to invalid apps until CRC is in place
-    while(1);
+    //Skip bootloader unless button is pressed (low)
+    if (pin != 0) {
 
-    //Clean up and jump to application
-    BOOT_boot();
-  }
+        GPIO_PinOutSet(LED0_PORT, LED0_PIN);
 
+        if ( BOOT_checkFirmwareIsValid() ) {
+            BOOT_boot();
+        } else {
+            GPIO_PinOutSet(LED1_PORT, LED1_PIN);
 
-  //Bootloader logic follows
-  NVIC_DisableIRQ(RTC_IRQn);
-  CMU_OscillatorEnable(cmuOsc_HFXO, true, true);
-  USBTIMER_Init();
+            while(1);
+        }
 
-  SystemHFXOClockSet(48000000);
-  CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
-  USBD_Init(&initstruct);
-
-  AUTOBAUD_start();
-
-  /* Wait 30 seconds for USART or USB connection */
-  msElapsed = 0;
-  while (msElapsed < 30000) {
-    if (AUTOBAUD_completed())
-      break;
-
-    if (CDC_Configured) {
-      break;
     }
 
-    USBTIMER_DelayMs(100);
-    msElapsed += 100;
-  }
-  AUTOBAUD_stop();
+    GPIO_PinOutSet(LED1_PORT, LED1_PIN);
 
-  if (msElapsed >= 30000) {
-    Disconnect(0, 2000);
-    SCB->AIRCR = 0x05FA0004;        /* Reset EFM32. */
-  }
+    //Bootloader logic follows
+    NVIC_DisableIRQ(RTC_IRQn);
+    CMU_OscillatorEnable(cmuOsc_HFXO, true, true);
+    USBTIMER_Init();
 
-  /* Print a message to show that we are in bootloader mode */
-  BOOTLDIO_printString("\r\n\r\n" BOOTLOADER_VERSION_STRING );
+    SystemHFXOClockSet(48000000);
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    USBD_Init(&initstruct);
 
-  /* Print the chip ID. This is useful for production tracking */
-  BOOTLDIO_printHex(DEVINFO->UNIQUEH);
-  BOOTLDIO_printHex(DEVINFO->UNIQUEL);
-  BOOTLDIO_printString("\r\n");
+    AUTOBAUD_start();
 
-  /* Figure out correct flash geometry. */
-  FLASH_CalcPageSize();
-  /* Initialize flash for writing */
-  FLASH_init();
+    /* Wait 30 seconds for USART or USB connection */
+    msElapsed = 0;
+    while (msElapsed < 30000) {
+        if (AUTOBAUD_completed())
+            break;
 
-  /* Start executing command line */
-  commandlineLoop();
+        if (CDC_Configured) {
+            break;
+        }
+
+        USBTIMER_DelayMs(100);
+        msElapsed += 100;
+    }
+    AUTOBAUD_stop();
+
+    if (msElapsed >= 30000) {
+        Disconnect(0, 2000);
+        SCB->AIRCR = 0x05FA0004;        /* Reset EFM32. */
+    }
+
+    /* Print a message to show that we are in bootloader mode */
+    BOOTLDIO_printString("\r\n\r\n" BOOTLOADER_VERSION_STRING );
+
+    /* Print the chip ID. This is useful for production tracking */
+    BOOTLDIO_printHex(DEVINFO->UNIQUEH);
+    BOOTLDIO_printHex(DEVINFO->UNIQUEL);
+    BOOTLDIO_printString("\r\n");
+
+    /* Figure out correct flash geometry. */
+    FLASH_CalcPageSize();
+    /* Initialize flash for writing */
+    FLASH_init();
+
+    /* Start executing command line */
+    commandlineLoop();
 }
 
 
@@ -169,120 +177,125 @@ int main(void)
  *****************************************************************************/
 static void commandlineLoop( void )
 {
-  uint8_t  c;
+    uint8_t  c;
 
-  /* The main command loop */
-  while (1) {
-    /* Retrieve new character */
-    c = BOOTLDIO_rxByte();
-    /* Echo */
-    if (c != 0) {
-      BOOTLDIO_txByte( c );
-    }
-
-    switch (c) {
-    /* Bootloader version command */
-    case 'i':
-      /* Print version */
-      BOOTLDIO_printString("\r\n\r\n" BOOTLOADER_VERSION_STRING );
-      /* Print the chip ID */
-      BOOTLDIO_printHex(DEVINFO->UNIQUEH);
-      BOOTLDIO_printHex(DEVINFO->UNIQUEL);
-      BOOTLDIO_printString("\r\n");
-      break;
-
-    /* Upload command */
-    case 'u':
-      BOOTLDIO_printString( readyString );
-      XMODEM_download( BOOTLOADER_SIZE, flashSize );
-      break;
-
-    /* Destructive upload command */
-    case 'd':
-      BOOTLDIO_printString( readyString );
-      XMODEM_download( 0, flashSize );
-      break;
-
-    /* Write to user page */
-    case 't':
-      BOOTLDIO_printString( readyString );
-      XMODEM_download( USER_PAGE_START, USER_PAGE_END );
-      break;
-
-    /* Write to lock bits */
-    case 'p':
-      BOOTLDIO_printString( readyString );
-      XMODEM_download( LOCK_PAGE_START, LOCK_PAGE_END );
-      break;
-
-    /* Boot into new program */
-    case 'b':
-      Disconnect( 5000, 2000 );
-      BOOT_boot();
-      break;
-
-    /* Debug lock */
-    case 'l':
-#if defined( BL_DEBUG )
-      /* We check if there is a debug session active in DHCSR. If there is we
-       * abort the locking. This is because we wish to make sure that the debug
-       * lock functionality works without a debugger attatched. */
-      if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0x0) {
-        USB_PUTS( "\r\n\r\n **** WARNING: DEBUG SESSION ACTIVE. NOT LOCKING!  **** \r\n\r\n" );
-        BOOTLDIO_printString( "Debug active.\r\n" );
-      } else {
-        USB_PUTS( "Starting debug lock sequence.\r\n" );
-#endif
-        FLASH_writeWord( DEBUG_LOCK_WORD, 0x0 );
-        if ( *(volatile uint32_t*)DEBUG_LOCK_WORD == 0x0 ) {
-          BOOTLDIO_printString( okString );
-        } else {
-          BOOTLDIO_printString( failString );
+    /* The main command loop */
+    while (1) {
+        /* Retrieve new character */
+        c = BOOTLDIO_rxByte();
+        /* Echo */
+        if (c != 0) {
+            BOOTLDIO_txByte( c );
         }
+
+        switch (c) {
+        /* Bootloader version command */
+        case 'i':
+            /* Print version */
+            BOOTLDIO_printString("\r\n\r\n" BOOTLOADER_VERSION_STRING );
+            /* Print the chip ID */
+            BOOTLDIO_printHex(DEVINFO->UNIQUEH);
+            BOOTLDIO_printHex(DEVINFO->UNIQUEL);
+            BOOTLDIO_printString("\r\n");
+            break;
+
+        /* Upload command */
+        case 'u':
+            BOOTLDIO_printString( readyString );
+            XMODEM_download( BOOTLOADER_SIZE, flashSize );
+            BOOTLDIO_printString( "Upload complete\r\n" );
+            break;
+
+        /* Destructive upload command */
+        case 'd':
+            BOOTLDIO_printString( readyString );
+            XMODEM_download( 0, flashSize );
+            BOOTLDIO_printString( "Upload complete\r\n" );
+            break;
+
+        /* Write to user page */
+        case 't':
+            BOOTLDIO_printString( readyString );
+            XMODEM_download( USER_PAGE_START, USER_PAGE_END );
+            BOOTLDIO_printString( "User page written\r\n" );
+            break;
+
+        /* Write to lock bits */
+        case 'p':
+            BOOTLDIO_printString( readyString );
+            XMODEM_download( LOCK_PAGE_START, LOCK_PAGE_END );
+            BOOTLDIO_printString( "Lock bits set\r\n" );
+            break;
+
+        /* Boot into new program */
+        case 'b':
+          BOOTLDIO_printString( "Booting application\r\n" );
+            Disconnect( 5000, 2000 );
+            BOOT_boot();
+            break;
+
+        /* Debug lock */
+        case 'l':
 #if defined( BL_DEBUG )
-        USB_PRINTF( "Debug lock word: 0x%x \r\n", *((uint32_t *) DEBUG_LOCK_WORD) );
-      }
+            /* We check if there is a debug session active in DHCSR. If there is we
+             * abort the locking. This is because we wish to make sure that the debug
+             * lock functionality works without a debugger attatched. */
+            if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0x0) {
+                USB_PUTS( "\r\n\r\n **** WARNING: DEBUG SESSION ACTIVE. NOT LOCKING!  **** \r\n\r\n" );
+                BOOTLDIO_printString( "Debug active.\r\n" );
+            } else {
+                USB_PUTS( "Starting debug lock sequence.\r\n" );
 #endif
-      break;
+                FLASH_writeWord( DEBUG_LOCK_WORD, 0x0 );
+                if ( *(volatile uint32_t*)DEBUG_LOCK_WORD == 0x0 ) {
+                    BOOTLDIO_printString( okString );
+                } else {
+                    BOOTLDIO_printString( failString );
+                }
+#if defined( BL_DEBUG )
+                USB_PRINTF( "Debug lock word: 0x%x \r\n", *((uint32_t *) DEBUG_LOCK_WORD) );
+            }
+#endif
+            break;
 
-    /* Verify content by calculating CRC of entire flash */
-    case 'v':
-      verify( 0, flashSize );
-      break;
+        /* Verify content by calculating CRC of entire flash */
+        case 'v':
+            verify( 0, flashSize );
+            break;
 
-    /* Verify content by calculating CRC of application area */
-    case 'c':
-      verify( BOOTLOADER_SIZE, flashSize );
-      break;
+        /* Verify content by calculating CRC of application area */
+        case 'c':
+            verify( BOOTLOADER_SIZE, flashSize );
+            break;
 
-    /* Verify content by calculating CRC of user page.*/
-    case 'n':
-      verify( USER_PAGE_START, USER_PAGE_END );
-      break;
+        /* Verify content by calculating CRC of user page.*/
+        case 'n':
+            verify( USER_PAGE_START, USER_PAGE_END );
+            break;
 
-    /* Verify content by calculating CRC of lock page */
-    case 'm':
-      verify( LOCK_PAGE_START, LOCK_PAGE_END );
-      break;
+        /* Verify content by calculating CRC of lock page */
+        case 'm':
+            verify( LOCK_PAGE_START, LOCK_PAGE_END );
+            break;
 
-    /* Reset command */
-    case 'r':
-      Disconnect( 5000, 2000 );
+        /* Reset command */
+        case 'r':
+            Disconnect( 5000, 2000 );
 
-      /* Write to the Application Interrupt/Reset Command Register to reset
-       * the EFM32. See section 9.3.7 in the reference manual. */
-      SCB->AIRCR = 0x05FA0004;
-      break;
+            /* Write to the Application Interrupt/Reset Command Register to reset
+             * the EFM32. See section 9.3.7 in the reference manual. */
+            SCB->AIRCR = 0x05FA0004;
+            break;
 
-    /* Unknown command */
-    case 0:
-      /* Timeout waiting for RX - avoid printing the unknown string. */
-      break;
+        /* Unknown command */
+        case 0:
+            /* Timeout waiting for RX - avoid printing the unknown string. */
+            break;
 
-    default:
-      BOOTLDIO_printString( unknownString );
+        default:
+            BOOTLDIO_printString( unknownString );
+        }
     }
-  }
 }
 
 
@@ -296,9 +309,9 @@ static void commandlineLoop( void )
  *****************************************************************************/
 static void verify(uint32_t start, uint32_t end)
 {
-  BOOTLDIO_printString(crcString);
-  BOOTLDIO_printHex(CRC_calc((void *) start, (void *) end));
-  BOOTLDIO_printString(newLineString);
+    BOOTLDIO_printString(crcString);
+    BOOTLDIO_printHex(CRC_calc((void *) start, (void *) end));
+    BOOTLDIO_printString(newLineString);
 }
 
 
@@ -307,20 +320,20 @@ static void verify(uint32_t start, uint32_t end)
  *****************************************************************************/
 static void Disconnect( int predelay, int postdelay )
 {
-  if ( predelay ) {
-    /* Allow time to do a disconnect in a terminal program. */
-    USBTIMER_DelayMs( predelay );
-  }
+    if ( predelay ) {
+        /* Allow time to do a disconnect in a terminal program. */
+        USBTIMER_DelayMs( predelay );
+    }
 
-  USBD_Disconnect();
+    USBD_Disconnect();
 
-  if ( postdelay ) {
-    /*
-     * Stay disconnected long enough to let host OS tear down the
-     * USB CDC driver.
-     */
-    USBTIMER_DelayMs( postdelay );
-  }
+    if ( postdelay ) {
+        /*
+         * Stay disconnected long enough to let host OS tear down the
+         * USB CDC driver.
+         */
+        USBTIMER_DelayMs( postdelay );
+    }
 }
 
 /**************************************************************************//**
@@ -328,8 +341,8 @@ static void Disconnect( int predelay, int postdelay )
  *****************************************************************************/
 void RTC_IRQHandler( void )
 {
-  /* Clear interrupt flag */
-  RTC->IFC = RTC_IFC_COMP1 | RTC_IFC_COMP0 | RTC_IFC_OF;
+    /* Clear interrupt flag */
+    RTC->IFC = RTC_IFC_COMP1 | RTC_IFC_COMP0 | RTC_IFC_OF;
 }
 
 /**************************************************************************//**
@@ -337,24 +350,24 @@ void RTC_IRQHandler( void )
  *****************************************************************************/
 static void StartRTC( void )
 {
-  /* Enable LE */
-  CMU->HFCORECLKEN0 |= CMU_HFCORECLKEN0_LE;
+    /* Enable LE */
+    CMU->HFCORECLKEN0 |= CMU_HFCORECLKEN0_LE;
 
-  /* Enable LFRCO for RTC */
-  CMU->OSCENCMD = CMU_OSCENCMD_LFRCOEN;
-  /* Setup LFA to use LFRCRO */
-  CMU->LFCLKSEL = CMU_LFCLKSEL_LFA_LFRCO;
-  /* Enable RTC */
-  CMU->LFACLKEN0 = CMU_LFACLKEN0_RTC;
+    /* Enable LFRCO for RTC */
+    CMU->OSCENCMD = CMU_OSCENCMD_LFRCOEN;
+    /* Setup LFA to use LFRCRO */
+    CMU->LFCLKSEL = CMU_LFCLKSEL_LFA_LFRCO;
+    /* Enable RTC */
+    CMU->LFACLKEN0 = CMU_LFACLKEN0_RTC;
 
-  /* Clear interrupt flags */
-  RTC->IFC = RTC_IFC_COMP1 | RTC_IFC_COMP0 | RTC_IFC_OF;
-  /* 250 ms wakeup time */
-  RTC->COMP0 = ( PIN_LOOP_INTERVAL * SystemLFRCOClockGet() ) / 1000;
-  /* Enable Interrupts on COMP0 */
-  RTC->IEN = RTC_IEN_COMP0;
-  /* Enable RTC interrupts */
-  NVIC_EnableIRQ(RTC_IRQn);
-  /* Enable RTC */
-  RTC->CTRL = RTC_CTRL_COMP0TOP | RTC_CTRL_DEBUGRUN | RTC_CTRL_EN;
+    /* Clear interrupt flags */
+    RTC->IFC = RTC_IFC_COMP1 | RTC_IFC_COMP0 | RTC_IFC_OF;
+    /* 250 ms wakeup time */
+    RTC->COMP0 = ( PIN_LOOP_INTERVAL * SystemLFRCOClockGet() ) / 1000;
+    /* Enable Interrupts on COMP0 */
+    RTC->IEN = RTC_IEN_COMP0;
+    /* Enable RTC interrupts */
+    NVIC_EnableIRQ(RTC_IRQn);
+    /* Enable RTC */
+    RTC->CTRL = RTC_CTRL_COMP0TOP | RTC_CTRL_DEBUGRUN | RTC_CTRL_EN;
 }

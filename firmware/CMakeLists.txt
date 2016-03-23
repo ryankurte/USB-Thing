@@ -29,6 +29,10 @@ set(DEVICE EFM32GG332F1024)
 # Set build
 set(CMAKE_BUILD_TYPE DEBUG)
 
+if(WITH_BOOTLOADER)
+set(FLASH_START 0x8000)
+endif(WITH_BOOTLOADER)
+
 ##### Modules #####
 
 # Libraries should add themselves to the LIBS variable

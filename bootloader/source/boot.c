@@ -31,6 +31,18 @@
 #include "boot.h"
 #include "em_usb.h"
 
+bool BOOT_checkFirmwareIsValid(void)
+{
+  uint32_t pc;
+
+#if 1
+  pc = *((uint32_t *) BOOTLOADER_SIZE + 1);
+
+  if (pc < MAX_SIZE_OF_FLASH)
+    return true;
+#endif
+  return false;
+}
 
 void BOOT_jump(uint32_t sp, uint32_t pc)
 {

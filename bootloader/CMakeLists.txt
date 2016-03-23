@@ -43,6 +43,8 @@ include(${BASE_LOC}/toolchain/efm32-base.cmake)
 
 ##### Files #####
 
+include(${PROJECT_SOURCE_DIR}/../common/common.cmake)
+
 # Add project headers
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
