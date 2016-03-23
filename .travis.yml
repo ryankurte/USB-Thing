@@ -1,19 +1,38 @@
 language: c
+
 git:
   submodules: false
-addons:
-  apt:
-    packages:
-    - ia32-libs
-    - ia32-libs-multiarch
-    - libgd2-xpm
+
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init --recursive
+- sudo apt-get install emdebian-archive-keyring
+- echo 'deb http://www.emdebian.org/debian wheezy main' | sudo tee /etc/apt/sources.list.d/emdebian.list
+  > /dev/null
+- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty           main restricted universe
+  multiverse' | sudo tee    /etc/apt/sources.list.d/trusty.list > /dev/null
+- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-backports main restricted universe
+  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
+- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-security  main restricted universe
+  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
+- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-updates   main restricted universe
+  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
+- sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
+- sudo apt-get update
+
 install:
-- source armenv.sh
+- sudo apt-get install build-essential
+- sudo apt-get install gcc-multilib
+- sudo apt-get install gcc-arm-none-eabi
+- sudo apt-get install pcregrep libpcre3
+- sudo apt-get install qemu-system-x86 python3
+- sudo apt-get install g++-multilib
+
 script:
-- source armenv.sh; make firmware
+- make firmware
+- make bootloader
+- make library
+
 notifications:
   email: false
   slack:
