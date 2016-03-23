@@ -1,5 +1,7 @@
 language: c
 
+compiler: clang
+
 git:
   submodules: false
 
@@ -10,7 +12,8 @@ before_install:
 - sudo apt-get update
 
 install:
-- sudo apt-get install build-essential gcc-arm-none-eabi libusb-1.0  libusb-1.0-0-dev
+- sudo apt-get install gcc-arm-none-eabi libusb-1.0  libusb-1.0-0-dev
+- gcc --version; g++ --version
 
 script:
 - make firmware
