@@ -23,6 +23,9 @@ set(TARGET bootloader)
 # Configure project and languages
 project(${TARGET} C CXX ASM)
 
+set(CMAKE_C_FLAGS "-std=gnu11 -g")
+set(CMAKE_CXX_FLAGS "-std=gnu++11 -g")
+
 # Set device
 set(DEVICE EFM32GG332F1024)
 

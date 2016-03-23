@@ -1,38 +1,27 @@
 language: c
+
 git:
   submodules: false
+
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init --recursive
-- sudo apt-get install emdebian-archive-keyring
-- echo 'deb http://www.emdebian.org/debian wheezy main' | sudo tee /etc/apt/sources.list.d/emdebian.list
-  > /dev/null
-- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty           main restricted universe
-  multiverse' | sudo tee    /etc/apt/sources.list.d/trusty.list > /dev/null
-- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-backports main restricted universe
-  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
-- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-security  main restricted universe
-  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
-- echo 'deb http://us.archive.ubuntu.com/ubuntu trusty-updates   main restricted universe
-  multiverse' | sudo tee -a /etc/apt/sources.list.d/trusty.list > /dev/null
 - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
 - sudo apt-get update
+
 install:
-- sudo apt-get install build-essential
-- sudo apt-get install gcc-multilib
-- sudo apt-get install gcc-arm-none-eabi
-- sudo apt-get install pcregrep libpcre3
-- sudo apt-get install qemu-system-x86 python3
-- sudo apt-get install g++-multilib
-- sudo apt-get install libusb-1.0  libusb-1.0-0-dev
+- sudo apt-get install build-essential gcc-arm-none-eabi libusb-1.0  libusb-1.0-0-dev
+
 script:
 - make firmware
 - make bootloader
 - make library
+
 notifications:
   email: false
   slack:
     secure: MimJuERoVMl+OIqj3c2aM3GBZhZNkTsigtA7JdVduUHafHqPJOua+y98Pzv+FyNrjvYK7zHH9Pp8/mspeLaes8PxlMzXhhcsULsMC/Q1gKf9sRF+ImuZmkXIMf+gToHD4mvur5MRK3L50u2mI5b4zoZ4mzHRbBKQbBZKD9iXBHUwTX76ypVwM6d0HU1fZgiwdIqjjKqe5Pr9gjYWgfsE/F2SJBoJ4IRkWG/PVYV6f4MPYaXKCOJzN4BMcfeA/opzUoZ1fsKH6h+F0X6GxyWlPTBGfSZiB0D3drLSQ1SGmtH+RkD7972ubapOQxLfu1ocnnAat6HeOJrsreFXHS+VT+s3ro57Th1GsZKytSPT3Eif/PgFJCQLoyQf/asSf6Pxjuq3aF3VEOW2c/NjXuEapxj2udA1hK8LXnl7QoIsPCzJih2n2OnUzelubNL8rfgiIqqBOVltkfAfZc1t7L5B+4MXq5tQ2rTdW6Ku6c/UKVey2rFR5+w2jf6s3AtYCRVI0Op/GUWgn3Zg+icLF8UOJRUg207xdiBKbj3FN4njwGk2ZXrzQVwpp+aSBmYh/AKNChZ70vhTTc7VNu3KuBn6U9FHSjzuxplOvwrI5iSnm9od7r+h3mI9m4afptMe35WC6s0Ae2RTuxzNEvOOYGUKf5OsCNcFfm4uOzgvStYuRBE=
+
 deploy:
   provider: releases
   api_key:

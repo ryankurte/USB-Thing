@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 2.8.4)
 # Configure project and languages
 project(libusbthing C CXX)
 
+set(CMAKE_C_FLAGS "-std=gnu11 -g")
+set(CMAKE_CXX_FLAGS "-std=gnu++11 -g")
+
 # Add project headers
 # Add project headers
 include_directories(${PROJECT_SOURCE_DIR}/../common/include)
