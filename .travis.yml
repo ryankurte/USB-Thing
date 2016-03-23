@@ -24,7 +24,7 @@ install:
 - sudo apt-get install pcregrep libpcre3
 - sudo apt-get install qemu-system-x86 python3
 - sudo apt-get install g++-multilib
-- sudo apt-get install libusb-1.0 libusb-1-dev
+- sudo apt-get install libusb-1.0  libusb-1.0-0-dev
 script:
 - make firmware
 - make bootloader
