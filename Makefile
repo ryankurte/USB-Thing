@@ -5,6 +5,9 @@ VERSION=`git describe --dirty`
 
 all: firmware software library bootloader
 
+package: all
+	tar -cvf build.tgz build/*
+
 setup:
 	mkdir -p build;
 
