@@ -19,6 +19,7 @@ script:
 - make firmware
 - make bootloader
 - make library
+- make software
 
 notifications:
   email: false
