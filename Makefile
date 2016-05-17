@@ -1,5 +1,5 @@
 
-.PHONY: firmware software library bootloader setup
+.PHONY: firmware software library bootloader setup clean
 
 VERSION=`git describe --dirty`
 
@@ -26,3 +26,5 @@ library: setup
 bootloader: setup
 	cd bootloader; mkdir build; cd build; cmake ..; make; cp bootloader.bin ../../build/
 
+clean: 
+	rm -rf firmware/build software/build library/build bootloader/build build/

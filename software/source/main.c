@@ -1,3 +1,6 @@
+/**
+ * USB-Thing Utility
+ */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -5,6 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "libusb-1.0/libusb.h"
 
 #include "usbthing.h"
 #include "selftest.h"
