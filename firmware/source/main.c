@@ -1,4 +1,6 @@
 /**************************************************************************//**
+ * THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL
+
  * @file main_stk.c
  * @brief USB Device Example
  * @author Energy Micro AS

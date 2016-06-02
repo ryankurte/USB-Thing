@@ -41,7 +41,7 @@ int8_t SPI_init(uint32_t baud, uint8_t clock_mode)
     USART_InitSync(SPI_DEVICE, &spiConfig);
 
     //Set up route
-    SPI_DEVICE->ROUTE |= SPI_ROUTE;
+    SPI_DEVICE->ROUTE |= SPI_ROUTE | USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN
 
     return 0;
 }

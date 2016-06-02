@@ -1,4 +1,6 @@
 /**************************************************************************//**
+ * THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL
+ *
  * @file callbacks.c
  * @brief USB callback functions
  * @author Energy Micro AS
