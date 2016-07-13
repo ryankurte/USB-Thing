@@ -47,7 +47,7 @@ static const USB_DeviceDescriptor_TypeDef deviceDesc __attribute__ ((aligned(4))
   .bDeviceClass       = 0xFF,                           /* Vendor unique device */
   .bDeviceSubClass    = 0,                              /* Ignored for vendor unique device */
   .bDeviceProtocol    = 0,                              /* Ignored for vendor unique device */
-  .bMaxPacketSize0    = USB_EP0_SIZE,                   /* Max packet size for EP0 */
+  .bMaxPacketSize0    = USB_FS_CTRL_EP_MAXSIZE,         /* Max packet size for EP0 */
   .idVendor           = VENDOR_ID,                      /* Energy Micro VID */
   .idProduct          = PRODUCT_ID,                     /* PID */
   .bcdDevice          = 0x0000,                         /* Device Release number */
@@ -98,7 +98,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
   EP1_OUT,                              /* bEndpointAddress     */
   USB_EPTYPE_BULK,                      /* bmAttributes         */
-  USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
+  USB_FS_BULK_EP_MAXSIZE,               /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   0,                                    /* bInterval            */
 
@@ -108,7 +108,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
   EP1_IN,                               /* bEndpointAddress     */
   USB_EPTYPE_BULK,                      /* bmAttributes         */
-  USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
+  USB_FS_BULK_EP_MAXSIZE,               /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   0,                                    /* bInterval            */
 
@@ -117,7 +117,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
   EP2_OUT,                              /* bEndpointAddress     */
   USB_EPTYPE_BULK,                      /* bmAttributes         */
-  USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
+  USB_FS_BULK_EP_MAXSIZE,               /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   0,                                    /* bInterval            */
 
@@ -126,7 +126,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
   EP2_IN,                               /* bEndpointAddress     */
   USB_EPTYPE_BULK,                      /* bmAttributes         */
-  USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
+  USB_FS_BULK_EP_MAXSIZE,               /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   0,                                    /* bInterval            */
 
@@ -135,7 +135,7 @@ static const uint8_t configDesc[] __attribute__ ((aligned(4))) = {
   USB_ENDPOINT_DESCRIPTOR,              /* bDescriptorType      */
   EP_INT_IN,                            /* bEndpointAddress     */
   USB_EPTYPE_INTR,                      /* bmAttributes         */
-  USB_MAX_EP_SIZE,                      /* wMaxPacketSize (LSB) */
+  USB_FS_INTR_EP_MAXSIZE,               /* wMaxPacketSize (LSB) */
   0,                                    /* wMaxPacketSize (MSB) */
   1,                                    /* bInterval            */
 
