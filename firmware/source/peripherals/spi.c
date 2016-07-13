@@ -24,7 +24,22 @@ int8_t SPI_init(uint32_t baud, uint8_t clock_mode)
 
     GPIO_PinOutSet(SPI_CS_PORT, SPI_CS_PIN);
 
-    //TODO: determine clock mode
+    //Determine clock mode
+    USART_ClockMode_TypeDef mode;
+    switch(clock_mode) {
+        case 0:
+        mode = usartClockMode0;
+        break;
+        case 1:
+        mode = usartClockMode1;
+        break;
+        case 2:
+        mode = usartClockMode2;
+        break;
+        case 3:
+        mode = usartClockMode3;
+        break;
+    }
 
     //Configure USART
     USART_InitSync_TypeDef spiConfig = {
@@ -34,14 +49,14 @@ int8_t SPI_init(uint32_t baud, uint8_t clock_mode)
         .databits = usartDatabits8,
         .master = true,
         .msbf = true,
-        .clockMode = clock_mode,
+        .clockMode = mode,
     };
 
     //Initialize USART
     USART_InitSync(SPI_DEVICE, &spiConfig);
 
     //Set up route
-    SPI_DEVICE->ROUTE |= SPI_ROUTE | USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN;
+    SPI_DEVICE->ROUTE |= SPI_ROUTE | USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | USART_ROUTE_CLKPEN;// | USART_ROUTE_CSPEN;
 
     return 0;
 }

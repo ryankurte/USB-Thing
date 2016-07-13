@@ -399,9 +399,8 @@ int USBTHING_spi_transfer(usbthing_t usbthing, int length, unsigned char *data_o
   int res;
   int transferred;
 
-  USBTHING_DEBUG_PRINT("SPI write: ");
-  //print_buffer(length, data_out);
-  USBTHING_DEBUG_PRINT("\r\n");
+  USBTHING_DEBUG_PRINT("SPI start write: ");
+  print_buffer(length, data_out);
 
   res = libusb_bulk_transfer (usbthing->handle, 0x01, data_out, length, &transferred, USBTHING_TIMEOUT);
 
@@ -418,7 +417,7 @@ int USBTHING_spi_transfer(usbthing_t usbthing, int length, unsigned char *data_o
   }
 
   USBTHING_DEBUG_PRINT("SPI write complete\r\n");
-  USBTHING_DEBUG_PRINT("SPI read\r\n");
+  USBTHING_DEBUG_PRINT("SPI start read\r\n");
 
   res = libusb_bulk_transfer (usbthing->handle, 0x81, data_in, length, &transferred, USBTHING_TIMEOUT);
 
@@ -436,8 +435,7 @@ int USBTHING_spi_transfer(usbthing_t usbthing, int length, unsigned char *data_o
   }
 
   USBTHING_DEBUG_PRINT("SPI read complete: ");
-  //print_buffer(length, data_in);
-  USBTHING_DEBUG_PRINT("\r\n");
+  print_buffer(length, data_in);
 
   return 0;
 }

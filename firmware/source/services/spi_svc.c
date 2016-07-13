@@ -140,6 +140,10 @@ static int spi_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, 
 	//	res = USBD_Read(EP1_OUT, NULL, 0, NULL);
 	//}
 
+	for(int i=0; i<xferred; i++) {
+		spi_svc_transmit_buffer[i] = 0x00;
+	}
+
 	//Perform SPI transfer
 	SPI_transfer(xferred, spi_svc_receive_buffer, spi_svc_transmit_buffer);
 
