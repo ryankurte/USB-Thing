@@ -53,7 +53,7 @@ int USBTHING_spi_transfer(usbthing_t usbthing, int length, unsigned char *data_o
 
 int USBTHING_spi_close(usbthing_t usbthing);
 
-int USBTHING_i2c_configure(usbthing_t usbthing, int mode);
+int USBTHING_i2c_configure(usbthing_t usbthing, int speed);
 
 int USBTHING_i2c_write(usbthing_t usbthing,
                        int address,

@@ -59,6 +59,7 @@ set(SOURCES
 	source/services/dac_svc.c
 	source/services/gpio_svc.c
 	source/services/spi_svc.c
+	source/services/i2c_svc.c
 	source/peripherals/gpio.c
 	source/peripherals/spi.c
 	source/peripherals/i2c.c

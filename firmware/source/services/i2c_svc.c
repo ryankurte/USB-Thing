@@ -13,40 +13,50 @@
 
 #define I2C_BUFF_SIZE 		256
 
-static int i2c_config(const USB_Setup_TypeDef *setup);
-static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int i2c_svc_config(const USB_Setup_TypeDef *setup);
+static int i2c_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+
+static int i2c_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int i2c_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
+static int i2c_svc_close(const USB_Setup_TypeDef *setup);
+
 
 //Aligned buffers for USB operations
 STATIC_UBUF(i2c_receive_buffer, I2C_BUFF_SIZE);
 STATIC_UBUF(i2c_transmit_buffer, I2C_BUFF_SIZE);
 
 extern uint8_t cmd_buffer[];
-extern int usbthing_busy = 0;
+extern int usbthing_busy;
 
 static int i2c_configured = 0;
 
-int i2c_handle_setup(const USB_Setup_TypeDef *setup)
+void i2c_svc_start()
+{
+	USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_svc_data_receive_cb);
+}
+
+int i2c_svc_handle_setup(const USB_Setup_TypeDef *setup)
 {
 	switch (setup->wValue) {
-	case USBTHING_i2c_CMD_CONFIG:
-		return i2c_config(setup);
+	case USBTHING_I2C_CMD_CONFIG:
+		return i2c_svc_config(setup);
 	}
 
 	return USB_STATUS_REQ_UNHANDLED;
 }
 
-static int i2c_config(const USB_Setup_TypeDef *setup)
+static int i2c_svc_config(const USB_Setup_TypeDef *setup)
 {
 	int res = USB_STATUS_REQ_ERR;
 
-	CHECK_SETUP_OUT(USBTHING_CMD_i2c_CONFIG_SIZE);
+	CHECK_SETUP_OUT(USBTHING_CMD_I2C_CONFIG_SIZE);
 
-	res = USBD_Read(0, cmd_buffer, USBTHING_CMD_i2c_CONFIG_SIZE, i2c_config_cb);
+	res = USBD_Read(0, cmd_buffer, USBTHING_CMD_I2C_CONFIG_SIZE, i2c_svc_config_cb);
 
 	return res;
 }
 
-static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+static int i2c_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
 	(void)xferred;
 	(void)remaining;
@@ -64,54 +74,60 @@ static int i2c_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t r
 	return USB_STATUS_OK;
 }
 
-void i2c_start()
+
+int i2c_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-	USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_data_receive_cb);
+    /* Remove warnings for unused variables */
+    (void)xferred;
+    (void)remaining;
+
+    //Restart EP_OUT
+    USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_svc_data_receive_cb);
+
+    if ( status != USB_STATUS_OK ) {
+        /* Handle error */
+    }
+    return USB_STATUS_OK;
 }
 
-int i2c_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
+int i2c_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
 {
-	/* Remove warnings for unused variables */
-	(void)xferred;
-	(void)remaining;
+    //Remove unused variable warnings
+    (void)xferred;
+    (void)remaining;
 
-	//Restart EP_OUT
-	USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_data_receive_cb);
+    //TODO: what if i2c is not initialized?
 
-	if ( status != USB_STATUS_OK ) {
-		/* Handle error */
-	}
-	return USB_STATUS_OK;
+    if ( status == USB_STATUS_OK ) {
+        struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) i2c_receive_buffer;
+
+        //TODO: bounds checking of num_write, num_read vs. xferred and maximum
+
+        //Call hardware function based on mode
+        switch (config->mode) {
+        case USBTHING_I2C_MODE_WRITE:
+            I2C_write(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s));
+            //nb. dummy write back to USB (allows ordering/exclusion)
+            USBD_Write(EP2_IN, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_write, i2c_svc_data_sent_cb);
+            break;
+        case USBTHING_I2C_MODE_READ:
+            I2C_read(config->address, config->num_read, i2c_transmit_buffer);
+            USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_svc_data_sent_cb);
+            break;
+        case USBTHING_I2C_MODE_WRITE_READ:
+            I2C_write_read(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
+            USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_svc_data_sent_cb);
+            break;
+        }
+
+    } else {
+        //TODO: handle errors
+
+        //Restart EP_OUT
+        USBD_Read(EP2_OUT, i2c_receive_buffer, I2C_BUFF_SIZE, i2c_svc_data_receive_cb);
+    }
+
+    return USB_STATUS_OK;
 }
 
-int i2c_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining)
-{
-	/* Remove warnings for unused variables */
-	(void)xferred;
-	(void)remaining;
-
-	struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) i2c_receive_buffer;
-
-	switch(config->mode) {
-		case USBTHING_I2C_MODE_WRITE:
-
-		break;
-		case USBTHING_I2C_MODE_READ:
-
-		break;
-		case USBTHING_I2C_MODE_WRITE_READ:
-
-		break;
-	}
-
-	I2C_write(i2c_receive_buffer[0], i2c_rec)
-
-	for(uint32_t i=0; i<xferred; i++) {
-		i2c_transmit_buffer[i] = i2c_receive_buffer[i];
-	}
-
-	USBD_Write(EP2_IN, i2c_transmit_buffer, xferred, i2c_data_receive_cb);
-
-	return USB_STATUS_OK;
-}
 

@@ -16,7 +16,6 @@
 
 static int spi_svc_config(const USB_Setup_TypeDef *setup);
 static int spi_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
-static int spi_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int spi_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int spi_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int spi_svc_close(const USB_Setup_TypeDef *setup);

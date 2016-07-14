@@ -21,7 +21,7 @@
 #define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
-//#define DEBUG_USBTHING
+#define DEBUG_USBTHING
 
 #ifdef DEBUG_USBTHING
 #define USBTHING_DEBUG_PRINT(...) printf(__VA_ARGS__)
@@ -462,14 +462,17 @@ int USBTHING_spi_close(usbthing_t usbthing)
 int USBTHING_i2c_configure(usbthing_t usbthing, int speed)
 {
   int res;
-  res = libusb_control_transfer (usbthing->handle,
-                                 LIBUSB_REQUEST_TYPE_VENDOR,
-                                 USBTHING_CMD_I2C_CFG,
-                                 speed,
-                                 0,
-                                 NULL,
-                                 USBTHING_I2C_CFG_SIZE,
-                                 USBTHING_TIMEOUT);
+
+  struct usbthing_ctrl_s ctrl;
+
+  ctrl.i2c_cmd.config.freq_le = speed;
+
+  res = control_set(usbthing,
+                    USBTHING_MODULE_I2C,
+                    USBTHING_I2C_CMD_CONFIG,
+                    0,
+                    USBTHING_CMD_I2C_CONFIG_SIZE,
+                    ctrl.data);
 
   if (res < 0) {
     perror("USBTHING i2c configuration error");
@@ -499,7 +502,7 @@ int USBTHING_i2c_write(usbthing_t usbthing,
   memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
   output_buffer_length = length_out + sizeof(struct usbthing_i2c_transfer_s);
 
-  USBTHING_DEBUG_PRINT("I2C write: ");
+  printf("I2C write: ");
   print_buffer(length_out, data_out);
 
   res = libusb_bulk_transfer (usbthing->handle,
@@ -524,21 +527,22 @@ int USBTHING_i2c_write(usbthing_t usbthing,
                                 USBTHING_TIMEOUT);
   }
 
-  printf("I2C write complete\r\n");
-
   //Stub for write function response (written data)
+  #if 0
   res = libusb_bulk_transfer (usbthing->handle,
                               0x82,
                               input_buffer,
                               sizeof(input_buffer),
                               &transferred,
                               USBTHING_TIMEOUT);
-
+#endif
   //TODO: check for complete write
   if (res < 0) {
     perror("USBTHING i2c write incoming error");
     return -2;
   }
+
+  printf("I2C write complete\r\n");
 
   return 0;
 }
@@ -561,6 +565,8 @@ int USBTHING_i2c_read(usbthing_t usbthing,
   config->num_read = length_in;
 
   output_buffer_length = sizeof(struct usbthing_i2c_transfer_s);
+
+  printf("I2C read\r\n");
 
   res = libusb_bulk_transfer (usbthing->handle,
                               0x02,

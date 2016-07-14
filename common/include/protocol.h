@@ -26,8 +26,8 @@ enum usbthing_module_e {
 };
 
 enum usb_thing_cmd_e {
-    USBTHING_CMD_I2C_CFG = 0xB1,
-    USBTHING_CMD_I2C_TRANSFER = 0xB2,
+//    USBTHING_CMD_I2C_CFG = 0xB1,
+//    USBTHING_CMD_I2C_TRANSFER = 0xB2,
     USBTHING_CMD_PWM_CFG = 0xC1,
     USBTHING_CMD_PWM_EN = 0xC2,
     USBTHING_CMD_PWM_SET = 0xC3,
@@ -253,9 +253,10 @@ struct spi_cmd_s {
 #define USBTHING_CMD_SPI_CLOSE_SIZE             0
 
 /*****      I2C Configuration messages          *****/
-#define USBTHING_I2C_CFG_SPEED_SHIFT            (0)
-#define USBTHING_I2C_CFG_SPEED_MASK             (0x0F << USBTHING_I2C_CFG_SPEED_SHIFT)
-#define USBTHING_I2C_CFG_SIZE                   0
+enum usbthing_i2c_cmd_e {
+    USBTHING_I2C_CMD_CONFIG = 0,
+    USBTHING_I2C_CMD_CLOSE = 1
+};
 
 enum usbthing_i2c_speed_e {
     USBTHING_I2C_SPEED_STANDARD = 0,            //!< Standard mode (100 kbps)
@@ -270,9 +271,17 @@ enum usbthing_i2c_transfer_mode_e {
     USBTHING_I2C_MODE_WRITE_READ = 2            //!< Write and read mode
 };
 
-struct usbthing_i2c_cfg_s {
+struct usbthing_i2c_config_s {
     uint32_t freq_le;                             //!< I2C device speed
 } __attribute((packed));
+
+struct i2c_cmd_s {
+    union {
+        struct usbthing_i2c_config_s config;
+    };
+};
+
+#define USBTHING_CMD_I2C_CONFIG_SIZE            (sizeof(struct usbthing_i2c_config_s))
 
 struct usbthing_i2c_transfer_s {
     uint8_t mode;                               //!< I2C Transfer mode
@@ -329,6 +338,7 @@ struct usbthing_ctrl_s {
         struct base_cmd_s base_cmd;
         struct gpio_cmd_s gpio_cmd;
         struct spi_cmd_s spi_cmd;
+        struct i2c_cmd_s i2c_cmd;
         struct adc_cmd_s adc_cmd;
         struct dac_cmd_s dac_cmd;
     };
