@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 #include "protocol.h"
+#include "handlers.h"
 
 /* Device Descriptor. Refer to the USB 2.0 Specification, chapter 9.6 */
 EFM32_ALIGN(4)
@@ -174,8 +175,8 @@ static const uint8_t bufferingMultiplier[ NUM_EP_USED + 1 ] = {
 /* Define callbacks that are called by the USB stack on different events. */
 static const USBD_Callbacks_TypeDef callbacks = {
   .usbReset        = NULL,              /* Called whenever USB reset signalling is detected on the USB port. */
-  .usbStateChange  = stateChange,       /* Called whenever the device change state.  */
-  .setupCmd        = setupCmd,          /* Called on each setup request received from host. */
+  .usbStateChange  = state_change_cb,   /* Called whenever the device change state.  */
+  .setupCmd        = setup_cmd_cb,      /* Called on each setup request received from host. */
   .isSelfPowered   = NULL,              /* Called whenever the device stack needs to query if the device is currently self- or bus-powered. */
   .sofInt          = NULL               /* Called at each SOF (Start of Frame) interrupt. If NULL, the device stack will not enable the SOF interrupt. */
 };
