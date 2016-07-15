@@ -259,20 +259,20 @@ enum usbthing_i2c_cmd_e {
 };
 
 enum usbthing_i2c_speed_e {
-    USBTHING_I2C_SPEED_STANDARD = 0,            //!< Standard mode (100 kbps)
-    USBTHING_I2C_SPEED_FULL = 1,                //!< Full mode (400 kbps)
-    USBTHING_I2C_SPEED_FAST = 2,                //!< Fast mode (1 Mpbs)
-    USBTHING_I2C_SPEED_HIGH = 3                 //!< High speed mode (3.2 Mbps)
+    USBTHING_I2C_SPEED_STANDARD = 100000,       //!< Standard mode (100 kbps)
+    USBTHING_I2C_SPEED_FULL     = 400000,       //!< Full mode (400 kbps)
+    USBTHING_I2C_SPEED_FAST     = 1000000,      //!< Fast mode (1 Mpbs)
+    USBTHING_I2C_SPEED_HIGH     = 3200000       //!< High speed mode (3.2 Mbps)
 };
 
 enum usbthing_i2c_transfer_mode_e {
-    USBTHING_I2C_MODE_READ = 0,                 //!< Read only mode
-    USBTHING_I2C_MODE_WRITE = 1,                //!< Write only mode
-    USBTHING_I2C_MODE_WRITE_READ = 2            //!< Write and read mode
+    USBTHING_I2C_MODE_READ          = 0,        //!< Read only mode
+    USBTHING_I2C_MODE_WRITE         = 1,        //!< Write only mode
+    USBTHING_I2C_MODE_WRITE_READ    = 2         //!< Write and read mode
 };
 
 struct usbthing_i2c_config_s {
-    uint32_t freq_le;                             //!< I2C device speed
+    uint32_t freq_le;                           //!< I2C device speed
 } __attribute((packed));
 
 struct i2c_cmd_s {
