@@ -21,18 +21,14 @@
 #define USBTHING_TIMEOUT        0       //Zero for debug purposes (no timeout)
 #define USBTHING_BUFFER_SIZE    64
 
-#define DEBUG_USBTHING
-
-#ifdef DEBUG_USBTHING
-#define USBTHING_DEBUG_PRINT(...) printf(__VA_ARGS__)
-#else
-#define USBTHING_DEBUG_PRINT(...)
-#endif
+#define USBTHING_DEBUG_PRINT(...) if(usbthing_debug > 0) printf(__VA_ARGS__);
 
 //USBThing storage structure
 struct usbthing_s {
   libusb_device_handle *handle;
 };
+
+static int usbthing_debug;
 
 static void print_buffer(uint8_t length, uint8_t *buffer);
 static void print_devs(libusb_device **devs, uint16_t vid_filter, uint16_t pid_filter);
@@ -47,6 +43,11 @@ int USBTHING_init()
 void USBTHING_close()
 {
   libusb_exit(NULL);
+}
+
+void USBTHING_enable_debug()
+{
+  usbthing_debug = 1;
 }
 
 int USBTHING_list_devices(uint16_t vid_filter, uint16_t pid_filter)
@@ -71,7 +72,7 @@ int USBTHING_connect(usbthing_t *usbthing, uint16_t vid_filter, uint16_t pid_fil
   int res;
 
   (*usbthing) = malloc(sizeof(struct usbthing_s));
-  if(*usbthing == NULL) {
+  if (*usbthing == NULL) {
     return -1;
   }
 
@@ -112,7 +113,8 @@ int USBTHING_disconnect(usbthing_t *usbthing)
   return 0;
 }
 
-static int control_set(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
+static int control_set(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data)
+{
   int res;
 
   int response_length;
@@ -137,7 +139,8 @@ static int control_set(usbthing_t usbthing, uint32_t service, uint32_t operation
   return res;
 }
 
-static int control_get(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data) {
+static int control_get(usbthing_t usbthing, uint32_t service, uint32_t operation, uint32_t index, uint8_t size, uint8_t* data)
+{
   int res;
 
   int response_length;
@@ -530,14 +533,14 @@ int USBTHING_i2c_write(usbthing_t usbthing,
   }
 
   //Stub for write function response (written data)
-  #if 1
+#if 1
   res = libusb_bulk_transfer (usbthing->handle,
                               0x82,
                               input_buffer,
                               output_buffer_length,
                               &transferred,
                               USBTHING_TIMEOUT);
-  #endif
+#endif
   //TODO: check for complete write
   if (res < 0) {
     perror("USBTHING i2c write incoming error");

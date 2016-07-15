@@ -14,6 +14,7 @@ typedef struct usbthing_s * usbthing_t;
 
 int USBTHING_init();
 void USBTHING_close();
+void USBTHING_enable_debug();
 
 int USBTHING_list_devices(uint16_t vid_filter, uint16_t pid_filter);
 
