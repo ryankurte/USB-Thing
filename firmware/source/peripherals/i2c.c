@@ -20,27 +20,22 @@ static int8_t transfer(I2C_TransferSeq_TypeDef *i2c_transfer_ptr, I2C_TypeDef *i
 //Initialize I2C peripheral
 void I2C_init(uint32_t baud)
 {
-
     //Create configuration structure
-    I2C_Init_TypeDef i2c_config = {
-        .enable = true,
-        .master = true,
-        .refFreq = 0,
-        .freq = baud,
-        .clhr = i2cClockHLRAsymetric
-    };
+    I2C_Init_TypeDef i2c_config = I2C_INIT_DEFAULT;
+    i2c_config.freq = baud;
 
     //Enable device
     CMU_ClockEnable(I2C_CLOCK, true);
+    CMU_ClockEnable(cmuClock_GPIO, true);
 
     //Setup pins
-    GPIO_PinModeSet(I2C_SDA_PORT, I2C_SDA_PIN, gpioModeWiredAnd, 0);
-    GPIO_PinModeSet(I2C_SCL_PORT, I2C_SCL_PIN, gpioModeWiredAnd, 0);
+    GPIO_PinModeSet(I2C_SDA_PORT, I2C_SDA_PIN, gpioModeWiredAnd, 1);
+    GPIO_PinModeSet(I2C_SCL_PORT, I2C_SCL_PIN, gpioModeWiredAnd, 1);
 
     I2C_Init(I2C_DEVICE, &i2c_config);
 
     //Set route
-    I2C_DEVICE->ROUTE = I2C_ROUTE;
+    I2C_DEVICE->ROUTE = I2C_ROUTE | I2C_ROUTE_SDAPEN | I2C_ROUTE_SCLPEN;
 
     //Enable auto ack
     I2C_DEVICE->CTRL |= I2C_CTRL_AUTOACK;
@@ -94,10 +89,7 @@ static int8_t transfer(I2C_TransferSeq_TypeDef *i2c_transfer_ptr, I2C_TypeDef *i
     DISABLE_INTERRUPTS;
 
     result = I2C_TransferInit(i2c_bus_ptr, i2c_transfer_ptr);
-
-    while (result == i2cTransferInProgress) {
-        result = I2C_Transfer(i2c_bus_ptr);
-    }
+    while ((result = I2C_Transfer(i2c_bus_ptr)) == i2cTransferInProgress);
 
     // Reenable I2C access
     ENABLE_INTERRUPTS;

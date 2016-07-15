@@ -102,11 +102,15 @@ int i2c_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_
 		struct usbthing_i2c_transfer_s *config = (struct usbthing_i2c_transfer_s *) i2c_receive_buffer;
 
 		//TODO: bounds checking of num_write, num_read vs. xferred and maximum
+		uint8_t mode = config->mode;
+		uint8_t address = config->address;
+		uint8_t num_write = config->num_write;
+  		uint8_t num_read = config->num_read;
 
 		//Call hardware function based on mode
-		switch (config->mode) {
+		switch (mode) {
 		case USBTHING_I2C_MODE_WRITE:
-			//I2C_write(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s));
+			I2C_write(address, num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s));
 			//nb. dummy write back to USB (allows ordering/exclusion on library side)
 			for (int i = 0; i < xferred; i++) {
 				i2c_transmit_buffer[i] = i2c_receive_buffer[i];
@@ -114,12 +118,12 @@ int i2c_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_
 			USBD_Write(EP2_IN, i2c_transmit_buffer, xferred, i2c_svc_data_sent_cb);
 			break;
 		case USBTHING_I2C_MODE_READ:
-			//I2C_read(config->address, config->num_read, i2c_transmit_buffer);
+			I2C_read(address, num_read, i2c_transmit_buffer);
 			USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_svc_data_sent_cb);
 			break;
 		case USBTHING_I2C_MODE_WRITE_READ:
-			//I2C_write_read(config->address, config->num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
-			USBD_Write(EP2_IN, i2c_transmit_buffer, config->num_read, i2c_svc_data_sent_cb);
+			I2C_write_read(address, num_write, i2c_receive_buffer + sizeof(struct usbthing_i2c_transfer_s), config->num_read, i2c_transmit_buffer);
+			USBD_Write(EP2_IN, i2c_transmit_buffer, num_read, i2c_svc_data_sent_cb);
 			break;
 		}
 

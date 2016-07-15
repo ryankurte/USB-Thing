@@ -58,9 +58,9 @@
 #define I2C_SCL_PIN 		5
 #define I2C_SCL_PORT	 	gpioPortC
 
-#define I2C_DEVICE 			I2C0
-#define I2C_CLOCK 			cmuClock_I2C0
-#define I2C_ROUTE 			I2C_ROUTE_LOCATION_LOC1 | I2C_ROUTE_SCLPEN | I2C_ROUTE_SDAPEN
+#define I2C_DEVICE 			I2C1
+#define I2C_CLOCK 			cmuClock_I2C1
+#define I2C_ROUTE 			I2C_ROUTE_LOCATION_LOC0
 
 /*** 			PWM Pins 				***/
 #define PWM_TIMER_CLOCK		cmuClock_HFPER

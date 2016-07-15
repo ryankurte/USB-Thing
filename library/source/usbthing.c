@@ -497,12 +497,14 @@ int USBTHING_i2c_write(usbthing_t usbthing,
   config->mode = USBTHING_I2C_MODE_WRITE;
   config->address = address;
   config->num_write = length_out;
+  config->num_read = 0;
+  config->result = 0;
 
   //Copy data
   memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
   output_buffer_length = length_out + sizeof(struct usbthing_i2c_transfer_s);
 
-  printf("I2C write: ");
+  printf("I2C write 0x%x : ", address);
   print_buffer(length_out, data_out);
 
   res = libusb_bulk_transfer (usbthing->handle,
@@ -563,10 +565,12 @@ int USBTHING_i2c_read(usbthing_t usbthing,
   config->mode = USBTHING_I2C_MODE_READ;
   config->address = address;
   config->num_read = length_in;
+  config->num_write = 0;
+  config->result = 0;
 
   output_buffer_length = sizeof(struct usbthing_i2c_transfer_s);
 
-  printf("I2C read\r\n");
+  printf("I2C read 0x%x\r\n", address);
 
   res = libusb_bulk_transfer (usbthing->handle,
                               0x02,
@@ -628,6 +632,7 @@ int USBTHING_i2c_write_read(usbthing_t usbthing,
   config->address = address;
   config->num_write = length_out;
   config->num_read = length_in;
+  config->result = 0;
 
   //Copy data
   memcpy(output_buffer + sizeof(struct usbthing_i2c_transfer_s), data_out, length_out);
