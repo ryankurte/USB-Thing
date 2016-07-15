@@ -528,14 +528,14 @@ int USBTHING_i2c_write(usbthing_t usbthing,
   }
 
   //Stub for write function response (written data)
-  #if 0
+  #if 1
   res = libusb_bulk_transfer (usbthing->handle,
                               0x82,
                               input_buffer,
-                              sizeof(input_buffer),
+                              output_buffer_length,
                               &transferred,
                               USBTHING_TIMEOUT);
-#endif
+  #endif
   //TODO: check for complete write
   if (res < 0) {
     perror("USBTHING i2c write incoming error");
