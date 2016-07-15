@@ -43,7 +43,7 @@
 #include "em_gpio.h"
 #include "em_emu.h"
 
-#include "callbacks.h"
+#include "handlers.h"
 #include "descriptors.h"
 #include "platform.h"
 #include "peripherals/gpio.h"

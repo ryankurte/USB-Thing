@@ -6,13 +6,12 @@
 
 #include "em_usb.h"
 
-#include "callbacks.h"
+#include "handlers.h"
 #include "protocol.h"
 #include "peripherals/spi.h"
 #include "em_usart.h"
 
 #define SPI_BUFF_SIZE 		512
-
 
 static int spi_svc_config(const USB_Setup_TypeDef *setup);
 static int spi_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
@@ -25,13 +24,10 @@ static int spi_svc_close(const USB_Setup_TypeDef *setup);
 STATIC_UBUF(spi_svc_receive_buffer, SPI_BUFF_SIZE);
 STATIC_UBUF(spi_svc_transmit_buffer, SPI_BUFF_SIZE);
 
-
 extern uint8_t cmd_buffer[];
 extern int usbthing_busy;
 
 static int spi_svc_configured = 0;
-static int zlp_required = 0;
-
 
 void spi_svc_start()
 {

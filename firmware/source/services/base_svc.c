@@ -1,6 +1,7 @@
 /**
  * Base service
  * Provides base control and query operations
+ * This extends the setup endpoint rather than using a custom set
  *
  * @author Ryan Kurte
  * @date Fri Jul 17 18:40:08 2015
@@ -13,7 +14,7 @@
 #include "em_usb.h"
 #include "em_device.h"
 
-#include "callbacks.h"
+#include "handlers.h"
 #include "protocol.h"
 #include "version.h"
 

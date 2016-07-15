@@ -6,7 +6,7 @@
 
 #include "em_usb.h"
 
-#include "callbacks.h"
+#include "handlers.h"
 #include "protocol.h"
 #include "peripherals/i2c.h"
 #include "em_usart.h"
@@ -15,7 +15,6 @@
 
 static int i2c_svc_config(const USB_Setup_TypeDef *setup);
 static int i2c_svc_config_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
-
 static int i2c_svc_data_sent_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int i2c_svc_data_receive_cb(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining);
 static int i2c_svc_close(const USB_Setup_TypeDef *setup);
