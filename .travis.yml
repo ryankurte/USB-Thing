@@ -1,25 +1,29 @@
 language: c
-
 compiler: clang
+sudo: required
 
 git:
   submodules: false
 
+services:
+  - docker
+
 before_install:
-- sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-- git submodule update --init --recursive
-- sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa
-- sudo apt-get update
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
+  - sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa
+  - sudo apt-get update
 
 install:
-- sudo apt-get install -y gcc-arm-embedded libusb-1.0  libusb-1.0-0-dev
-- gcc --version; g++ --version
+  - sudo apt-get install -y gcc-arm-embedded libusb-1.0  libusb-1.0-0-dev
+  - gcc --version; g++ --version
+  - docker pull ryankurte/docker-arm-embedded
+  - docker pull ryankurte/docker-native-dev
 
 script:
-- make firmware
-- make bootloader
-- make library
-- make software
+  - docker run --rm -it -v`pwd`:/work ryankurte/docker-arm-embedded /bin/bash -c "cd /work && make firmware"
+  - docker run --rm -it -v`pwd`:/work ryankurte/docker-native-dev /bin/bash -c "cd /work && make library"
+  - docker run --rm -it -v`pwd`:/work ryankurte/docker-native-dev /bin/bash -c "cd /work && make software"
 
 notifications:
   email: false
