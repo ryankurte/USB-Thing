@@ -1,6 +1,10 @@
 # USB-Thing
 
-Generic USB interface device for driver development and hardware testing
+Generic USB interface device for driver development and hardware testing.  
+
+This consists of a hardware device with a number of common embedded interfaces exposed (see status section for more details) paired with a LibUSB based driver library that provides a set of fairly standard set of functions to interface with embedded peripherals.
+
+![Example](https://raw.github.com/ryankurte/usb-thing/gh-pages/assets/01.jpg)
 
 ## Status
 Very early alpha. Firmware working, library has restricted functionality.
@@ -20,6 +24,15 @@ Very early alpha. Firmware working, library has restricted functionality.
 
  - Generic device to allow control and interaction with embedded hardware allowing native driver development and hardware unit testing
  - LibUSB based support for I2C, SPI, GPIO (with interrupts), ADC and PWM
+ - Immediately usable, information printed on device so there is no need to consult the manual
+
+## Hardware
+
+![Example](https://raw.github.com/ryankurte/usb-thing/gh-pages/assets/03.png)
+
+### Schematics
+Board schematics are available [here](https://raw.github.com/ryankurte/usb-thing/gh-pages/assets/usb-thing-v0.2.0.pdf) and will be updated as new hardware is released.
+
 
 ## Requirements
 
@@ -58,5 +71,11 @@ First, initialize the project with the following:
 
 * firmware - device firmware sources and build tools
 * library - usbthing shared library, this includes all libusb calls
+* software - usbthing utility, provides common (simple) interface methods
 * common - common protocol definitions shared between the firmware and library modules
 
+## Licensing
+TODO
+
+--------
+If you have any questions, comments, or suggestions, feel free to open an issue or a pull request.  
